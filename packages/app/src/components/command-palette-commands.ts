@@ -19,6 +19,7 @@ import {
   Blocks,
   BookOpen,
   Bug,
+  ChartNoAxesColumnIncreasing,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -66,7 +67,7 @@ import { i18n } from '@/lib/i18n';
 import type { KeyboardShortcutId } from '@/lib/keyboard-shortcuts';
 import { openDocInNoteWindow } from '@/lib/open-note-window';
 import { moveChatHistory, type PhysicalSide, swapEditorSidebars } from '@/lib/sidebar-side-store';
-import { openSettings } from '@/lib/use-settings-route';
+import { openAgentEvaluations, openSettings } from '@/lib/use-settings-route';
 import type { ViewMenuState } from '@/lib/view-menu-state-store';
 
 export type ContextualTargetKind = 'doc' | 'folder' | 'asset' | 'none';
@@ -137,6 +138,7 @@ const PALETTE_COMMAND_LABELS = {
   newFile: msg`New file`,
   newFolder: msg`New folder`,
   openGraph: msg`Open graph`,
+  agentEvaluations: msg`Agent evaluations`,
   openInNewWindow: msg`Open in New Window`,
   initializeStarterPack: msg`Initialize starter pack`,
   newSkill: msg`New skill`,
@@ -251,6 +253,7 @@ const COMMAND_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   'new-file': FilePlus2,
   'new-folder': FolderPlus,
   'open-graph': Network,
+  'agent-evaluations': ChartNoAxesColumnIncreasing,
   'open-in-new-window': SquareArrowOutUpRight,
   'initialize-starter-pack': Package,
   'new-skill': Sparkles,
@@ -337,6 +340,10 @@ const COMMAND_DISPATCH: Record<string, (ctx: PaletteCommandContext) => void> = {
   'open-in-new-window': (ctx) => {
     ctx.closePalette();
     if (ctx.activeDocName) void openDocInNoteWindow(ctx.activeDocName, 'palette');
+  },
+  'agent-evaluations': (ctx) => {
+    ctx.closePalette();
+    openAgentEvaluations();
   },
   'initialize-starter-pack': (ctx) => {
     ctx.closePalette();

@@ -12307,3 +12307,111 @@ msgstr "Afastar"
 
 msgid "Zoom Out"
 msgstr "Afastar"
+
+msgid "Agent evaluations"
+msgstr "Avaliações de agentes"
+
+msgid "Answer key and evidence"
+msgstr "Gabarito e evidências"
+
+msgid "Awaiting verdict"
+msgstr "Aguardando avaliação"
+
+msgid "Baseline"
+msgstr "Execução de referência"
+
+msgid "Became ready"
+msgstr "Passaram a ser utilizáveis"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "Escolha um relatório menor que 8 MiB."
+
+msgid "Compare agent answers"
+msgstr "Comparar respostas dos agentes"
+
+msgid "Comparison run"
+msgstr "Execução de comparação"
+
+msgid "Completed / planned"
+msgstr "Concluídas / planejadas"
+
+msgid "Configuration"
+msgstr "Configuração"
+
+msgid "Copy blind question"
+msgstr "Copiar pergunta sem gabarito"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "Não foi possível abrir este relatório de avaliação. Confira o formato JSON e a versão."
+
+msgid "Critical"
+msgstr "Essencial"
+
+msgid "Disqualifying errors"
+msgstr "Erros eliminatórios"
+
+msgid "Duration"
+msgstr "Duração"
+
+msgid "Evidence"
+msgstr "Evidências"
+
+msgid "Export blind questions"
+msgstr "Exportar perguntas sem gabarito"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "Importe um arquivo JSON de avaliação local para comparar execuções, revisar respostas e verificar as evidências."
+
+msgid "Import report"
+msgstr "Importar relatório"
+
+msgid "Misleading"
+msgstr "Enganosa"
+
+msgid "Misleading / completed"
+msgstr "Enganosas / concluídas"
+
+msgid "Needs revision"
+msgstr "Requer revisão"
+
+msgid "No final answer"
+msgstr "Sem resposta final"
+
+msgid "No longer ready"
+msgstr "Deixaram de ser utilizáveis"
+
+msgid "Pages opened"
+msgstr "Páginas abertas"
+
+msgid "Paired verdicts"
+msgstr "Avaliações pareadas"
+
+msgid "Pending run"
+msgstr "Execução pendente"
+
+msgid "Question"
+msgstr "Pergunta"
+
+msgid "Ready / planned"
+msgstr "Utilizáveis / planejadas"
+
+msgid "Ready to use"
+msgstr "Pronta para uso"
+
+msgid "Reference answer"
+msgstr "Resposta de referência"
+
+msgid "Rubric"
+msgstr "Critérios de avaliação"
+
+msgid "Rubric pass / planned"
+msgstr "Aprovadas pelos critérios / planejadas"
+
+msgid "Run metrics"
+msgstr "Métricas de execução"
+
+msgid "Tool calls"
+msgstr "Chamadas de ferramentas"
+
+msgid "Weight"
+msgstr "Peso"

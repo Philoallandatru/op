@@ -266,6 +266,13 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     palette: { group: 'commands', visibility: 'always' },
   },
   {
+    id: 'agent-evaluations',
+    labelKey: 'agentEvaluations',
+    keywords: ['agent', 'evaluations', 'benchmark', 'compare', 'report'],
+    availability: { singleFileHidden: true },
+    palette: { group: 'commands', visibility: 'search-only' },
+  },
+  {
     id: 'open-in-new-window',
     labelKey: 'openInNewWindow',
     keywords: ['pop out', 'detach', 'separate window', 'second monitor'],

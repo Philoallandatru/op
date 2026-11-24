@@ -273,6 +273,7 @@ function SettingsDialogFrame({
           label: t(AGENT_CONNECTIONS_SECTION_LABEL),
           keywords: [t`AI tools`, t`Configure agents`],
         },
+        { id: 'agent-evaluations', label: t`Agent evaluations` },
       ],
     },
     {
@@ -474,6 +475,8 @@ function SettingsDialogFrame({
       <DialogContent
         className={cn(
           'flex h-[700px] max-h-[calc(100dvh-4rem)] w-[900px] max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:grid sm:grid-cols-[220px_1fr] sm:max-w-[min(900px,calc(100%-2rem))]',
+          shownId === 'agent-evaluations' &&
+            'h-[min(900px,100dvh)] w-[1440px] sm:grid-cols-[200px_minmax(0,1fr)] sm:max-w-[min(1440px,calc(100%-2rem))]',
           electronDragBandClearance(),
         )}
         data-testid="settings-dialog"
@@ -506,7 +509,7 @@ function SettingsDialogFrame({
         <section
           ref={contentRef}
           aria-label={t`Settings content`}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain subtle-scrollbar p-6"
+          className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain subtle-scrollbar p-6"
           // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- this scrollable content section must be focusable so keyboard users can scroll long settings pages.
           tabIndex={0}
         >

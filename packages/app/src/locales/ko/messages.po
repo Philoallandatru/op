@@ -12311,3 +12311,111 @@ msgstr "축소"
 
 msgid "Zoom Out"
 msgstr "축소"
+
+msgid "Agent evaluations"
+msgstr "에이전트 평가"
+
+msgid "Answer key and evidence"
+msgstr "모범 답안 및 근거"
+
+msgid "Awaiting verdict"
+msgstr "평가 대기"
+
+msgid "Baseline"
+msgstr "기준 실행"
+
+msgid "Became ready"
+msgstr "사용 가능으로 전환"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "8 MiB보다 작은 보고서를 선택하세요."
+
+msgid "Compare agent answers"
+msgstr "에이전트 응답 비교"
+
+msgid "Comparison run"
+msgstr "비교 실행"
+
+msgid "Completed / planned"
+msgstr "응답 완료 / 계획"
+
+msgid "Configuration"
+msgstr "구성"
+
+msgid "Copy blind question"
+msgstr "블라인드 문제 복사"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "평가 보고서를 열 수 없습니다. JSON 형식과 버전을 확인하세요."
+
+msgid "Critical"
+msgstr "필수"
+
+msgid "Disqualifying errors"
+msgstr "탈락 사유"
+
+msgid "Duration"
+msgstr "소요 시간"
+
+msgid "Evidence"
+msgstr "근거"
+
+msgid "Export blind questions"
+msgstr "블라인드 문제 내보내기"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "로컬 평가 JSON 파일을 가져와 실행 결과를 비교하고 응답과 근거를 검토하세요."
+
+msgid "Import report"
+msgstr "보고서 가져오기"
+
+msgid "Misleading"
+msgstr "오해를 유발함"
+
+msgid "Misleading / completed"
+msgstr "오해 유발 / 응답 완료"
+
+msgid "Needs revision"
+msgstr "수정 필요"
+
+msgid "No final answer"
+msgstr "최종 응답 없음"
+
+msgid "No longer ready"
+msgstr "사용 불가로 전환"
+
+msgid "Pages opened"
+msgstr "열어 본 페이지"
+
+msgid "Paired verdicts"
+msgstr "쌍별 평가"
+
+msgid "Pending run"
+msgstr "실행 대기"
+
+msgid "Question"
+msgstr "문제"
+
+msgid "Ready / planned"
+msgstr "사용 가능 / 계획"
+
+msgid "Ready to use"
+msgstr "그대로 사용 가능"
+
+msgid "Reference answer"
+msgstr "참고 답안"
+
+msgid "Rubric"
+msgstr "채점 기준"
+
+msgid "Rubric pass / planned"
+msgstr "채점 통과 / 계획"
+
+msgid "Run metrics"
+msgstr "실행 지표"
+
+msgid "Tool calls"
+msgstr "도구 호출"
+
+msgid "Weight"
+msgstr "가중치"

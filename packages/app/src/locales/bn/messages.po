@@ -12307,3 +12307,111 @@ msgstr "ছোট করুন"
 
 msgid "Zoom Out"
 msgstr "ছোট করুন"
+
+msgid "Agent evaluations"
+msgstr "এজেন্ট মূল্যায়ন"
+
+msgid "Answer key and evidence"
+msgstr "উত্তরসূচি ও প্রমাণ"
+
+msgid "Awaiting verdict"
+msgstr "মূল্যায়নের অপেক্ষায়"
+
+msgid "Baseline"
+msgstr "ভিত্তি রান"
+
+msgid "Became ready"
+msgstr "ব্যবহারের উপযোগী হয়েছে"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "৮ MiB-এর চেয়ে ছোট রিপোর্ট বেছে নিন।"
+
+msgid "Compare agent answers"
+msgstr "এজেন্টের উত্তর তুলনা করুন"
+
+msgid "Comparison run"
+msgstr "তুলনার রান"
+
+msgid "Completed / planned"
+msgstr "সম্পন্ন / পরিকল্পিত"
+
+msgid "Configuration"
+msgstr "কনফিগারেশন"
+
+msgid "Copy blind question"
+msgstr "উত্তর ছাড়া প্রশ্ন কপি করুন"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "মূল্যায়ন রিপোর্টটি খোলা যায়নি। JSON ফরম্যাট ও সংস্করণ পরীক্ষা করুন।"
+
+msgid "Critical"
+msgstr "অপরিহার্য"
+
+msgid "Disqualifying errors"
+msgstr "অযোগ্য ঘোষণার কারণ"
+
+msgid "Duration"
+msgstr "সময়কাল"
+
+msgid "Evidence"
+msgstr "প্রমাণ"
+
+msgid "Export blind questions"
+msgstr "উত্তর ছাড়া প্রশ্ন রপ্তানি করুন"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "রান তুলনা, উত্তর পর্যালোচনা ও প্রমাণ যাচাই করতে স্থানীয় মূল্যায়নের JSON ফাইল আমদানি করুন।"
+
+msgid "Import report"
+msgstr "রিপোর্ট আমদানি করুন"
+
+msgid "Misleading"
+msgstr "বিভ্রান্তিকর"
+
+msgid "Misleading / completed"
+msgstr "বিভ্রান্তিকর / সম্পন্ন"
+
+msgid "Needs revision"
+msgstr "সংশোধন প্রয়োজন"
+
+msgid "No final answer"
+msgstr "চূড়ান্ত উত্তর নেই"
+
+msgid "No longer ready"
+msgstr "আর ব্যবহারের উপযোগী নেই"
+
+msgid "Pages opened"
+msgstr "খোলা পৃষ্ঠা"
+
+msgid "Paired verdicts"
+msgstr "জোড়াভিত্তিক মূল্যায়ন"
+
+msgid "Pending run"
+msgstr "রান বাকি"
+
+msgid "Question"
+msgstr "প্রশ্ন"
+
+msgid "Ready / planned"
+msgstr "ব্যবহারযোগ্য / পরিকল্পিত"
+
+msgid "Ready to use"
+msgstr "সরাসরি ব্যবহারযোগ্য"
+
+msgid "Reference answer"
+msgstr "আদর্শ উত্তর"
+
+msgid "Rubric"
+msgstr "মূল্যায়নের মানদণ্ড"
+
+msgid "Rubric pass / planned"
+msgstr "মানদণ্ডে উত্তীর্ণ / পরিকল্পিত"
+
+msgid "Run metrics"
+msgstr "রানের পরিসংখ্যান"
+
+msgid "Tool calls"
+msgstr "টুল কল"
+
+msgid "Weight"
+msgstr "ভার"

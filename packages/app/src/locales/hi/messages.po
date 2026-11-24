@@ -12307,3 +12307,111 @@ msgstr "छोटा करें"
 
 msgid "Zoom Out"
 msgstr "छोटा करें"
+
+msgid "Agent evaluations"
+msgstr "एजेंट मूल्यांकन"
+
+msgid "Answer key and evidence"
+msgstr "उत्तर कुंजी और साक्ष्य"
+
+msgid "Awaiting verdict"
+msgstr "मूल्यांकन की प्रतीक्षा है"
+
+msgid "Baseline"
+msgstr "आधार रन"
+
+msgid "Became ready"
+msgstr "उपयोग के लिए तैयार हुईं"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "8 MiB से छोटी रिपोर्ट चुनें।"
+
+msgid "Compare agent answers"
+msgstr "एजेंट के उत्तरों की तुलना करें"
+
+msgid "Comparison run"
+msgstr "तुलना रन"
+
+msgid "Completed / planned"
+msgstr "पूर्ण / नियोजित"
+
+msgid "Configuration"
+msgstr "कॉन्फ़िगरेशन"
+
+msgid "Copy blind question"
+msgstr "उत्तर के बिना प्रश्न कॉपी करें"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "यह मूल्यांकन रिपोर्ट नहीं खुल सकी। JSON प्रारूप और संस्करण जाँचें।"
+
+msgid "Critical"
+msgstr "अनिवार्य"
+
+msgid "Disqualifying errors"
+msgstr "असफलता का कारण बनने वाली त्रुटियाँ"
+
+msgid "Duration"
+msgstr "अवधि"
+
+msgid "Evidence"
+msgstr "साक्ष्य"
+
+msgid "Export blind questions"
+msgstr "उत्तर के बिना प्रश्न निर्यात करें"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "रन की तुलना, उत्तरों की समीक्षा और साक्ष्य की जाँच के लिए स्थानीय मूल्यांकन JSON फ़ाइल आयात करें।"
+
+msgid "Import report"
+msgstr "रिपोर्ट आयात करें"
+
+msgid "Misleading"
+msgstr "भ्रामक"
+
+msgid "Misleading / completed"
+msgstr "भ्रामक / पूर्ण"
+
+msgid "Needs revision"
+msgstr "संशोधन आवश्यक"
+
+msgid "No final answer"
+msgstr "अंतिम उत्तर नहीं मिला"
+
+msgid "No longer ready"
+msgstr "अब उपयोग के लिए तैयार नहीं"
+
+msgid "Pages opened"
+msgstr "खोले गए पृष्ठ"
+
+msgid "Paired verdicts"
+msgstr "युग्मित मूल्यांकन"
+
+msgid "Pending run"
+msgstr "रन लंबित"
+
+msgid "Question"
+msgstr "प्रश्न"
+
+msgid "Ready / planned"
+msgstr "उपयोग के लिए तैयार / नियोजित"
+
+msgid "Ready to use"
+msgstr "उपयोग के लिए तैयार"
+
+msgid "Reference answer"
+msgstr "संदर्भ उत्तर"
+
+msgid "Rubric"
+msgstr "मूल्यांकन मानदंड"
+
+msgid "Rubric pass / planned"
+msgstr "मानदंडों पर सफल / नियोजित"
+
+msgid "Run metrics"
+msgstr "रन के आँकड़े"
+
+msgid "Tool calls"
+msgstr "टूल कॉल"
+
+msgid "Weight"
+msgstr "भार"

@@ -12311,3 +12311,111 @@ msgstr "Zoom arrière"
 
 msgid "Zoom Out"
 msgstr "Zoom arrière"
+
+msgid "Agent evaluations"
+msgstr "Évaluations des agents"
+
+msgid "Answer key and evidence"
+msgstr "Corrigé et éléments de preuve"
+
+msgid "Awaiting verdict"
+msgstr "En attente d’évaluation"
+
+msgid "Baseline"
+msgstr "Exécution de référence"
+
+msgid "Became ready"
+msgstr "Devenues utilisables"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "Choisissez un rapport de moins de 8 Mio."
+
+msgid "Compare agent answers"
+msgstr "Comparer les réponses des agents"
+
+msgid "Comparison run"
+msgstr "Exécution de comparaison"
+
+msgid "Completed / planned"
+msgstr "Terminées / prévues"
+
+msgid "Configuration"
+msgstr "Configuration"
+
+msgid "Copy blind question"
+msgstr "Copier la question sans corrigé"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "Impossible d’ouvrir ce rapport d’évaluation. Vérifiez le format JSON et la version."
+
+msgid "Critical"
+msgstr "Essentiel"
+
+msgid "Disqualifying errors"
+msgstr "Erreurs éliminatoires"
+
+msgid "Duration"
+msgstr "Durée"
+
+msgid "Evidence"
+msgstr "Éléments de preuve"
+
+msgid "Export blind questions"
+msgstr "Exporter les questions sans corrigé"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "Importez un fichier JSON d’évaluation local pour comparer les exécutions, examiner les réponses et vérifier les éléments de preuve."
+
+msgid "Import report"
+msgstr "Importer un rapport"
+
+msgid "Misleading"
+msgstr "Trompeuse"
+
+msgid "Misleading / completed"
+msgstr "Trompeuses / terminées"
+
+msgid "Needs revision"
+msgstr "À réviser"
+
+msgid "No final answer"
+msgstr "Aucune réponse finale"
+
+msgid "No longer ready"
+msgstr "Devenues inutilisables"
+
+msgid "Pages opened"
+msgstr "Pages ouvertes"
+
+msgid "Paired verdicts"
+msgstr "Évaluations appariées"
+
+msgid "Pending run"
+msgstr "Exécution en attente"
+
+msgid "Question"
+msgstr "Question"
+
+msgid "Ready / planned"
+msgstr "Utilisables / prévues"
+
+msgid "Ready to use"
+msgstr "Utilisable telle quelle"
+
+msgid "Reference answer"
+msgstr "Réponse de référence"
+
+msgid "Rubric"
+msgstr "Barème"
+
+msgid "Rubric pass / planned"
+msgstr "Validées selon le barème / prévues"
+
+msgid "Run metrics"
+msgstr "Indicateurs d’exécution"
+
+msgid "Tool calls"
+msgstr "Appels aux outils"
+
+msgid "Weight"
+msgstr "Pondération"

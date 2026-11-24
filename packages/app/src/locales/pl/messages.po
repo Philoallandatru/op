@@ -12311,3 +12311,111 @@ msgstr "Pomniejsz"
 
 msgid "Zoom Out"
 msgstr "Pomniejsz"
+
+msgid "Agent evaluations"
+msgstr "Oceny agentów"
+
+msgid "Answer key and evidence"
+msgstr "Klucz odpowiedzi i dowody"
+
+msgid "Awaiting verdict"
+msgstr "Oczekuje na ocenę"
+
+msgid "Baseline"
+msgstr "Przebieg bazowy"
+
+msgid "Became ready"
+msgstr "Zyskały gotowość do użycia"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "Wybierz raport mniejszy niż 8 MiB."
+
+msgid "Compare agent answers"
+msgstr "Porównaj odpowiedzi agentów"
+
+msgid "Comparison run"
+msgstr "Przebieg porównawczy"
+
+msgid "Completed / planned"
+msgstr "Ukończone / zaplanowane"
+
+msgid "Configuration"
+msgstr "Konfiguracja"
+
+msgid "Copy blind question"
+msgstr "Kopiuj pytanie bez klucza"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "Nie można otworzyć tego raportu oceny. Sprawdź format i wersję JSON."
+
+msgid "Critical"
+msgstr "Krytyczne"
+
+msgid "Disqualifying errors"
+msgstr "Błędy dyskwalifikujące"
+
+msgid "Duration"
+msgstr "Czas trwania"
+
+msgid "Evidence"
+msgstr "Dowody"
+
+msgid "Export blind questions"
+msgstr "Eksportuj pytania bez klucza"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "Zaimportuj lokalny plik JSON oceny, aby porównać przebiegi, przejrzeć odpowiedzi i sprawdzić dowody."
+
+msgid "Import report"
+msgstr "Importuj raport"
+
+msgid "Misleading"
+msgstr "Wprowadza w błąd"
+
+msgid "Misleading / completed"
+msgstr "Mylące / ukończone"
+
+msgid "Needs revision"
+msgstr "Wymaga poprawy"
+
+msgid "No final answer"
+msgstr "Brak końcowej odpowiedzi"
+
+msgid "No longer ready"
+msgstr "Utraciły gotowość do użycia"
+
+msgid "Pages opened"
+msgstr "Otwarte strony"
+
+msgid "Paired verdicts"
+msgstr "Oceny w parach"
+
+msgid "Pending run"
+msgstr "Oczekuje na uruchomienie"
+
+msgid "Question"
+msgstr "Pytanie"
+
+msgid "Ready / planned"
+msgstr "Gotowe / zaplanowane"
+
+msgid "Ready to use"
+msgstr "Gotowa do użycia"
+
+msgid "Reference answer"
+msgstr "Odpowiedź wzorcowa"
+
+msgid "Rubric"
+msgstr "Kryteria oceny"
+
+msgid "Rubric pass / planned"
+msgstr "Spełniają kryteria / zaplanowane"
+
+msgid "Run metrics"
+msgstr "Wskaźniki przebiegu"
+
+msgid "Tool calls"
+msgstr "Wywołania narzędzi"
+
+msgid "Weight"
+msgstr "Waga"

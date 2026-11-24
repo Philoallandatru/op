@@ -12311,3 +12311,111 @@ msgstr "缩小"
 
 msgid "Zoom Out"
 msgstr "缩小"
+
+msgid "Agent evaluations"
+msgstr "智能体评估"
+
+msgid "Answer key and evidence"
+msgstr "参考答案与证据"
+
+msgid "Awaiting verdict"
+msgstr "等待评判"
+
+msgid "Baseline"
+msgstr "基线轮次"
+
+msgid "Became ready"
+msgstr "转为可用"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "请选择小于 8 MiB 的报告。"
+
+msgid "Compare agent answers"
+msgstr "比较智能体回答"
+
+msgid "Comparison run"
+msgstr "对照轮次"
+
+msgid "Completed / planned"
+msgstr "已回答 / 计划"
+
+msgid "Configuration"
+msgstr "配置"
+
+msgid "Copy blind question"
+msgstr "复制盲测题目"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "无法打开评估报告。请检查 JSON 格式和版本。"
+
+msgid "Critical"
+msgstr "关键项"
+
+msgid "Disqualifying errors"
+msgstr "导致不通过的错误"
+
+msgid "Duration"
+msgstr "用时"
+
+msgid "Evidence"
+msgstr "证据"
+
+msgid "Export blind questions"
+msgstr "导出盲测题目"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "导入本地评估 JSON 文件，比较不同轮次、审阅回答并核查证据。"
+
+msgid "Import report"
+msgstr "导入报告"
+
+msgid "Misleading"
+msgstr "可能误导"
+
+msgid "Misleading / completed"
+msgstr "可能误导 / 已回答"
+
+msgid "Needs revision"
+msgstr "需要修改"
+
+msgid "No final answer"
+msgstr "无最终回答"
+
+msgid "No longer ready"
+msgstr "由可用转为不可用"
+
+msgid "Pages opened"
+msgstr "实际打开的页面"
+
+msgid "Paired verdicts"
+msgstr "已判定的配对题"
+
+msgid "Pending run"
+msgstr "等待运行"
+
+msgid "Question"
+msgstr "题目"
+
+msgid "Ready / planned"
+msgstr "原样可用 / 计划"
+
+msgid "Ready to use"
+msgstr "原样可用"
+
+msgid "Reference answer"
+msgstr "参考回答"
+
+msgid "Rubric"
+msgstr "评分准则"
+
+msgid "Rubric pass / planned"
+msgstr "评分通过 / 计划"
+
+msgid "Run metrics"
+msgstr "轮次指标"
+
+msgid "Tool calls"
+msgstr "工具调用次数"
+
+msgid "Weight"
+msgstr "权重"
