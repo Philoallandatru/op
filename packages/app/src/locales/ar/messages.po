@@ -12311,3 +12311,111 @@ msgstr "تصغير"
 
 msgid "Zoom Out"
 msgstr "تصغير"
+
+msgid "Agent evaluations"
+msgstr "تقييمات الوكلاء"
+
+msgid "Answer key and evidence"
+msgstr "مفتاح الإجابة والأدلة"
+
+msgid "Awaiting verdict"
+msgstr "بانتظار التقييم"
+
+msgid "Baseline"
+msgstr "التشغيل المرجعي"
+
+msgid "Became ready"
+msgstr "أصبحت جاهزة للاستخدام"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "اختر تقريرًا أصغر من 8 ميبيبايت."
+
+msgid "Compare agent answers"
+msgstr "مقارنة إجابات الوكلاء"
+
+msgid "Comparison run"
+msgstr "تشغيل المقارنة"
+
+msgid "Completed / planned"
+msgstr "المكتملة / المخطط لها"
+
+msgid "Configuration"
+msgstr "الإعدادات"
+
+msgid "Copy blind question"
+msgstr "نسخ السؤال دون الحل"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "تعذر فتح تقرير التقييم. تحقق من تنسيق JSON والإصدار."
+
+msgid "Critical"
+msgstr "أساسي"
+
+msgid "Disqualifying errors"
+msgstr "أخطاء موجبة للإخفاق"
+
+msgid "Duration"
+msgstr "المدة"
+
+msgid "Evidence"
+msgstr "الأدلة"
+
+msgid "Export blind questions"
+msgstr "تصدير الأسئلة دون الحلول"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "استورد ملف تقييم JSON محليًا لمقارنة عمليات التشغيل ومراجعة الإجابات وفحص الأدلة."
+
+msgid "Import report"
+msgstr "استيراد تقرير"
+
+msgid "Misleading"
+msgstr "مضللة"
+
+msgid "Misleading / completed"
+msgstr "المضللة / المكتملة"
+
+msgid "Needs revision"
+msgstr "تحتاج إلى تعديل"
+
+msgid "No final answer"
+msgstr "لا توجد إجابة نهائية"
+
+msgid "No longer ready"
+msgstr "لم تعد جاهزة للاستخدام"
+
+msgid "Pages opened"
+msgstr "الصفحات المفتوحة"
+
+msgid "Paired verdicts"
+msgstr "التقييمات المزدوجة"
+
+msgid "Pending run"
+msgstr "بانتظار التشغيل"
+
+msgid "Question"
+msgstr "السؤال"
+
+msgid "Ready / planned"
+msgstr "الجاهزة / المخطط لها"
+
+msgid "Ready to use"
+msgstr "جاهزة للاستخدام"
+
+msgid "Reference answer"
+msgstr "الإجابة المرجعية"
+
+msgid "Rubric"
+msgstr "معايير التقييم"
+
+msgid "Rubric pass / planned"
+msgstr "المجتازة للمعايير / المخطط لها"
+
+msgid "Run metrics"
+msgstr "مؤشرات التشغيل"
+
+msgid "Tool calls"
+msgstr "استدعاءات الأدوات"
+
+msgid "Weight"
+msgstr "الوزن"

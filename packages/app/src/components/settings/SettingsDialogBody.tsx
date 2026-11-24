@@ -19,6 +19,9 @@ const AccountSection = lazySection(async () => (await import('./AccountSection')
 const AgentConnectionsSection = lazySection(
   async () => (await import('./AgentConnectionsSection')).AgentConnectionsSection,
 );
+const EvaluationWorkbench = lazySection(
+  async () => (await import('@/components/evaluations/EvaluationWorkbench')).EvaluationWorkbench,
+);
 const AttachmentsSection = lazySection(
   async () => (await import('./AttachmentsSection')).AttachmentsSection,
 );
@@ -181,6 +184,9 @@ export function SettingsDialogBody({
   }
   if (activeId === 'agent-connections') {
     return <AgentConnectionsSection />;
+  }
+  if (activeId === 'agent-evaluations') {
+    return <EvaluationWorkbench />;
   }
   if (activeId === 'hotkeys') {
     return <HotkeysSection />;

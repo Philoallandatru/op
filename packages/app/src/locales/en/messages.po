@@ -12311,3 +12311,111 @@ msgstr "Zoom out"
 
 msgid "Zoom Out"
 msgstr "Zoom Out"
+
+msgid "Agent evaluations"
+msgstr "Agent evaluations"
+
+msgid "Answer key and evidence"
+msgstr "Answer key and evidence"
+
+msgid "Awaiting verdict"
+msgstr "Awaiting verdict"
+
+msgid "Baseline"
+msgstr "Baseline"
+
+msgid "Became ready"
+msgstr "Became ready"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "Choose a report smaller than 8 MiB."
+
+msgid "Compare agent answers"
+msgstr "Compare agent answers"
+
+msgid "Comparison run"
+msgstr "Comparison run"
+
+msgid "Completed / planned"
+msgstr "Completed / planned"
+
+msgid "Configuration"
+msgstr "Configuration"
+
+msgid "Copy blind question"
+msgstr "Copy blind question"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "Could not open this evaluation report. Check the JSON format and version."
+
+msgid "Critical"
+msgstr "Critical"
+
+msgid "Disqualifying errors"
+msgstr "Disqualifying errors"
+
+msgid "Duration"
+msgstr "Duration"
+
+msgid "Evidence"
+msgstr "Evidence"
+
+msgid "Export blind questions"
+msgstr "Export blind questions"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+
+msgid "Import report"
+msgstr "Import report"
+
+msgid "Misleading"
+msgstr "Misleading"
+
+msgid "Misleading / completed"
+msgstr "Misleading / completed"
+
+msgid "Needs revision"
+msgstr "Needs revision"
+
+msgid "No final answer"
+msgstr "No final answer"
+
+msgid "No longer ready"
+msgstr "No longer ready"
+
+msgid "Pages opened"
+msgstr "Pages opened"
+
+msgid "Paired verdicts"
+msgstr "Paired verdicts"
+
+msgid "Pending run"
+msgstr "Pending run"
+
+msgid "Question"
+msgstr "Question"
+
+msgid "Ready / planned"
+msgstr "Ready / planned"
+
+msgid "Ready to use"
+msgstr "Ready to use"
+
+msgid "Reference answer"
+msgstr "Reference answer"
+
+msgid "Rubric"
+msgstr "Rubric"
+
+msgid "Rubric pass / planned"
+msgstr "Rubric pass / planned"
+
+msgid "Run metrics"
+msgstr "Run metrics"
+
+msgid "Tool calls"
+msgstr "Tool calls"
+
+msgid "Weight"
+msgstr "Weight"

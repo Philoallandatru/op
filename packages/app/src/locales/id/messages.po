@@ -12307,3 +12307,111 @@ msgstr "Perkecil"
 
 msgid "Zoom Out"
 msgstr "Perkecil"
+
+msgid "Agent evaluations"
+msgstr "Evaluasi agen"
+
+msgid "Answer key and evidence"
+msgstr "Kunci jawaban dan bukti"
+
+msgid "Awaiting verdict"
+msgstr "Menunggu penilaian"
+
+msgid "Baseline"
+msgstr "Pengujian acuan"
+
+msgid "Became ready"
+msgstr "Menjadi siap pakai"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "Pilih laporan yang berukuran kurang dari 8 MiB."
+
+msgid "Compare agent answers"
+msgstr "Bandingkan jawaban agen"
+
+msgid "Comparison run"
+msgstr "Pengujian pembanding"
+
+msgid "Completed / planned"
+msgstr "Selesai / direncanakan"
+
+msgid "Configuration"
+msgstr "Konfigurasi"
+
+msgid "Copy blind question"
+msgstr "Salin pertanyaan tanpa kunci"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "Laporan evaluasi ini tidak dapat dibuka. Periksa format dan versi JSON."
+
+msgid "Critical"
+msgstr "Penting"
+
+msgid "Disqualifying errors"
+msgstr "Kesalahan yang menggugurkan"
+
+msgid "Duration"
+msgstr "Durasi"
+
+msgid "Evidence"
+msgstr "Bukti"
+
+msgid "Export blind questions"
+msgstr "Ekspor pertanyaan tanpa kunci"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "Impor berkas JSON evaluasi lokal untuk membandingkan pengujian, meninjau jawaban, dan memeriksa bukti."
+
+msgid "Import report"
+msgstr "Impor laporan"
+
+msgid "Misleading"
+msgstr "Menyesatkan"
+
+msgid "Misleading / completed"
+msgstr "Menyesatkan / selesai"
+
+msgid "Needs revision"
+msgstr "Perlu revisi"
+
+msgid "No final answer"
+msgstr "Tanpa jawaban akhir"
+
+msgid "No longer ready"
+msgstr "Tidak lagi siap pakai"
+
+msgid "Pages opened"
+msgstr "Halaman yang dibuka"
+
+msgid "Paired verdicts"
+msgstr "Penilaian berpasangan"
+
+msgid "Pending run"
+msgstr "Menunggu pengujian"
+
+msgid "Question"
+msgstr "Pertanyaan"
+
+msgid "Ready / planned"
+msgstr "Siap pakai / direncanakan"
+
+msgid "Ready to use"
+msgstr "Siap pakai"
+
+msgid "Reference answer"
+msgstr "Jawaban acuan"
+
+msgid "Rubric"
+msgstr "Rubrik penilaian"
+
+msgid "Rubric pass / planned"
+msgstr "Lulus rubrik / direncanakan"
+
+msgid "Run metrics"
+msgstr "Metrik pengujian"
+
+msgid "Tool calls"
+msgstr "Panggilan alat"
+
+msgid "Weight"
+msgstr "Bobot"

@@ -12,6 +12,26 @@ function settingsSectionHash(sectionId: string): string {
 }
 
 const SECTION_INTENT_EVENT = 'open-knowledge:settings-section-intent';
+const SETTINGS_HISTORY_ENTRY = 'openKnowledgeSettingsEntry';
+
+function changeSettingsHash(hash: string, push: boolean) {
+  const oldURL = window.location.href;
+  if (push) {
+    window.history.pushState({ [SETTINGS_HISTORY_ENTRY]: true }, '', hash);
+  } else {
+    window.history.replaceState(null, '', hash);
+  }
+  window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL: window.location.href }));
+}
+
+export function closeSettings(): void {
+  if (typeof window === 'undefined' || !isSettingsHashOpen(window.location.hash)) return;
+  if (window.history.state?.[SETTINGS_HISTORY_ENTRY] === true) {
+    window.history.back();
+  } else {
+    changeSettingsHash('#', false);
+  }
+}
 
 export function subscribeToSettingsSection(onSection: (sectionId: string) => void): () => void {
   if (typeof window === 'undefined') return () => {};
@@ -27,22 +47,26 @@ function openSettingsSection(sectionId: string): void {
   if (typeof window === 'undefined') return;
   const target = settingsSectionHash(sectionId);
   if (isSettingsHashOpen(window.location.hash)) {
-    window.history.replaceState(null, '', target);
+    window.history.replaceState(window.history.state, '', target);
     window.dispatchEvent(new CustomEvent(SECTION_INTENT_EVENT, { detail: sectionId }));
     return;
   }
-  if (window.location.hash !== target) window.location.hash = target;
+  changeSettingsHash(target, true);
 }
 
 export function openSettings(): void {
   if (typeof window === 'undefined') return;
-  if (!isSettingsHashOpen(window.location.hash)) window.location.hash = SETTINGS_OPEN_HASH;
+  if (!isSettingsHashOpen(window.location.hash)) changeSettingsHash(SETTINGS_OPEN_HASH, true);
 }
 
 const AGENT_SETTINGS_SECTION = 'agent-connections';
 
 export function openAgentSettings(): void {
   openSettingsSection(AGENT_SETTINGS_SECTION);
+}
+
+export function openAgentEvaluations(): void {
+  openSettingsSection('agent-evaluations');
 }
 
 const ABOUT_SECTION = 'about';
@@ -133,11 +157,5 @@ export function useSettingsRoute(): SettingsRouteState {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, [mountHash]);
 
-  const close = () => {
-    if (typeof window === 'undefined') return;
-    if (!isSettingsHashOpen(readCurrentHash())) return;
-    window.history.back();
-  };
-
-  return { open, section, close };
+  return { open, section, close: closeSettings };
 }

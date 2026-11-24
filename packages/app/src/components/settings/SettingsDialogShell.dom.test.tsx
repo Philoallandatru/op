@@ -215,6 +215,17 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     expect(probeProps.at(-1)?.activeId).toBe('preferences');
   });
 
+  test('agent evaluations can be opened from the sidebar and via a deep link', async () => {
+    const first = render(<SettingsDialogShell open onOpenChange={() => {}} />);
+    const item = screen.getByTestId('settings-sidebar-item-agent-evaluations');
+    await userEvent.click(item);
+    expect(item.getAttribute('aria-current')).toBe('page');
+    expect(probeProps.at(-1)?.activeId).toBe('agent-evaluations');
+    first.unmount();
+    render(<SettingsDialogShell open initialSection="agent-evaluations" onOpenChange={() => {}} />);
+    expect(probeProps.at(-1)?.activeId).toBe('agent-evaluations');
+  });
+
   test('the retired configure-agents deep link redirects to the merged Agents page in one hop', () => {
     render(<SettingsDialogShell open initialSection="configure-agents" onOpenChange={() => {}} />);
 

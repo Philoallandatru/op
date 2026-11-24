@@ -98,6 +98,7 @@ const INTENTS: ReadonlyArray<readonly [string, string]> = [
   ['hide agents', 'toggle-agent-panel'],
 
   ['open settings', 'settings'],
+  ['benchmark', 'agent-evaluations'],
   ['open preferences', 'settings'],
   ['check version', 'check-for-updates'],
   ['update app', 'check-for-updates'],

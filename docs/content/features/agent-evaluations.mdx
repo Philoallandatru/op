@@ -1,0 +1,52 @@
+---
+title: Agent evaluations
+description: Compare agent answers, inspect their evidence and export questions for another run.
+---
+
+Open **Settings → Agents → Agent evaluations**, or search for **Agent evaluations** in the command palette. Import a local JSON report, then choose a baseline and a comparison run. Select a question to read both answers, their reviews, the evidence each agent read and the sources that support the rubric.
+
+**Ready / planned** counts answers a reviewer would use as written. **Misleading / completed** counts submitted answers whose advice would lead to an incorrect action. The table shows the numerator and denominator for each run. Paired verdicts cover only questions planned in both runs. A timeout counts as a planned attempt. A question omitted from a run contributes to neither its total nor its paired comparison.
+
+## Repeat a run
+
+Choose **Export blind questions** to download the comparison run's planned questions in their original order as JSON Lines. You can also copy a single question and its observations. Give those inputs to the agent, record its answers and tool usage, and review them against the same criteria. Append a round to the report and import the updated file to compare results. Keep the report with the reviewer because it includes the answer key.
+
+In the desktop app, **Ask an agent** opens a new conversation with the enabled agent you choose and sends the selected blind question. You can review that conversation before recording the result. For controlled comparisons, use the exported question set with the same runner, time limit and tool budget for each configuration.
+
+## Report format
+
+Save the following example as a UTF-8 JSON file to try the workbench. It contains one planned question. When an answer arrives, change the result status to `completed`, supply the answer and leave `review` as `null` until a reviewer has graded it.
+
+```json
+{
+  "schemaVersion": 1,
+  "title": "Operations handbook",
+  "cases": [{
+    "id": "restart-1",
+    "family": "maintenance",
+    "split": "challenge",
+    "question": "Can I restart the worker now?",
+    "observations": ["A job is still running."],
+    "referenceAnswer": "Drain the active job before restarting.",
+    "criteria": [{"id": "drain", "text": "Wait for the active job to finish.", "weight": 1, "critical": true, "evidence": ["handbook"]}],
+    "reject": ["Restart immediately."],
+    "evidence": [{"id": "handbook", "source": "Operations handbook", "page": 7, "section": "Maintenance", "anchor": "drain active jobs"}]
+  }],
+  "rounds": [{
+    "id": "baseline",
+    "label": "Baseline",
+    "config": "Handbook retrieval enabled",
+    "results": [{"caseId": "restart-1", "status": "pending", "answer": null, "seconds": null, "toolCalls": null, "review": null}]
+  }]
+}
+```
+
+Use `incomplete` with a null answer for a finished attempt with no response, and `pending` while the attempt is outstanding. An optional `readPages` array on a result records pages actually read as `{"source":"Operations handbook","page":7}`.
+
+A completed review can look like this:
+
+```json
+{"usability":"ready","reason":"The answer waits for the active job.","otherError":"","credits":{"drain":1},"rejectHits":[],"score":100,"passed":true}
+```
+
+Give each criterion credit of 0, 0.5 or 1. Set `score` to the weighted percentage. A rubric pass requires at least 80 percent, full credit on every critical criterion, and no rejected actions. Use one-based positions from the case's `reject` list in `rejectHits`. Usability is a separate verdict and can be `ready`, `revise` or `misleading` for a submitted answer. Use `no_answer` for a reviewed incomplete attempt. The importer checks scores and references and accepts reports up to 8 MiB.

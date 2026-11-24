@@ -12311,3 +12311,111 @@ msgstr "چھوٹا کریں"
 
 msgid "Zoom Out"
 msgstr "چھوٹا کریں"
+
+msgid "Agent evaluations"
+msgstr "ایجنٹ کی جانچ"
+
+msgid "Answer key and evidence"
+msgstr "جوابی کلید اور شواہد"
+
+msgid "Awaiting verdict"
+msgstr "جانچ کا انتظار ہے"
+
+msgid "Baseline"
+msgstr "بنیادی رن"
+
+msgid "Became ready"
+msgstr "استعمال کے قابل ہو گئے"
+
+msgid "Choose a report smaller than 8 MiB."
+msgstr "8 MiB سے چھوٹی رپورٹ منتخب کریں۔"
+
+msgid "Compare agent answers"
+msgstr "ایجنٹ کے جوابات کا موازنہ کریں"
+
+msgid "Comparison run"
+msgstr "تقابلی رن"
+
+msgid "Completed / planned"
+msgstr "مکمل / طے شدہ"
+
+msgid "Configuration"
+msgstr "ترتیبات"
+
+msgid "Copy blind question"
+msgstr "جواب کے بغیر سوال کاپی کریں"
+
+msgid "Could not open this evaluation report. Check the JSON format and version."
+msgstr "جانچ کی رپورٹ نہیں کھل سکی۔ JSON کی ساخت اور ورژن دیکھیں۔"
+
+msgid "Critical"
+msgstr "لازمی"
+
+msgid "Disqualifying errors"
+msgstr "نااہل قرار دینے والی غلطیاں"
+
+msgid "Duration"
+msgstr "دورانیہ"
+
+msgid "Evidence"
+msgstr "شواہد"
+
+msgid "Export blind questions"
+msgstr "جواب کے بغیر سوالات برآمد کریں"
+
+msgid "Import a local evaluation JSON file to compare runs, review answers and inspect the evidence."
+msgstr "رن کا موازنہ کرنے، جوابات کا جائزہ لینے اور شواہد جانچنے کے لیے مقامی جانچ کی JSON فائل درآمد کریں۔"
+
+msgid "Import report"
+msgstr "رپورٹ درآمد کریں"
+
+msgid "Misleading"
+msgstr "گمراہ کن"
+
+msgid "Misleading / completed"
+msgstr "گمراہ کن / مکمل"
+
+msgid "Needs revision"
+msgstr "ترمیم درکار ہے"
+
+msgid "No final answer"
+msgstr "حتمی جواب نہیں ملا"
+
+msgid "No longer ready"
+msgstr "اب استعمال کے قابل نہیں"
+
+msgid "Pages opened"
+msgstr "کھولے گئے صفحات"
+
+msgid "Paired verdicts"
+msgstr "جوڑوں میں جانچ"
+
+msgid "Pending run"
+msgstr "رن کا انتظار ہے"
+
+msgid "Question"
+msgstr "سوال"
+
+msgid "Ready / planned"
+msgstr "قابل استعمال / طے شدہ"
+
+msgid "Ready to use"
+msgstr "براہ راست قابل استعمال"
+
+msgid "Reference answer"
+msgstr "حوالہ جاتی جواب"
+
+msgid "Rubric"
+msgstr "جانچ کے معیار"
+
+msgid "Rubric pass / planned"
+msgstr "معیار پر کامیاب / طے شدہ"
+
+msgid "Run metrics"
+msgstr "رن کے اعداد و شمار"
+
+msgid "Tool calls"
+msgstr "ٹول کالز"
+
+msgid "Weight"
+msgstr "وزن"

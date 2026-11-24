@@ -41,6 +41,7 @@ export const MENU_LABELS = {
   openFolderOnDisk: 'Open folder on disk',
   openFileOnDisk: 'Open file on disk',
   openGraph: 'Open graph',
+  agentEvaluations: 'Agent evaluations',
   openInNewWindow: 'Open in New Window',
   blobRun: 'Blob Run',
   initializeStarterPack: 'Initialize starter pack',
