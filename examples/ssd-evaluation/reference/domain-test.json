@@ -1,0 +1,352 @@
+{
+  "split": "test",
+  "k": 5,
+  "bank_sha256": {
+    "pcie": "c3b94485db8ce2adab483b145cfaab842449880e16e4354f73b8f665142391ba",
+    "nvme": "2d00e7e7db4bf81c5f4eeb9177b38a734762a8f34a5b3271641f33177ff3e746"
+  },
+  "retriever_sha256": "586e78a45eea64fe7f4c7201adc88e4ccd8f82b9cb0b50e2dbd8971c55cba21d",
+  "mode": "domain",
+  "cases": {
+    "NB21-001": [
+      "9d194ed9b57786634cf1",
+      true
+    ],
+    "NB21-002": [
+      "b95b44f4aaa2f0ad16db",
+      false
+    ],
+    "NB21-003": [
+      "1c8246e603a40df9da58",
+      false
+    ],
+    "NB21-004": [
+      "cff0cb0bc8e809c2380d",
+      false
+    ],
+    "NB21-005": [
+      "88705273e026cb793444",
+      false
+    ],
+    "NB21-006": [
+      "9c0e7f02485958acd6e6",
+      true
+    ],
+    "NB21-007": [
+      "3dec7a5d619fff9296f2",
+      false
+    ],
+    "NB21-008": [
+      "094abb7e161818729f0d",
+      true
+    ],
+    "NB21-009": [
+      "d6d966e454583217eb17",
+      true
+    ],
+    "NB21-010": [
+      "681c7e77be7b4fe7b5c4",
+      true
+    ],
+    "NB21-018": [
+      "c4480a480d45273eba02",
+      true
+    ],
+    "NB21-019": [
+      "29c6dde649821ae08097",
+      true
+    ],
+    "NB21-020": [
+      "432591f29670d254570d",
+      true
+    ],
+    "NB21-021": [
+      "e6e61b359c8189da8563",
+      true
+    ],
+    "NB21-022": [
+      "4bbf99827938ec8f6eee",
+      true
+    ],
+    "NB21-029": [
+      "33788898b89e110088f9",
+      false
+    ],
+    "NB21-030": [
+      "f6dd27123a4df09f0aea",
+      false
+    ],
+    "NB21-031": [
+      "71e92ed2c2f11477ee57",
+      true
+    ],
+    "NB21-032": [
+      "f1f1b158ff360c8f46fb",
+      false
+    ],
+    "NB21-033": [
+      "a08b8980d9447674318b",
+      true
+    ],
+    "NB21-034": [
+      "68dbad6622a01016beb2",
+      false
+    ],
+    "NB21-040": [
+      "a9dfc909c97406b54eda",
+      false
+    ],
+    "NB21-041": [
+      "57afa582bdcd20afa5d8",
+      true
+    ],
+    "NB21-042": [
+      "339edcdb92361022073f",
+      true
+    ],
+    "NB21-043": [
+      "61239a555733b6b6f294",
+      true
+    ],
+    "NB21-044": [
+      "bfff9990fc748f0d7e63",
+      true
+    ],
+    "NB21-051": [
+      "43b3e57cc04f509ae87b",
+      true
+    ],
+    "NB21-052": [
+      "1901c49f08094eff78b7",
+      true
+    ],
+    "NB21-053": [
+      "1ffde48e1a1805fc2a2a",
+      false
+    ],
+    "NB21-054": [
+      "3197526b83725bfe46f1",
+      true
+    ],
+    "NB21-055": [
+      "8b274ba9271ee92271ef",
+      true
+    ],
+    "NB21-060": [
+      "5445fb5f8cd79dfaca4b",
+      true
+    ],
+    "NB21-061": [
+      "f52c0ed3aa52175e8419",
+      true
+    ],
+    "NB21-062": [
+      "dcbc398268e7eb62b342",
+      false
+    ],
+    "NB21-063": [
+      "5fd036ed5ca71b5ea2ec",
+      false
+    ],
+    "NB21-064": [
+      "79a1d38ef472f4a78c23",
+      true
+    ],
+    "NB21-065": [
+      "beaad3ce5ae5a8757ebe",
+      true
+    ],
+    "NB21-066": [
+      "c9d532c7292e9c78f24c",
+      false
+    ],
+    "NB21-073": [
+      "3818566de99b0a55a50b",
+      false
+    ],
+    "NB21-074": [
+      "35216cae62c6af73e658",
+      false
+    ],
+    "NB21-075": [
+      "4324f789adc1a99f4361",
+      true
+    ],
+    "NB21-076": [
+      "f519027218b1c1b556fa",
+      true
+    ],
+    "NB21-077": [
+      "c261011a2eda6ba67d85",
+      false
+    ],
+    "PCIE50-007": [
+      "00dd4213aa6132cb07ca",
+      false
+    ],
+    "PCIE50-008": [
+      "6728751a335ff8036cd8",
+      false
+    ],
+    "PCIE50-009": [
+      "e71d036663675a7bd650",
+      true
+    ],
+    "PCIE50-010": [
+      "364f641734272d21336d",
+      true
+    ],
+    "PCIE50-011": [
+      "5e1688268c33d17af226",
+      true
+    ],
+    "PCIE50-016": [
+      "7ca5a343288e439da89b",
+      true
+    ],
+    "PCIE50-017": [
+      "e4194d6b0dcc7e68f67a",
+      true
+    ],
+    "PCIE50-018": [
+      "37f98b4b5b96eca03c55",
+      true
+    ],
+    "PCIE50-019": [
+      "eead6ab1a0a9b9515aa1",
+      false
+    ],
+    "PCIE50-026": [
+      "2c7ebc037196b68884e3",
+      false
+    ],
+    "PCIE50-027": [
+      "37ed9a89ba193bb0aa38",
+      false
+    ],
+    "PCIE50-028": [
+      "c19cba5daa9c045a7368",
+      false
+    ],
+    "PCIE50-029": [
+      "106c7f704cb6d9fec5a1",
+      true
+    ],
+    "PCIE50-030": [
+      "aeea0a93ce69e2e87559",
+      true
+    ],
+    "PCIE50-035": [
+      "f2260981ee6f62198cdd",
+      true
+    ],
+    "PCIE50-036": [
+      "b836df33cc8bc8a2749d",
+      false
+    ],
+    "PCIE50-037": [
+      "e3232a52badc6710df13",
+      true
+    ],
+    "PCIE50-038": [
+      "1bf51d61748bb2e2b4bc",
+      true
+    ],
+    "PCIE50-039": [
+      "d3cd53d2161d024f87fc",
+      true
+    ],
+    "PCIE50-040": [
+      "d2740e412e662547a7b0",
+      false
+    ],
+    "PCIE50-041": [
+      "4bd2d28b8f41d770f3e3",
+      true
+    ],
+    "PCIE50-042": [
+      "8010437880ce854c6ce7",
+      false
+    ],
+    "PCIE50-048": [
+      "f5dd97b52106d2c0b154",
+      false
+    ],
+    "PCIE50-049": [
+      "47151cc70ed07dc11c8a",
+      false
+    ],
+    "PCIE50-050": [
+      "29c57105bdcd3c03f42c",
+      false
+    ],
+    "PCIE50-051": [
+      "e48f7dfc2eca0112b08f",
+      false
+    ],
+    "PCIE50-052": [
+      "1df6614f3ef8bad48b54",
+      false
+    ],
+    "PCIE50-053": [
+      "e25cfd03f95788ef6a95",
+      false
+    ],
+    "PCIE50-054": [
+      "6bf84fa090bd06831ee8",
+      true
+    ],
+    "PCIE50-055": [
+      "4ceb41f52ff05ca8c4fb",
+      true
+    ],
+    "PCIE50-056": [
+      "ccff1c0c9598989de0ac",
+      false
+    ],
+    "PCIE50-062": [
+      "63780a623091577aa9b3",
+      false
+    ],
+    "PCIE50-063": [
+      "c208d62d2f0be5b5f164",
+      false
+    ],
+    "PCIE50-064": [
+      "ffa91d604a07534f6286",
+      false
+    ],
+    "PCIE50-069": [
+      "5c8c13477dfce36f702a",
+      true
+    ],
+    "PCIE50-070": [
+      "e6643770b174453e8835",
+      true
+    ],
+    "PCIE50-071": [
+      "dd43d3fd3e6a187dd7fe",
+      true
+    ],
+    "PCIE50-072": [
+      "ca9e859528bd44b51ba9",
+      false
+    ],
+    "PCIE50-079": [
+      "db60ab0c5177fc84d852",
+      false
+    ],
+    "PCIE50-080": [
+      "b63c310676971deae958",
+      true
+    ],
+    "PCIE50-081": [
+      "87c2266b4b3dcb115ad5",
+      false
+    ],
+    "PCIE50-083": [
+      "45c1942ca8a2763437ad",
+      false
+    ]
+  }
+}

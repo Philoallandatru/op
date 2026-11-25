@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro';
-import { ChartNoAxesColumnIncreasing, FileUp } from 'lucide-react';
+import { BookOpen, ChartNoAxesColumnIncreasing, FileUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,10 @@ import { EvaluationComparison } from './EvaluationComparison';
 import './evaluation-workbench.css';
 
 let recent: { scope: string; report: EvaluationReport } | null = null;
+
+async function loadSsdExample() {
+  return (await import('./ssd-example-report.json?raw')).default;
+}
 
 export function EvaluationWorkbench() {
   const workspace = useWorkspace();
@@ -42,15 +46,11 @@ function ImportPanel({ scope }: { scope: string | null }) {
     [],
   );
 
-  async function openFile(file: File) {
+  async function openReport(read: () => Promise<string>) {
     const attempt = ++latest.current;
     setError('');
-    if (file.size > EVALUATION_REPORT_MAX_BYTES) {
-      setError(t`Choose a report smaller than 8 MiB.`);
-      return;
-    }
     try {
-      const parsed = parseEvaluationReport(await file.text());
+      const parsed = parseEvaluationReport(await read());
       if (attempt !== latest.current) return;
       setReport(parsed);
       setRevision((value) => value + 1);
@@ -59,6 +59,15 @@ function ImportPanel({ scope }: { scope: string | null }) {
         setError(t`Could not open this evaluation report. Check the JSON format and version.`);
       }
     }
+  }
+
+  function openFile(file: File) {
+    if (file.size > EVALUATION_REPORT_MAX_BYTES) {
+      latest.current++;
+      setError(t`Choose a report smaller than 8 MiB.`);
+      return;
+    }
+    void openReport(() => file.text());
   }
 
   const importButton = (
@@ -83,7 +92,7 @@ function ImportPanel({ scope }: { scope: string | null }) {
         onChange={(event) => {
           const file = event.currentTarget.files?.[0];
           event.currentTarget.value = '';
-          if (file) void openFile(file);
+          if (file) openFile(file);
         }}
       />
       <header className="evaluation-heading">
@@ -117,7 +126,13 @@ function ImportPanel({ scope }: { scope: string | null }) {
               evidence.
             </Trans>
           </p>
-          {importButton}
+          <div className="flex flex-wrap gap-2">
+            {importButton}
+            <Button type="button" variant="outline" onClick={() => void openReport(loadSsdExample)}>
+              <BookOpen aria-hidden="true" />
+              <Trans>Open SSD example</Trans>
+            </Button>
+          </div>
         </div>
       )}
     </section>

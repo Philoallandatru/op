@@ -12419,3 +12419,6 @@ msgstr "도구 호출"
 
 msgid "Weight"
 msgstr "가중치"
+
+msgid "Open SSD example"
+msgstr "SSD 예시 열기"

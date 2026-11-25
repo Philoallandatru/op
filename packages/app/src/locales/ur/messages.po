@@ -12419,3 +12419,6 @@ msgstr "ٹول کالز"
 
 msgid "Weight"
 msgstr "وزن"
+
+msgid "Open SSD example"
+msgstr "SSD کی مثال کھولیں"

@@ -1,0 +1,11 @@
+{
+  "sha256": {
+    "tools/kb_eval/pi_trial.py": "4e2521ea12f5f48d29c670c492f786371893652cb5a9935e856801e0d34fe699",
+    "tools/kb_eval/evidence_mcp.py": "b24889bb9a98247b70c291f350d56e24194f163cf3dafce2fb3e2c89d357ddea",
+    "tools/kb_eval/retrieval_trial.py": "513382d1f3ec8c3e1f8f35da3838b4f112ec2e81d520b9c66e1602d55217a312",
+    ".pi/skills/ssd-field-decisions/SKILL.md": "6ea653bf70991fdf8bf5e0ec35ea40738ebed1c17e2e338fbe71606ebae06178"
+  },
+  "evidence_view": "outcomes",
+  "answer_style": "decision-audit",
+  "skill": ".pi/skills/ssd-field-decisions/SKILL.md"
+}

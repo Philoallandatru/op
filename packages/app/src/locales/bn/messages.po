@@ -12415,3 +12415,6 @@ msgstr "টুল কল"
 
 msgid "Weight"
 msgstr "ভার"
+
+msgid "Open SSD example"
+msgstr "SSD উদাহরণ খুলুন"

@@ -12419,3 +12419,6 @@ msgstr "工具调用次数"
 
 msgid "Weight"
 msgstr "权重"
+
+msgid "Open SSD example"
+msgstr "打开 SSD 示例"

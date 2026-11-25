@@ -5,6 +5,8 @@ description: Compare agent answers, inspect their evidence and export questions 
 
 Open **Settings → Agents → Agent evaluations**, or search for **Agent evaluations** in the command palette. Import a local JSON report, then choose a baseline and a comparison run. Select a question to read both answers, their reviews, the evidence each agent read and the sources that support the rubric.
 
+Choose **Open SSD example** on the empty workbench to explore a recorded comparison on 12 PCIe and NVMe engineering questions. The report uses simulated field observations and references the indicated versions and pages of the specifications. The repository's `examples/ssd-evaluation` directory contains the question banks, the question-writing guide, and the tools used to prepare new rounds.
+
 **Ready / planned** counts answers a reviewer would use as written. **Misleading / completed** counts submitted answers whose advice would lead to an incorrect action. The table shows the numerator and denominator for each run. Paired verdicts cover only questions planned in both runs. A timeout counts as a planned attempt. A question omitted from a run contributes to neither its total nor its paired comparison.
 
 ## Repeat a run

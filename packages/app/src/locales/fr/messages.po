@@ -12419,3 +12419,6 @@ msgstr "Appels aux outils"
 
 msgid "Weight"
 msgstr "Pondération"
+
+msgid "Open SSD example"
+msgstr "Ouvrir l’exemple SSD"

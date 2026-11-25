@@ -99,6 +99,18 @@ function upload(text: string) {
 afterEach(cleanup);
 
 describe('agent evaluation workbench', () => {
+  it('opens the bundled SSD example and displays its first recorded question', async () => {
+    state.scope = 'ssd-example';
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Open SSD example' }));
+    await screen.findByText('核对结果与处置分支 · 12 道新现场工单');
+    const table = within(screen.getByRole('table', { name: 'Run metrics' }));
+    expect(table.getByRole('row', { name: /上一版现场 skill/ }).textContent).toContain('1 / 12');
+    expect(table.getByRole('row', { name: /逐项处置核查/ }).textContent).toContain('2 / 12');
+    expect(screen.getByText(/SSD-F3-05 · wear-field-range/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Export blind questions' })).toBeTruthy();
+  });
+
   it('compares selected runs, distinguishes missing plans and verdicts, and copies only the initial case', async () => {
     state.scope = 'interaction';
     mount();

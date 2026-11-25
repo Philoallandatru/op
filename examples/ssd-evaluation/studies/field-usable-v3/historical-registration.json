@@ -1,0 +1,54 @@
+{
+  "order_seed": "field-usable-v3|2026-11-24|paired-order",
+  "allocation": "first six baseline first, next six candidate first",
+  "design": "twelve newly authored synthetic cases, 12 distinct families absent from all 62 historical engineering bank cases; six NVMe and six PCIe; none selected by observed model performance",
+  "old_family_count": 48,
+  "old_case_count": 62,
+  "validation": {
+    "scenarios": 12,
+    "criteria": 36,
+    "anchors": {
+      "nvme": 13,
+      "pcie": 13
+    },
+    "verified_pdfs": [
+      "nvme",
+      "pcie"
+    ]
+  },
+  "questions_sha256": "31f3548e3147244a4e7747b58ace55dd8059c36420d4456bcbf1a8489c83b60f",
+  "bank_sha256": "e19a5fe4bd49cf7b5b41b33d6ec2c5340d9dede671d842c77f288b1183d67e8a",
+  "review_cases_sha256": "aa926d3b553a972c845ef252c9813d2697d85c06843727c82b484bfa2dda337c",
+  "baseline_sha256": {
+    ".pi/skills/ssd-field-decisions/SKILL.md": "86fa31922c7d552ddadc67f403117e84ccaa67a4360ed69a61fd52a274c618c0",
+    "tools/kb_eval/pi_trial.py": "7af2069d4ded0a7d99c3615c6823cd563962337a3fcbd80352dad8d3af869144",
+    "tools/kb_eval/evidence_mcp.py": "d6b6b760a04abb9405cdc401bfec85392ed60eea8e75561c80db03d2d8d5edf1",
+    "tools/kb_eval/retrieval_trial.py": "692f4806e8deb96ffd3aa4ef0746ee03b4c0adaedc1c7d039db7429adfef68e9"
+  },
+  "specs": {
+    "nvme": "4e31f826dd7ceaee311f93b74eef5c05ac32afe4ef45436534dfcfd6a40dc746",
+    "pcie": "b863834e2ecd4240d033299f4d782478b870076ff84e9e6826e37ec495c5d004"
+  },
+  "index_sha256": "cee0c3505684ac89845aec54fb9f3c13eee2a9001c0b66936afd47e998bfa533",
+  "budget": {
+    "provider": "magpie",
+    "model": "auto/deepseek-v4.1-flash",
+    "mode": "domain",
+    "calls": 8,
+    "timeout": 120,
+    "prefetch": true,
+    "style": "decision-audit",
+    "thinking": "off"
+  },
+  "endpoints": [
+    "ready/all planned, paired first results including unanswered",
+    "misleading/all completed, observed per arm",
+    "misleading/all planned and paired misleading on both-completed subset, with better/worse and exact two-sided McNemar"
+  ],
+  "decision_sufficiency": {
+    "decidable": 8,
+    "need_observation": 2,
+    "conditional": 2
+  },
+  "raters": "two separately masked AI engineering judges, adjudicate before key released"
+}

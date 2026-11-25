@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "title": "SSD 工程问答 · 两道新挑战题",
+  "cases": [
+    {
+      "family": "firmware-inventory-and-staging",
+      "split": "challenge",
+      "question": "资产平台的“正在运行版本”从 A 跳成 B，于是灰度验收要放行。设备导出如下；它真切到 B 了吗？下次重启会切过去吗？",
+      "observations": [
+        "同一控制器的 Firmware Slot Information 页：CAFS=1，NAFS=0，FRS1=\"A\"，FRS2=\"B\"。",
+        "仅保存了槽目录，没有采到同时点的 Identify Controller.FR，也没有 Firmware Commit 完成记录或后续复位轨迹。平台选用了非空槽中版本最高的字符串。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "区分槽 1 的加载来源、槽里现存版本与运行版本；拒绝仅凭这份目录签 A 或 B，要求读取 Identify Controller.FR。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2",
+            "N4",
+            "N5"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "把 NAFS=0 解释为未指示下次目标，保留两种可能。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N3"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给出可核对的采集与验收方法，区分当前时点的 FR、槽目录及后续激活后的 FR。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N1",
+            "N3",
+            "N4"
+          ]
+        }
+      ],
+      "reject": [
+        "只凭槽目录中的 CAFS/FRS 断言当前一定运行 A 或 B。",
+        "把 NAFS=0 解释为已确定下次切 B 或已确定不会变更。"
+      ],
+      "id": "SSD-OPS-07",
+      "referenceAnswer": "CAFS=1 说明正在运行的镜像从槽 1 加载，FRS1=A、FRS2=B 分别说明槽内存储的修订。槽内容可更新而暂不激活，因此既不能按最大版本签 B，也不能只用 CAFS 和 FRS1 断言正在运行 A。读取同一控制器的 Identify Controller.FR 确认当前执行的修订，记录采集时刻。NAFS=0 表示未指示下次 Controller Level Reset 将激活的槽。变更验收应保留 Commit、实际复位和复位后的 FR；若采集间发生过变更，不用后采的 FR 倒推先前时点。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 235,
+          "section": "Figure 208, CAFS",
+          "anchor": "actively running firmware revision was loaded"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 235,
+          "section": "Figure 208, FRS2",
+          "anchor": "revision of the firmware downloaded to firmware"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 235,
+          "section": "Figure 208, NAFS",
+          "anchor": "does not indicate the firmware slot"
+        },
+        {
+          "id": "N4",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 214,
+          "section": "5.1.8",
+          "anchor": "currently executing firmware revision by examining"
+        },
+        {
+          "id": "N5",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 214,
+          "section": "Figure 181, CA=000b",
+          "anchor": "The newly placed image is not activated"
+        }
+      ]
+    },
+    {
+      "family": "namespace-identity",
+      "split": "challenge",
+      "question": "资产系统在同一子系统的两个控制器上都看见 NSID 3，准备去重成一个多路径盘。仅凭这张表能上线吗？",
+      "observations": [
+        "两控制器均不支持 Namespace Management、ANA Reporting 和 NVM Sets。",
+        "已确认同一子系统；缓存中只有控制器号与 NSID，缺共享属性以及可比对的持久标识。"
+      ],
+      "criteria": [
+        {
+          "id": "condition",
+          "text": "正确应用三项能力都不支持时共享与私有的例外。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "risk",
+          "text": "不据同号发布多路径映射。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "check",
+          "text": "取独立身份/共享证据，保留无法证实时的处置。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "N2"
+          ]
+        }
+      ],
+      "reject": [
+        "宣称同一子系统的任意两个 NSID 3 必然是同一卷。"
+      ],
+      "id": "SSD-DATA-04",
+      "referenceAnswer": "暂缓合并。在题设能力组合下，共享命名空间的 NSID 在子系统内唯一，私有命名空间没有这个唯一性保证。取共享属性、可用的 UUID 等标识及附件关系，先证实两个入口指向同一对象再合并；标识缺失时不能擅自当作相同卷。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 98,
+          "section": "3.2.1.6",
+          "anchor": "private namespaces are not required to be unique"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 99,
+          "section": "3.2.1.6",
+          "anchor": "UUID field in the Namespace Identification Descriptor"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "reviewed",
+      "label": "双规范 MCP 与处置自审",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · domain 检索 · 共 8 次调用 · decision-audit",
+      "results": [
+        {
+          "caseId": "SSD-OPS-07",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 8,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内没有可评阅的最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 235
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 214
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 215
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 216
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 331
+            }
+          ],
+          "tokens": 24134
+        },
+        {
+          "caseId": "SSD-DATA-04",
+          "status": "completed",
+          "answer": "**结论：不能上线。这张表不足以把两个控制器上的 NSID 3 去重成一个多路径盘。**\n\n**尚不能认定的原因（NVM Express Base 2.1）**\n- NSID 不是全局标识：p.98（文内页 76）只有 Namespace Management、ANA Reporting、NVM Sets 中任一被支持时，NSIDs 才 shall be unique within the NVM subsystem（“NSID of 3 shall refer to the same physical namespace regardless of the accessing controller”）；三者全不支持时，private namespaces 的 NSIDs “are not required to be unique within the NVM subsystem”。本机正属此配置，故两处 NSID 3 可能只是两个私有命名空间的编号巧合。\n- 缺可比对的持久标识：p.99（文内页 77）规定判定“是否同一命名空间”应用 UUID/NGUID/EUI64，并参考 NSFEAT 的 UIDREUSE；缓存只有控制器号+NSID，无从比对。\n- 无协调依据：p.498（文内页 476）要求支持 ANA Reporting 的控制器，其附着命名空间必须属于 ANA Group 并提供有效 ANAGRPID；本机不支持，路径协调/降级状态无来源。\n\n**一次区分性检查（两控制器各执行一次 Identify）**\n读 Identify Namespace（CNS 00h）取 NGUID、EUI64、CSI；读 Identify Controller（CNS 01h）取 CMIC 的 ANARS 位与 ANACAP。\n1. NGUID/EUI64 不同 → 两个不同命名空间，禁止去重，按两块独立盘上线；\n2. 相同但 ANARS=0 → 只能单路径挂载（按厂商共享语义另行评估），不得 active/active；\n3. 相同且 ANARS=1 → 再读 I/O Command Set Independent Identify Namespace（CNS 08h）的 ANAGRPID、ANA Group Members 及 NSFEAT.UIDREUSE，确认确为共享后再建多路径。\n\n**仍待确认**：命名空间是否真被两控制器共同附着（附着≠共享）；NGUID 是否存在复用。",
+          "seconds": 74.17,
+          "toolCalls": 11,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确阻止按 NSID 合并，说明私有卷编号可碰撞并要求核对持久标识。未说共享命名空间在该组合下仍要求 NSID 唯一。把 ANARS=0 断言成只能单路径、不得 active/active，给资产去重和交付加了题设不支持的门槛。",
+            "otherError": "本题已知不支持 ANA，回答又用 ANARS=1 假设作为唯一多路径放行分支；Identity 与 ANA 状态报告是不同问题。",
+            "credits": {
+              "condition": 0.5,
+              "risk": 1,
+              "check": 1
+            },
+            "rejectHits": [],
+            "score": 80.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 98
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 498
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 99
+            }
+          ],
+          "tokens": 66176
+        }
+      ]
+    },
+    {
+      "id": "prefetched",
+      "label": "同提示与原文预取",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · domain 检索 · 共 8 次调用 · decision-audit · 从总预算使用 2 次检索，每个协议取 2 个候选段落；工具次数包含自动预取和后续自主尝试（含失败）",
+      "results": [
+        {
+          "caseId": "SSD-OPS-07",
+          "status": "completed",
+          "answer": "## 结论：现在是 A，不是 B；按现有记录，下次重启也不会切到 B → 撤回本次灰度放行\n\n**判据（NVMe Base 2.1）**\n- p.235《Firmware Slot Information Log Page (03h)》：CAFS(b2:0)=“运行中固件是从哪个槽加载的”=1；FRS1(b15:08)=槽1中版本“A”；FRS2(b23:16)=“B”只说明 B 已下载进槽2。B 未激活。\n- 同页 NAFS(b6:4)=0h，其定义是“控制器不指示任何将在下次 Controller Level Reset 激活的槽”。\n- p.215 / p.214：只有 CA=001b/010b 且完成状态为 0h 的 Firmware Commit 成功后，下一次 CLR 才激活该固件；011b 才是立即激活。导出中无此成功记录 → **不能认定**会切换；但“未采到记录”≠“未发生”，也不宜断言绝不切换。\n- 平台口径错误可直接定责：它取的是槽目录 FRS1/FRS2 并按字符串取“B”，而“正在运行版本”应读 Identify Controller FR（p.321：FR 为当前活跃版本，与 03h 同源；p.214 亦如此指引）。\n- PCIe p.637 的 FRS 是 Function Readiness Status，与固件槽无关，弃用。\n\n**最有区分力的一步**：同一控制器读 Identify Controller FR + Get Log Page 03h，在计划重启后再复读一次。\n- FR=\"A\"、CAFS=1 → 仍跑 A：不放行；查平台是否漏发或未成功执行 Firmware Commit(CA=010b, FS=2)。\n- 重启后 CAFS=2、FR=\"B\" → 切换发生在重启后：放行条件改为“重启后仍为 B”，并取当时 commit 状态码为证。\n- FR 与 CAFS 矛盾 → 先查取数逻辑，不放行。\n\n**如确需切换**：发 Firmware Commit（CA=010b、FS=2），安排一次符合 3.7.2 的控制器级复位；010b 仅在状态 0h 后由该复位激活（p.214/215）。\n\n**待确认**：是否存在 CA=001b/010b 且状态 0h 的 commit；那次重启是否为控制器级复位。",
+          "seconds": 66.92,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "正文要求查 FR、NAFS=0 不指明目标，复位前后取样也正确；标题却直接签为当前 A 并断定下次不会切 B。两条核心结论与所列证据相矛盾。",
+            "otherError": "把资产核对扩大成发 Firmware Commit 和复位的建议，需先有独立变更前提及授权。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 0.5,
+              "C3": 1
+            },
+            "rejectHits": [
+              1,
+              2
+            ],
+            "score": 60.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 235
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 215
+            }
+          ],
+          "tokens": 36130
+        },
+        {
+          "caseId": "SSD-DATA-04",
+          "status": "completed",
+          "answer": "**结论：不能仅凭这张表上线去重。**\n\n**理由（NVMe Base 2.1）**\n1. §3.2.2（PDF p.98）：Namespace Management、ANA Reporting、NVM Sets 三者都不支持时，**仅共享命名空间**的 NSID 要求在子系统内唯一，**私有命名空间的 NSID 不要求唯一**（b 项）。因此“两控制器同为 NSID 3”与“两个私有命名空间”“同一共享命名空间”两种情形都相容，不能据此认定同一块盘。\n2. §4.7.1.4（PDF p.189）：控制器建立命名空间时须在 EUI64、NGUID 或 Namespace Identification Descriptor（Namespace Identifier Type=3h 的 UUID）中给出全局唯一标识；EUI64/NGUID 全零时须提供有效 UUID。这才是可比对的持久身份。\n3. CMIC 的 ANARS 位（PDF p.321）：不支持 ANA 报告即无 ANA Group/日志可核对路径状态。PCIe 的 Device ID/Subsystem ID（PDF p.700）只标识 PCI 产品，不标识命名空间，不能替代上述标识。\n\n**一次区分检查**：两控制器各读 Identify Namespace（§8.1.9）与 Namespace Identification Descriptor，比对 NSID 3 的 NGUID（bytes 104–119）、EUI64、UUID。\n- 相同且非零 → 同一命名空间 → 可合并为一条多路径盘；因无 ANA 报告，先按单活动路径上线并保留单路径回退。\n- 不同 → 两个私有命名空间 → 不合并，资产表键须改为含控制器与标识。\n- 全零且无 UUID → 无法判定 → 保持两条独立条目；判定前勿同时写入两条 NSID 3 路径（同盘双挂载会互相破坏）。\n\n**待确认**：两控制器是否都 attach 到同一命名空间（无 Namespace Management，Attach/Detach 不可用）。",
+          "seconds": 62.45,
+          "toolCalls": 8,
+          "review": {
+            "usability": "ready",
+            "reason": "准确说明共享与私有 NSID 的不同唯一性边界，拒绝盲目合并，提出在两个控制器现场读取标准标识并比对，标识缺失时保留独立记录。附带的单活动回退属于保守上线选择；当前资产决定明确且可执行。",
+            "otherError": "首条的节号有偏差，PDF p.98 的 §3.2.1.6 支持其所述规则。",
+            "credits": {
+              "condition": 1,
+              "risk": 1,
+              "check": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 98
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 534
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 189
+            }
+          ],
+          "tokens": 27982
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}
