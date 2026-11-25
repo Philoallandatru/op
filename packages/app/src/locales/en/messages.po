@@ -12419,3 +12419,6 @@ msgstr "Tool calls"
 
 msgid "Weight"
 msgstr "Weight"
+
+msgid "Open SSD example"
+msgstr "Open SSD example"

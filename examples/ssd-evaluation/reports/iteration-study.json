@@ -1,0 +1,1238 @@
+{
+  "schemaVersion": 1,
+  "title": "SSD 工程问答 · 同题四轮对照",
+  "cases": [
+    {
+      "family": "admin-queue-dma",
+      "split": "challenge",
+      "question": "这块盘配置空间和 BAR 都能读，RDY 也起来了，但开机第一条 Identify 就超时。有人说是 MSI-X 漏中断或 NAND 太慢。你会先验证哪条因果链？说明怎么用一次复测区分没取命令、没写完成和单纯没通知。",
+      "observations": [
+        "普通 Type 0 PCIe Endpoint，Admin SQ、CQ 均在主机内存；从创建队列至超时，PCI Command 读回一直是 0x0002。",
+        "CSTS.RDY=1 后主机填写 Identify Controller SQE，并写了 SQ0 Tail Doorbell；分析仪看到了该下行 MMIO 写。",
+        "按该 BDF 过滤，窗口内没有上行读 Admin SQ 的 Memory Read，也没有写 Admin CQ 的 Memory Write；CPU 轮询未见该 CID 的新 CQE。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "将 0x0002 解为 MSE=1、BME=0，并说明入站 BAR 可访问与端点主动 DMA 能力是两个条件。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "串起写 Doorbell、端点从主存取 SQE、写回主存 CQE，利用 trace 定位第一个未发生的取队列动作。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P2",
+            "N1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "明确缺少新 CQE 时仅修 MSI-X 不能恢复这次命令路径，给定迹象不能指认 NAND。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P2",
+            "N1"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "提出在有效 DMA 映射/队列就绪下恢复并读回 BME 的受控复测，按 SQ 读、CQ 写/轮询和中断的先后区分三个断点。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "P2",
+            "N1"
+          ]
+        }
+      ],
+      "reject": [
+        "声称 CSTS.RDY=1 或读通 BAR 已证明 PCIe BME 已开启。",
+        "只更换中断向量或反复等待 NAND，把从未写回 CQE 的现象当成单纯的漏中断。"
+      ],
+      "id": "SSD-BOOT-02",
+      "referenceAnswer": "0x0002 使能 MSE，但 bit 2 BME=0。BAR 应答和 Doorbell 是主机发往端点的访问；对这个 Type 0 端点，BME=0 禁止其主动发起 Memory/I/O 请求，也阻断 MSI-X 写。主存 SQE 需要控制器取，CQE 需要控制器写回。现有 trace 首先指向 DMA 被门控，在看到新 CQE 前不能仅归因于中断，也没有证据支持 NAND 延迟。确认驱动建立合法的主存队列地址和 DMA 映射后，走正常初始化路径启用并读回 BME，重复同一请求。依次核对 Doorbell 后是否读 SQ、是否写入并能轮询到对应 CID 的新 CQE、是否随后出现 MSI-X。若已有新 CQE 而没有通知，转查 MSI-X 配置；若读 SQ 后仍无 CQ 写，再查 CQ 映射和命令处理。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 686,
+          "section": "7.5.1.1.3, Table 7-3",
+          "anchor": "Controls a Function's response to Memory Space accesses"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 687,
+          "section": "7.5.1.1.3, Table 7-3",
+          "anchor": "not allowed to issue any Memory or"
+        },
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 42,
+          "section": "2.1, Memory-Based Transport Model (PCIe)",
+          "anchor": "The controller fetches SQ entries in order"
+        }
+      ]
+    },
+    {
+      "family": "cancel-controller-shutdown",
+      "split": "dev",
+      "question": "这次整机下电被取消。驱动想清掉 SHN，沿用旧的 I/O 队列，直接让同事恢复业务。这个恢复点可以放行吗？请写出恢复路径和验证条件。",
+      "observations": [
+        "单控制器内存型传输。正常控制器关机完成后采到 CC.EN=1、CSTS.ST=0、CSTS.SHST=10b。此后供电一直正常，没有复位，没有带外访问。",
+        "关机前驱动成功删除了该控制器的所有 I/O SQ 和 CQ，保留的只是主机内存里的旧队列结构。PCIe 链路可用，能够正常读 NVMe 属性。"
+      ],
+      "criteria": [
+        {
+          "id": "branch",
+          "text": "解释当前为 ST=0、SHST=10b 的控制器关机并选取 CC.EN=1 的恢复分支。",
+          "weight": 15,
+          "critical": false,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "reset",
+          "text": "明确需要 Controller Level Reset 使 EN 回 0 并重新初始化使能，单清 SHN 不够。",
+          "weight": 30,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "queues",
+          "text": "利用已成功删除队列的现场证据，要求重建业务队列并收到成功完成，拒绝直接用旧控制器队列上下文。",
+          "weight": 30,
+          "critical": true,
+          "evidence": [
+            "N2",
+            "N5"
+          ]
+        },
+        {
+          "id": "verify",
+          "text": "给出可观察恢复门槛，包含 RDY=1 后再提交命令、建队列成功及在新队列完成验证 I/O。",
+          "weight": 25,
+          "critical": false,
+          "evidence": [
+            "N3",
+            "N4",
+            "N5"
+          ]
+        }
+      ],
+      "reject": [
+        "对已完成关机且 EN=1 的状态只清 SHN 后恢复业务。",
+        "把主机内存中保留的旧队列直接当作控制器里仍有效的 I/O 队列。"
+      ],
+      "id": "SSD-SHUT-04",
+      "referenceAnswer": "当前是已完成的控制器关机，且 CC.EN 仍为 1，单清 SHN 无法恢复命令处理。在此分支需要 Controller Level Reset 使 CC.EN 回到 0，待相应复位完成后按控制器初始化流程配置 Admin 队列属性并重新使能，等待 RDY=1 再提交 Admin 命令；重建业务所需的 I/O CQ 和 SQ，不能复用已删除队列的控制器上下文。用寄存器轨迹、队列创建成功的 CQE 和重新建立队列后的只读 I/O 完成记录作为放行证据。另外的 EN=0 分支不适用于这个快照。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 134,
+          "section": "3.6.1",
+          "anchor": "a Controller Level Reset is required to clear"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 133,
+          "section": "3.6.1",
+          "anchor": "the host should delete all I/O Completion"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 124,
+          "section": "3.5.1",
+          "anchor": "Admin Completion Queue"
+        },
+        {
+          "id": "N4",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 84,
+          "section": "Figure 42",
+          "anchor": "Commands should not be submitted to the controller"
+        },
+        {
+          "id": "N5",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 125,
+          "section": "3.5.1",
+          "anchor": "I/O Completion Queues based on the number required"
+        }
+      ]
+    },
+    {
+      "family": "alarm-source-and-impact-correlation",
+      "split": "challenge",
+      "question": "工单机器人把两条同秒的“AER”合并成“SSD 过热导致 PCIe 数据损坏”，并建议直接下线。两个监控源如下。现在能确认什么？下个维护窗口怎么验证原因、分别派单？",
+      "observations": [
+        "测试盘直连 Root Port。主机保存了该 SSD 一条已提交的 NVMe Asynchronous Event Request 的 CQE：AET=001b，AEI=01h，LID=02h。没有把此条通知与具体温度传感器、上下阈值或当时温度曲线关联。",
+        "同一秒，该 Root Port 的 PCIe Advanced Error Reporting Correctable Error Status 的 Receiver Error Status 位置 1；该位受支持，本窗口开始前已清零。没有未纠正错误记录，没有发现业务校验差异。两个源的秒级采样无法确定先后。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "将 NVMe CQE 解为温度阈值事件，承认可能为上限或下限，索取实际温度和所配阈值确定方向。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "将 Root Port 状态归到 PCIe 可纠正接收错误；单次置位不足以证明盘、介质或某笔业务数据损坏。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "按事件源和端口/盘分开记录；明确同秒无法确定共同根因或先后。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "P1"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "提出温度与链路分因素控制或等价可鉴别采证，明确一种变化单独复现时的归属，并另验业务数据完整性。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P2",
+            "N2"
+          ]
+        }
+      ],
+      "reject": [
+        "把 NVMe 异步通知解释成 PCIe 的同一个告警，凭两者同时出现就宣布过热导致数据损坏。",
+        "将 AEI=01h 单向解释为某个 NAND 芯片已经超过上阈值。"
+      ],
+      "id": "SSD-X-04",
+      "referenceAnswer": "记录两件事。NVMe 的 CQE 指示 SMART/Health 温度阈值事件，可能是达到/超过上阈值，也可能是达到/低于下阈值；先取相应温度记录和对应阈值。根端口寄存器记录的是接收端的可纠正 PCIe 错误，硬件可恢复，单次置位不标识坏 NAND 或本次业务数据损坏，也不给出准确发生次数。同秒不能定因果。保留时间同步的温度/阈值、端口 BDF 和纠错事件、业务校验；分别做温控对照及基本固定温度的受控通路对照，看哪个事件跟随何种条件，再派热管理或链路定位，并独立核对业务完整性。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 197,
+          "section": "Figure 147, AET",
+          "anchor": "SMART / Health status"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 198,
+          "section": "Figure 150, Temperature Threshold",
+          "anchor": "equal to an under temperature threshold"
+        },
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 848,
+          "section": "7.8.4.5, Figure 7-127",
+          "anchor": "Receiver Error Status"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 506,
+          "section": "6.2.2.1",
+          "anchor": "hardware can recover without any loss of information"
+        }
+      ]
+    },
+    {
+      "family": "format-impact",
+      "split": "challenge",
+      "question": "审计脚本只保存了成功 CQE，就给归档卷开了已擦除证明。能接受这份证明吗？",
+      "observations": [
+        "控制器支持 Format NVM 广播，FNVMBS=0；命令 NSID=FFFFFFFFh、SES=001b、SENS=0。",
+        "命令执行时没有命名空间附加到这个控制器；归档卷仍只挂在另一个控制器。"
+      ],
+      "criteria": [
+        {
+          "id": "empty",
+          "text": "解释没有附件时仍会成功。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "target",
+          "text": "明确归档卷不在本次作用范围，拒绝擦除证明。",
+          "weight": 5,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "trace",
+          "text": "用当时的控制器、附件快照与卷身份留证。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N2"
+          ]
+        }
+      ],
+      "reject": [
+        "以 Successful Completion 证明其他控制器上的归档卷已被擦除。"
+      ],
+      "id": "SSD-DATA-08",
+      "referenceAnswer": "不能给这个卷开证明。在这组参数下，广播安全擦除覆盖本控制器附加的命名空间；附件为空时仍应成功。这个 CQE 证明命令完成，覆盖清单不含归档卷。核对卷身份与动作发生时的附件快照，重新走有明确对象与授权的验收。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 219,
+          "section": "5.1.10",
+          "anchor": "there are no attached namespaces"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 218,
+          "section": "Figure 188",
+          "anchor": "All namespaces attached to the controller"
+        }
+      ]
+    },
+    {
+      "family": "data-prp-boundary",
+      "split": "dev",
+      "question": "同一份 8 KiB 读测试，仅把起始缓冲区后移 512 B 就开始出现 DMA 映射异常。PRP 构造器仍把第二个页地址直接填入 PRP2，这两轮都适用吗？",
+      "observations": [
+        "CC.MPS 对应 4096 B，数据区采用 PRP，无独立元数据。A 轮起始地址页对齐，B 轮起始页内偏移 512 B。数据区后续页各自已映射但不要求连续。",
+        "两轮传输长度都为 8192 B，命令抓包确认 PRP2 填的是第二个数据页的 DMA 基地址，未分配 PRP List。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "分别算出 A 两页、B 三页，说明首段 3584 B。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "B 的 PRP2 使用 PRP List，只有第二、第三数据页地址；A 可直指第二页。",
+          "weight": 5,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "以实际映射和可验证读结果复测，不预言固定设备错误。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        }
+      ],
+      "reject": [
+        "认定只要传输总长等于两页，PRP2 永远直接指向第二个数据页。"
+      ],
+      "id": "SSD-IO-07",
+      "referenceAnswer": "A 占两页，PRP2 可直接给第二页。B 的第一页只剩 3584 B，还有 4608 B 分布在两个后续页，合计三页。PRP2 应指向列表，列表依次给这两个后续数据页基址，不重复 PRP1。回放时核对三段 DMA 映射和返回数据。可以断定 B 中的指针编码不符；控制器看见的具体错误或数据后果还需独立观测。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 42,
+          "section": "2.1",
+          "anchor": "more than two PRP entries are necessary"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 174,
+          "section": "4.3.1",
+          "anchor": "describes additional PRP entries that could not be described"
+        }
+      ]
+    },
+    {
+      "family": "nvme-apst-vs-pcie-aspm",
+      "split": "challenge",
+      "question": "同一主机上做 idle-to-read，启用整套省电策略后第一条读慢了约 2 ms。可以据此把缺陷分给 NVMe APST，还是应归给 PCIe？",
+      "observations": [
+        "仅有两组数据：APST 与 ASPM 均关时不出现，二者均开时出现；均使用本地 PCIe SSD、相同空闲时长、队列深度和目标 LBA。",
+        "当前未保存 APST 工作状态表、转移时间和链路 L 状态轨迹，也没有控制器电源状态驻留记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "说明现有双因素对比不能将增量分给 APST 或 ASPM 的某一个。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "区分控制器 APST 状态/空闲门槛和 PCIe L 状态，不能凭使能配置认定实际状态。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2",
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "固定负载和空闲时长，补 APST 单开、ASPM 单开两组，考虑双开交互。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N1",
+            "P1"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "读取 APST 配置/表，并将可得的控制器状态和实际链路退出轨迹与请求延迟对时。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N2",
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "据一次双开对照就把 2 ms 视为 PCIe L1 的规范退出时间或 APST 固件故障。"
+      ],
+      "id": "SSD-PWR-12",
+      "referenceAnswer": "两个因素同时变化，只能说明组合有关。APST 允许按控制器状态表在满足空闲门槛时转换，PCIe ASPM L1 发起另受链路机制/策略控制；单靠使能位不能证明实际转换。做四个组合并核对两个设置、APST 的 ITPT/ITPS 和链路退出时间；若两个单开都不复现但双开复现，应查互相作用。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 401,
+          "section": "Figure 392",
+          "anchor": "then autonomous power state transitions are enabled"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 401,
+          "section": "Figure 393",
+          "anchor": "The time is specified in milliseconds"
+        },
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 465,
+          "section": "5.4.1.2.1",
+          "anchor": "the specific ASPM policy governing when to transition"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "control",
+      "label": "无工具基线",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · 无工具 · standard",
+      "results": [
+        {
+          "caseId": "SSD-BOOT-02",
+          "status": "completed",
+          "answer": "先验证“缺 BME→不能 DMA 取 SQ”这一链，而非先归因 MSI‑X/NAND。可核对：PCIe 5.0 §7.5.1，Type 0 头 Command/Status（偏移 0x04），bit2=BME；NVMe 2.1 §7.2–7.3 的队列/门铃流程。\n\n0x0002 仅开启 bit1（Memory Space），BME=0。门铃 MMIO 写只需 Memory Space Enable，故能看到门铃写；但控制器取主机内存中的 Admin SQ 需发上游 Memory Read。当前恰无该读，链条断在取命令前，MSI‑X/NAND 尚无解释力；CSTS.RDY 也不代表 DMA 已获准。\n\n一次复测：读改写 Command|=0x4（当前即 0x0006），确保 MSI‑X 已启用、解屏蔽，再发 Identify、敲门铃，同时抓包并轮询 CQ：\n\n- 无 SQ 读：仍未取命令，另查 SQ 基址/门铃映射；\n- 有 SQ 读、无 CQ 写/CQE：已取但未写完成，再查控制器/NAND时序；\n- CQ 写且 CQE 可见，仅缺预期 MSI‑X：才是通知链故障，查表项、屏蔽和向量映射。",
+          "seconds": 68.87,
+          "toolCalls": 0,
+          "review": {
+            "usability": "revise",
+            "reason": "从下行门铃和缺失 SQ 读取正确定位 BME，并能分清 SQ 读、CQ 写、IRQ 三种结果。使能前未确认队列地址和 DMA 映射，也未要求读回 BME；这些前提补上后可以用作受控复测。",
+            "otherError": "所列 NVMe §7.2–7.3 不是内存传输队列流程的正确定位，可核对 Base 2.1 §2.1。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": false
+          },
+          "readPages": [],
+          "tokens": 9081
+        },
+        {
+          "caseId": "SSD-SHUT-04",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内没有可评阅的最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-X-04",
+          "status": "completed",
+          "answer": "结论：不能确认“SSD过热导致PCIe数据损坏”，现有证据不支持据此直接下线。NVMe 2.1（Asynchronous Event Request）规定：AET=1Bh为温度阈值越界；AEI=01h为传感器1，LID=02h为下限阈值越界，非过热证据，CQE也不含实测温度。PCIe 5.0 AER的Receiver Error Status（bit 1）属可纠正状态；窗口前清零仅说明曾锁存接收错误。秒级同刻不能定序；无未纠正错误及校验差异仅表示未发现损坏。\n\n维护窗分两单：\n1. **存储/热**：统一时钟高分辨率采集SMART全部温度/上下阈值、NVMe事件及错误日志、CQE，核对传感器映射，并在厂商限值内复现。\n2. **PCIe/平台**：保存Root Port及SSD两端AER、重放计数、LTSSM，做温度扫频和链路压力（支持则BERT），互换SSD/根端口。只有温度异常稳定先于RES且降温/替换后RES消失，才支持因果。\n\n仍待确认：精确时刻、实际温度/阈值配置、RES来源。核对位置：NVMe 2.1上述AET/AEI/LID表；PCIe 5.0 AER Extended Capability的Correctable/Uncorrectable Error Status。",
+          "seconds": 119.45,
+          "toolCalls": 0,
+          "review": {
+            "usability": "misleading",
+            "reason": "能分开两类告警并要求测温、对照链路。但 AET/AEI/LID 被编成了具体传感器和下阈值，Receiver Error 的位号也错。现有 CQE 不能据此派给某传感器或确定低温。",
+            "otherError": "AET=001b 是 SMART/Health 类，AEI=01h 是温度阈值，LID=02h 指日志；方向和测点尚未知。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 75.0,
+            "passed": false
+          },
+          "readPages": [],
+          "tokens": 18895
+        },
+        {
+          "caseId": "SSD-DATA-08",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内没有可评阅的最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-IO-07",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内没有可评阅的最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-PWR-12",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.01,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内没有可评阅的最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": []
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "label": "双规范 MCP",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · domain 检索 · 8 次调用 · standard",
+      "results": [
+        {
+          "caseId": "SSD-BOOT-02",
+          "status": "completed",
+          "answer": "**判断：先验 PCIe Bus Master Enable（BME）没置位。**\nCommand=0x0002 只有 bit1（Memory Space Enable），bit2 BME=0。BME 决定 Function 能否发出 Memory Read/Write 请求（PCIe Base 5.0 §7.5.1.1.3 Command Register，Table 7-3，PDF p.686–687）。因此\"无 MRQ 取 Admin SQ\"和\"无 MW 写 Admin CQ\"是同一根因的两个侧面；MSI-X 消息本身就是写主机内存 MSI-X 表的 Posted Write，同样需要 BME，\"漏中断\"只是下游症状；NAND 慢应表现为已取命令、完成偏晚，与观测相反。\n\n**最有区分力的一步（一次复测，只改一件事）**：把该 BDF 的 Command 写成 0x0006（其余队列地址、门铃、MSI-X 配置全不动），再发一条 Identify，同时抓该 Requester ID 的全部 TLP：\n- 出现 MRQ 且 CQE 落到 Admin CQ → 根因就是 BME，三条链一次分开；\n- CQE 出现但无 MSI-X → 通知是独立故障，查 MSI-X 表/向量掩码；\n- MRQ 出现、CQE 不来 → 不是 DMA 门控，转查控制器侧（CC.EN、门铃是否被解码、固件）；\n- 仍无 MRQ → 查门铃偏移(CAP.DSTRD)、ASQ/ACQ 是否正确、门铃写是否真到达设备。\n\n**仍待确认**：分析仪只看到链路上的写，不等于设备取走；复测前顺读 CAP(08h)、CC(14h) 的 EN、CSTS(1Ch) RDY、AQA(24h)/ASQ(28h)/ACQ(30h)（NVMe Base 2.1 寄存器表 p.71）；MSI-X 下不要用 INTMS/INTMC(0Ch/10h) 掩码，改查 MSI-X 表（p.78）；BME 由谁置位、是否被后续配置写清零；过滤是否覆盖设备→主机的 MRQ（Requester ID）。",
+          "seconds": 31.26,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "主链、分层复测均正确，开启 BME 前缺少合法 DMA 映射和置位读回。把 MSI-X 消息写入目的地说成主机中的 MSI-X 表，又把 08h 当 CAP，让现场查错配置和地址。",
+            "otherError": "MSI-X 表在 Function 的 BAR 内；中断消息按表项的 Message Address/Data 发往目标。CAP 起始偏移为 00h，08h 为 VS。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 686
+            }
+          ],
+          "tokens": 19276
+        },
+        {
+          "caseId": "SSD-SHUT-04",
+          "status": "completed",
+          "answer": "**结论：不可放行。** 该恢复点违反 NVMe 规范，旧 I/O 队列必须作废。\n\n**理由（可核对）**\n- NVMe 2.1 §3.6.1（规范页 111–112 / PDF p.133–134）：CC.EN=1 且 CSTS.SHST=10b 时，必须先做 Controller Level Reset（CC.EN 1→0），再置 CC.EN=1 并重跑 §3.5 初始化；“写 CC.EN=1 且 CC.SHN=00b 以清 SHST”的快捷路径**仅适用于 CC.EN=0**，本例不适用。\n- 图 85（规范页 110 / PDF p.132）：CC.EN=1 + SHST=10b 时控制器**不能处理 Admin 与 I/O 命令**，媒体处于 shutdown。\n- CLR 定义（规范页 118 / PDF p.140）：CLR 删除全部 I/O SQ/CQ，旧 SQID/CQID 与主机旧队列结构全部失效。\n\n**恢复路径**：停发 I/O → CC.EN 写 0（CLR），轮询 CSTS.RDY=0 → 写 1，等 CSTS.RDY=1 → 重跑 §3.5 初始化（Identify/命名空间）→ 用新 ID 重建 CQ/SQ、清零队列头与门铃 → 写+读回比对通过再放量。备选：PCIe FLR（PCIe 5.0 §6.6.2，PDF p.554–556）作传输层复位，其后同样须完整重新初始化；平台允许时也可 D3cold/掉电循环。\n\n**验证条件**：CLR 后 CSTS.RDY=0；使能后 CSTS.RDY=1、CSTS.SHST=00b、CSTS.ST=0；Identify Controller/Namespace 一致；新队列创建成功；写-读回 LBA 比对通过；无新增 AER/中断超时。\n\n**待确认**：CAP.NSSES 是否为 1（为 1 时 CLR 才清 SHST/ST，规范页 113）；设备是否支持 FLR；CC.CRIME 指示的 media 重初始化时间与 RTD3 Entry Latency；现有驱动是否实现完整 §3.5 序列。",
+          "seconds": 59.9,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝直接恢复，覆盖软件 CLR、RDY、重建成功及验证 I/O。附加放行条件将 CAP.NSSES 引入普通控制器关机，宣称只有 NSSES=1 才能清 SHST/ST，又把 SHST=00b 时 ST=0 当作必须，足以错误拦截恢复。",
+            "otherError": "把 Admin 队列配置放在置 EN 之后的表述易造成时序误用。要求使用新 QID 缺乏依据，写回验证也未约束到获准的测试 LBA。",
+            "credits": {
+              "branch": 1,
+              "reset": 1,
+              "queues": 1,
+              "verify": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 133
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 134
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 132
+            }
+          ],
+          "tokens": 58938
+        },
+        {
+          "caseId": "SSD-X-04",
+          "status": "completed",
+          "answer": "**【判断】工单结论不成立，暂不下线。**\n\n1) **NVMe 侧**：该 CQE 是 *SMART/Health 状态*事件（AET=001b），AEI=01h 仅表示\"某温度传感器越过上/下限阈值\"（**也可能是欠温**），既不含温度值、更与 PCIe 无关；定性必须读 LID=02h 的 SMART/Health 日志（Composite Temperature、传感器 1-8、WCTEMP/CCTEMP、WCTT 分钟数）（NVMe 2.1 PDF p.197 Fig.147、p.198 Fig.150、p.231/233）。\n\n2) **PCIe 侧有疑点**：Receiver Error 是 Correctable Error Status 的 **bit 0**，bit1-5 为 RsvdZ（PCIe 5.0 PDF p.848 Table 7-103）。若\"位置 1\"确指 bit 1，硬件不可能置位，须核原始 hex（1-based 读法才对应 Receiver Error）。Receiver Error 属物理层可纠正误码；本窗口无未纠正错误、无校验差异，**不能称\"数据损坏\"**。\n\n3) **因果不成立**：盘内温度不会造成 Root Port 侧 PHY 误码，同秒采样也定不了先后。更可能是**共享环境因素**（风扇/进风高温、EMI、PSU 纹波）同时引发两条症状。\n\n**【下一步：先留证，再交叉换盘】**\n- 留证：AER 全部寄存器 hex（Correctable/Uncorrectable Status、Header Log、Error Source ID、Severity）+ SMART/Health 全量 + 风扇/进风温度 + 亚秒级日志。\n- 交叉：同负载下把疑似盘换到另一 Root Port，同时把良好盘插入该端口。误码**跟端口走**=链路/线缆/连接器；**跟盘走**=设备侧；两者各自独立=两件事。\n\n**【派单】**①存储：温度阈值/传感器/散热核查，不下线；②PCIe：链路误码复现与整改；③机器人：禁止跨源同秒并因，位号按 Table 7-103 校验，AE 须解码至 AET/AEI/LID 与日志页。\n\n**【待确认】**真实置位位号、过/欠温与温度值、是否同秒及先后、Error Source ID 是否即该盘、该链路是否本就有其他误码。",
+          "seconds": 96.8,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "两类事件解码和分单方向良好，并给出实际换槽对照。但从同秒事件直接排除热因素影响链路，反而偏向某个共同环境原因，没有观测支持这种取舍。单次换位也未单独控制温度因素。",
+            "otherError": "监控阈值/采集源说错：WCTEMP/CCTEMP 来自 Identify Controller，事件还需对应的阈值设置与传感器温度。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 0.5,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 197
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 198
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 232
+            }
+          ],
+          "tokens": 76975
+        },
+        {
+          "caseId": "SSD-DATA-08",
+          "status": "completed",
+          "answer": "**结论：不能接受。**\n\n**理由**\n\n1. **作用域根本不含归档卷。** NVMe 2.1 Fig.188（p.218/§196）：SES=001b（安全擦除）时范围由 SENS 位决定；SENS=0 时 NSID=FFFFFFFFh 仅作用于\"本控制器已attach的命名空间，其它命名空间不受影响\"。归档卷挂在另一控制器，从未进入擦除范围。\n2. **成功 CQE 是\"空成功\"。** p.219/§197：NSID=FFFFFFFFh＋安全擦除＋SENS=0＋无 attach 命名空间时，命令\"shall complete without error\"。执行时该控制器无命名空间，实际未擦任何数据；status 0 不等于擦除已发生。FNVMBS=0（Fig.312, p.343）仅说明广播合法，不是擦除证据。\n3. **证据链残缺。** 只存成功 CQE 无法核对 CID 与 SCT/SC，失败/中止被丢弃；而 SES=001b 的 User Data Erase（Fig.189, p.220）只要求范围内用户数据被擦、介质内容不确定，本就不产出可审计证书。\n\n**最有区分力的下一步**\n\n① 在归档卷所在控制器读已知样本（LBA0/校验块）：数据仍在即直接反证\"已擦除\"。\n② 取两控制器带时间戳的 Identify Controller（FNA:SENS/FNS）与 Identify Namespace（CNS 00h/11h/12h），确认执行时刻归档 NSID 的 attach 状态。\n③ 改在归档卷实际挂载处用 Sanitize（Fig.372, p.390）做 Block/Crypto Erase，保留全部 CQE 与 Sanitize Progress。\n\n**待确认**：执行时刻的 attach 状态、两控制器是否同一 NVM subsystem/域、被丢弃的失败 CQE 内容、是否存在快照/副本。",
+          "seconds": 64.51,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确识别空附件可成功，拒绝认证未覆盖的归档卷。但进一步要求在卷所在控制器改做 Sanitize，没有确认子系统作用范围、其他卷和授权；会把审计问题变成有数据丢失风险的实际动作。",
+            "otherError": "新的 Identify 快照本身不能还原此前附件关系；完整成功 CQE 也并非没有 CID/SCT/SC。",
+            "credits": {
+              "empty": 1,
+              "target": 1,
+              "trace": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 218
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 219
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 220
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 343
+            }
+          ],
+          "tokens": 53808
+        },
+        {
+          "caseId": "SSD-IO-07",
+          "status": "completed",
+          "answer": "**判断：两轮不能通用——A 轮合规，B 轮不合法。**\n\n**依据（NVMe Base 2.1 §4.3.3）**\n- Figure 92（PDF p.158／印刷 136 页）规定 DPTR 中 PRP2 只有两种形态：数据跨**恰好一个**内存页边界时，填“第二页的 Page Base Address”；跨**多于一个**页边界时，PRP2 必须是 **PRP List 指针**。\n- A 轮：偏移 0、8192 B=2×4096 B，恰跨一个边界 → PRP2=第二页 PBA 合规；各页无需物理连续（Figure 112 对 PRP List 同理）。PBAO 见 PDF p.174：仅首个条目可带偏移，其余条目偏移须为 0 且按 CC.MPS 页对齐。\n- B 轮：偏移 512 B 时 8192 B 覆盖 3584+4096+512 共 3 页、跨 2 个边界，规范明确“长度≥2 页且 PRP1 偏移非零”时 PRP2 须为 PRP List 指针。控制器会把该基址当表项指针去数据页内存取 PRP，必然映射错乱；且尾部 512 B 所在第三页根本无人描述。\n\n**最有区分力的下一步**：B 轮改为 PRP1=PBA1+512、PRP2=qword 对齐的 PRP List 指针（内含页2、页3 两个 PBA，偏移为 0），确认第三页已映射后重测并回归 A 轮，同时抓 B 轮完成状态码。\n\n**待确认**：B 轮实际状态码与数据落点（Invalid Field／PRP Offset Invalid 见 PDF p.174／Data Transfer Error）；控制器是否强制两页物理连续；PCIe 侧 MRd 是否按 4 KB 边界拆分，本次未取证。",
+          "seconds": 69.4,
+          "toolCalls": 10,
+          "review": {
+            "usability": "revise",
+            "reason": "两轮的数学与 PRP 语义准确，B 轮列表两项和 A 轮回归可执行。需要补实际读回内容与各段 DMA 落点的核对，并收回对后果必然性的判断。",
+            "otherError": "声称必然乱映射并质疑设备是否强制两页物理连续，对 PRP 的非连续映射引入多余且无根据的条件。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 158
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 173
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 174
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 175
+            }
+          ],
+          "tokens": 60733
+        },
+        {
+          "caseId": "SSD-PWR-12",
+          "status": "completed",
+          "answer": "**判断：现有证据不足以定责，且不宜直接归给 PCIe。**\n\n两组数据只有\"全关/全开\"，缺\"仅 APST 开\"\"仅 ASPM 开\"两个交叉格，APST 与 ASPM 完全混叠；2 ms 也可能出在平台/驱动唤醒流程，而非任一协议层。\n\n**量级线索偏向 NVMe：** PCIe 侧 ASPM 唤醒是 µs 级——L1 可接受时延编码上限 64 µs（PCIe 5.0 v1.0 Table 5-9, p.476），L1.2 退出的 TCOMMONMODE 可编程至 255 µs（Table 5-11, p.489），L1.2.Exit 还可能重训练链路（§5.5.3.3, p.486），都远小于 2 ms；而 NVMe 的 PSD 退出时延 EXLAT 本就是 ms 量级（示例 5,000 µs，Fig.625, p.557），且非运行态下控制器须自主回到最近运行态以处理 I/O（p.558）。\n\n**最具区分力的下一步：**\n① 补齐 2×2 交叉格，各取多条首读延迟分布；ASPM 再按 L1.1/L1.2 分档（L1 PM Substates Control 2, 0x0C）。\n② 同步打点：链路 L 状态轨迹与 L1 退出时刻、Get Features 0x0C 读控制器当前 power state、Identify 中各 PSD 的 EXLAT，看 2 ms 是否落在 EXLAT 内。\n③ 核对 idle 时长是否 ≥ APST 入口延迟——否则控制器根本没进深态，延迟另有来源。\n\n**待确认：** SSD 型号与 PSD 表、根端口 L1.2 实现是否重训练、驱动唤醒后是否做额外初始化（可能贡献 ms 级）。",
+          "seconds": 58.31,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "主张补齐两个单开组，并对齐链路退出，有效。却把 PCIe 可接受时延编码和共模恢复时间用于推断总退出都远小于 2 ms，未经测量事先偏向 NVMe。具体测量说明也给错。",
+            "otherError": "Get Features FID 0Ch 查 APST 配置/表，不能直接读取实时当前电源状态；控制 2 的单个寄存器也不能代表全部 ASPM L1.1/L1.2 配置。",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 0.5,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 557
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 478
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 558
+            }
+          ],
+          "tokens": 50499
+        }
+      ]
+    },
+    {
+      "id": "reviewed",
+      "label": "双规范 MCP 与处置自审",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · domain 检索 · 8 次调用 · decision-audit",
+      "results": [
+        {
+          "caseId": "SSD-BOOT-02",
+          "status": "completed",
+          "answer": "## 判断先验 **\"PCI Command=0x0002 ⇒ BME=0\"** 这条链，MSI-X 与 NAND 暂列后位。\n\n- PCIe 5.0 p.687：Command bit2 清除时 \"the Function is not allowed to issue any Memory or I/O Requests\"；同页并说明 MSI/MSI-X 即内存写，**BME=0 会连 MSI-X 一起禁用**。所以\"漏中断\"最多是 BME 的后果，不是独立原因；\"NAND 慢\"更解释不了\"连一条上行 SQ 读都没有\"——没取到命令，谈不上执行慢。\n\n## 现在可作的决定\n\nCommand 写 **0x0006**（MSE+BME），并核对门铃偏移；暂不动 MSI-X、不复位、不降盘。\n\n注意现场写的是\"SQ0 尾门铃\"：按 NVMe 2.1 p.73 Fig.35，PCIe 门铃区自 `1000h+(2y·(4<<CAP.DSTRD))` 起，**0x1000 属 I/O SQ0**；Admin 门铃是低位第一个属性（p.445 影子门铃表：00h=Admin SQ 尾门铃）。误写 0x1000 会给出与现在**完全相同**的现象，故必须确认本次写的是 0x0000。\n\n## 一次区分性复测\n\nBME=1；写 Admin 尾门铃 0x0000=1；重发 Identify；按该 BDF 抓包：\n\n|观测 | 判定 | 动作 |\n|---|---|---|\n| A 上行读 Admin SQ + 下行写 Admin CQ（主机见 CQE） | 取命令、写完成都正常 | 若此时仍无 MSI-X，才查 MSI-X 表/PBA、MSI Enable |\n| B 有上行读、无 CQ 写 | 取到却未写完成 | 控制器/固件问题（Identify 不走介质），非中断非 NAND：查固件日志、换盘 |\n| C 仍无上行读 | 根本没取命令 | 查 Admin 队列创建、CAP.ASQ/ACQ、门铃偏移、BAR 译码 |\n\n判别式很干净：中断假设要求\"**有 CQE 写却无 MSI-X**\"，而现在连 CQ 写都没有，故该假设尚无证据基础。C 若出现，再二分\"BME 未生效 / 门铃偏移错\"。\n\n## 仍待确认\n\n门铃实际写入偏移；CAP.TO（单位 500 ms，最大 127.5 s，NVMe 2.1 p.76）与主机超时是否匹配；0x0002 由谁写入；CAP.ASQ/ACQ 是否在 BAR 可译码范围；MSI-X 当前使能状态。",
+          "seconds": 88.46,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "识别出 BME 和上行取 SQ 缺失，正确反驳直接归因 MSI-X/NAND。给出的实际复测却要求把 Admin SQ0 门铃写到 BAR+0000h，混淆影子门铃缓冲区与设备 MMIO 基址；给定复测不能按其描述工作。",
+            "otherError": "Admin SQ0 Tail Doorbell 的 MMIO 偏移为 1000h；设备写主存 CQ 是上行事务，答案写成下行。仅凭有 SQ 读无 CQ 写也不足以换盘。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 0.5,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 60.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 687
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            }
+          ],
+          "tokens": 69684
+        },
+        {
+          "caseId": "SSD-SHUT-04",
+          "status": "completed",
+          "answer": "## 结论：该恢复点不能放行\n\n**当前可作的决定**：拒绝\"清 SHN + 复用旧 I/O 队列\"；必须先对控制器做一次真正的复位，再重建队列后才能放行业务。\n\n**理由（NVMe Base 2.1 原文）**\n- CSTS.ST=0、CSTS.SHST=10b 即关机处理完成、媒体处于 shutdown 态（p.133；Figure 85，p.132）。自关机发起到 CLR 之前，控制器只处理 Fabrics 命令，不处理 Admin/I/O（p.135）。\n- SHST 无主机可写字段可清。CC.EN=1 时**必须先做 Controller Level Reset 把 CC.EN 清 0**，再在 §3.5 初始化序列中置 1，才能重新执行命令（p.135）。所以\"清 SHN 后直接开跑\"的前提不成立。\n- 旧队列无复用基础：关机前已删除全部 I/O SQ/CQ（p.133 步骤 1b/1c），CLR 后须重新 Create I/O SQ/CQ（p.141），旧 QID 只剩主机内存里的失效结构。\n\n**恢复路径**：执行一次真正的 CLR（PCIe 侧须核实 FLR 或 PERST# 是否真的发生）→ 读 CSTS（SHST=00b、CC.EN=0、CSTS.RDY=1）→ §3.5 初始化（CC.EN=1、Identify Controller、重新 Create I/O SQ/CQ）→ 才恢复业务。\n\n**最具区分力的一步检查**：复位后读 CSTS.SHST。\n- SHST=00b：复位生效，按上流程继续，但仍不得复用旧队列/QID。\n- 仍为 10b：复位未真正发生或未清 SHST，禁止放行；改走平台复位路径并核对关机完成后 CLR 支持。\n\n**仍待确认**：平台 FLR 在\"关机已完成\"态下是否具备 NVMe CLR 语义（PCIe Base 5.0 原文页本次未核实）；驱动能否重建队列而非沿用旧内存结构。",
+          "seconds": 48.97,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "拦住了沿用旧队列，也要求 CLR 和重新建队。却要求在 CC.EN=0 且再次使能前看到 RDY=1，并建议查 FLR 或 PERST#；正常清 EN 的软件复位由此会被误判失败。无建队成功和验证 I/O 的放行证据。",
+            "otherError": "CC.EN 属于 CC，不是 CSTS。未给出使能前建立 Admin 队列的步骤。",
+            "credits": {
+              "branch": 1,
+              "reset": 1,
+              "queues": 0.5,
+              "verify": 0
+            },
+            "rejectHits": [],
+            "score": 60.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 135
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 133
+            }
+          ],
+          "tokens": 48671
+        },
+        {
+          "caseId": "SSD-X-04",
+          "status": "completed",
+          "answer": "## 现在能确认的\n\n1. **NVMe 侧确有温度阈值事件**：AET=001b = \"SMART / Health status\"，AEI=01h = \"Temperature Threshold（≥过温阈值或≤欠温阈值）\"，LID=02h 指向 SMART/Health 日志页（NVMe 2.1 p.197 Fig.147；p.198 Fig.150）。所以\"温度越限\"有控制器侧依据，但只说明\"越过已配置阈值\"，不等于绝对温度，也不区分过/欠温，且事件可暂挂后上报（p.197）。\"过热\"尚不能断言。\n2. **\"PCIe 数据损坏\"不成立**：只有 Correctable Error Status 的 Receiver Error Status 被置位（PCIe 5.0 p.848 Fig.7-127/Tab.7-103，bit 0）；无 Uncorrectable 记录、无业务校验差异。§6.2.2.1（p.506）明确：correctable error 是\"硬件可恢复、无信息丢失，无需软件干预\"。\n3. **因果链不成立**：两源同秒、秒级采样，先后不可判，机器人是合并叙事。\n4. **位号需核实**：Receiver Error Status 是 bit 0，bit 1 为 RsvdZ（读 0）。\n\n## 尚不能认定\n实际温度/越限阈值/是否持续；工具\"位置 1\"是否即 bit 0；根因在链路/连接器/信号完整性还是盘侧温度。\n\n## 下个维护窗口：一次区分检查\n读 AER 原始寄存器（04h/08h/10h/14h/2Ch）+ SMART/Health 页(LID 02h) 温度与阈值 + Error Information 页(LID 01h)，并抓亚秒级温度曲线。\n\n- 温度确越限 **且** 错误日志有 Interface and Communication Errors → 派**散热单**（风道/降载/换槽位），SSD 先隔离备份，不停机。\n- 温度正常、仅 Receiver Error、无 uncorrectable → 派**链路单**（重插连接器/换线换槽、链路完整性测试），SSD 续用。\n- 出现 Uncorrectable 或介质错误 → 才**下线换盘**。\n\n不新增时限、不复位、不重试派单；归责待定。",
+          "seconds": 92.56,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "两个事件字段和可纠正错误解释准确，也否认同秒足以定因果。后半段却把温度越限与通信错误同时出现直接用于派散热单和隔离 SSD，并把未纠正或介质错误一概收敛到换盘，缺少分因素复现和影响确认。",
+            "otherError": "要求采集温度有用；阈值设置应核对对应温度阈值 Feature，不能只看 SMART 日志。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 197
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 848
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 198
+            }
+          ],
+          "tokens": 64907
+        },
+        {
+          "caseId": "SSD-DATA-08",
+          "status": "completed",
+          "answer": "**不能接受：这份\"已擦除证明\"应判为\"作用域为空的空操作记录\"。**\n\n依据（NVM Express Base 2.1，已核页）：\n- Fig 188（p.218）：SES=001b 走 Secure Erase，作用域由 SENS 决定；SENS=0 且 NSID=FFFFFFFFh → 作用域仅\"本控制器所附命名空间，其他命名空间不受影响\"。\n- p.219：SENS=0 且**无附加命名空间**时，该 NSID=FFFFFFFFh 的 secure-erase Format NVM **shall complete without error**。所以 SENS=0 在此是规范强制的成功空转，对归档卷零信息量。\n- Fig 189（p.220）：001b=User Data Erase；Fig 312（p.343）：FNVMBS=0 仅说明支持广播。归档 NSID 只挂另一控制器 → 不在作用域，本命令未触及归档数据。\n- 只留成功 CQE：无法核对 CQE 与该命令的 SQ/CQ ID 归属，也看不到被丢弃的 abort/重试，成功子集不构成完备证明。\n\n**现在可作的决定**\n1. 拒收该证明，不据此放行归档卷销毁或合规签署；记录改注\"作用域为空\"。\n2. 不许改用 SENS=1 广播\"补救\"：SENS=1 作用于 NVM 子系统全部命名空间，可能连带另一控制器的在线数据。\n\n**尚不能认定**：归档数据现状（本记录两边都不证明）；未过滤日志中是否另有擦除尝试；CQE 与命令的归属对应。\n\n**最有区分力的一次检查**（在持有归档 NSID 的控制器上做非破坏性哨兵块读）：\n- 哨兵原内容仍在 → 本命令确未触及 → 在真正覆盖该 NSID 的作用域下重做（SENS=0+指定 NSID，先确认该 NSID 在该控制器可寻址；或在持有端做 Sanitize NVM），留存全量日志后重出证明；\n- 哨兵读不到 → 发生过别的擦除 → 追查该次操作与全量日志再判；\n- 读出错/不确定 → 两说都不成立 → 以持有端 Sanitize 的完整状态记录为准。",
+          "seconds": 95.67,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "空作用域和拒签判断充分，也提醒全子系统广播的连带影响。却把哨兵原内容读不到直接推成发生过其他擦除，并提出在持有端做 Sanitize；两者都缺必要条件，不能作验收手段。",
+            "otherError": "非破坏性样本读能提供反证，不能证明发生过介质擦除；需命令时的附件记录和卷身份。Sanitize 的范围与授权必须另行验证。",
+            "credits": {
+              "empty": 1,
+              "target": 1,
+              "trace": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 218
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 219
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 220
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 343
+            }
+          ],
+          "tokens": 40826
+        },
+        {
+          "caseId": "SSD-IO-07",
+          "status": "completed",
+          "answer": "## 判断\n\n**只 A 轮成立，B 轮不成立**——同一份8 KiB 读，两轮的 PRP2 语义不同，构造器必须分轮处理。\n\n## 依据（NVMe Base 2.1）\n\n- **文件页 158 Figure 92（Common Command Format）**：PRP2 仅在数据**恰跨一个**内存页边界时填\"第二个内存页的 Page Base Address\"；**跨多于一个边界时 PRP2 必须是 PRP List 指针**。\n- **A 轮**：PRP1 偏移 0、8192 B = 2 页，恰跨 1 界 → PRP2 = 第二页基址成立，无需 List。\n- **B 轮**：PRP1.PBAO.Offset = 0x200 时，首条目只提供 3584 B，余 4608 B 需 P1 整页 + P2 前 512 B → 跨 2 界，PRP2 必须是 List 指针，List 中 entry0 = P1 基址、entry1 = P2 基址（**文件页 174**：List 内条目偏移须为 0，List 指针须 8 字节对齐）。\n- 把页基址放进 PRP2 = 让控制器把普通页当 List 指针解释 → 越界取址，即\"映射异常\"。\n\n## 尚不能认定\n\n第三页 P2 是否真已映射（现场只说\"后续页各自已映射\"）；异常在控制器解释还是 IOMMU 侧；B 轮\"第二页\"是 P1 还是 P1+512（后者违反文件页 174\"命令内第二 PRP 偏移须为 0\"，控制器应报 **PRP Offset Invalid，status 13h**，文件页 164）。\n\n## 一次区分性检查\n\n打印同一条命令的 **PRP1.PBAO**（Offset 是否 0x200）、**PRP2原始 64 位值**，加上 CQE **Status Code/Status Field**，并查 IOMMU fault 记录。\n\n**各结果对应动作**：status = 13h → 构造器把第二页算成了非对齐地址，改为页对齐基址、偏移只进 PRP1；status = 0 但数据错位 → 补 PRP List 两条目并确认第三页已映射；出现 IOMMU fault → 先补第三页映射，再谈构造器。当前可作的决定：**停用 B 轮的 PRP2=页基址 写法，A 轮维持不动**；仅凭抓包\"PRP2 填了第二页 DMA 基址、未分配 List\"不足以认定是构造器错还是第三页缺映射。",
+          "seconds": 73.95,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "页数、分段长度和 PRP 列表内容都对。后续却重新质疑题设已确认的后续页映射和 PRP2 对齐，按 13h 只改对齐、按 IOMMU fault 优先补第三页，足以把故障从已确定的列表构造错误引开。",
+            "otherError": "应先修 B 的两项列表，再验证 DMA 映射、完成和读回数据；实际状态码和故障地址另行采集。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 173
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 174
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 158
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 159
+            }
+          ],
+          "tokens": 65150
+        },
+        {
+          "caseId": "SSD-PWR-12",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 10,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内没有可评阅的最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 734
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 441
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 557
+            }
+          ],
+          "tokens": 39287
+        }
+      ]
+    },
+    {
+      "id": "prefetched",
+      "label": "同提示与原文预取",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · domain 检索 · 共 8 次调用 · decision-audit · 从总预算使用 2 次检索，每个协议取 2 个候选段落；工具次数包含自动预取和后续自主尝试（含失败）",
+      "results": [
+        {
+          "caseId": "SSD-BOOT-02",
+          "status": "completed",
+          "answer": "## 判断\n\n先验 **PCI Command 的 BME 位**，不要先查 MSI-X 或 NAND。`Command=0x0002` → bit1 MSE=1、**bit2 BME=0**（PCIe p.686 位定义）。PCIe p.687：Type 0 Function 在 BME=0 时\"不允许发起任何 Memory/I/O Request\"，且\"MSI/MSI-X 是带内 Memory Write，BME=0 会一并禁用\"。NVMe p.611 明示主机内存中的 SQ \"需要控制器执行 PCIe 读以取回 SQE\"；CQ 在主机内存，完成也要控制器发起 Memory Write。\n\n因此三条现象是同一根因：没有上行读 Admin SQ（取不到 SQE）、没有写 Admin CQ（完成投不出去）、没有 MSI-X（不是独立故障）。门铃是下行写，只需 MSE，分析仪看得见并不能证明控制器能取命令；NAND 慢只影响命令执行之后，解释不了\"根本没取\"。SQE 的提交时点见 NVMe p.108（门铃把 Tail 推过该槽位即提交）。\n\n## 一次复测（三态可分）\n\n写 `Command=0x0006`（置 BME，保留 MSE），重发 Identify，按 BDF 抓包并继续轮询 Admin CQ：\n\n1. 出现上行读 SQ + 写 CQ、轮询见 CQE → 根因即 BME=0；若 CQE 正常但无 MSI-X 消息，则中断链路另查 MSI-X 表/向量使能；\n2. 有上行读 SQ、无写 CQ → 命令取到了但完成没写出 → 查 ACQ/AQA、是否 abort；\n3. 仍无上行读 SQ → 控制器未消费门铃 → 核对门铃偏移与 CAP.DSTRD（NVMe p.445）、ASQ/AQA、写入是否真落到 BAR。\n\n## 仍待确认\n\nOS/驱动为何始终未置 BME；置 BME 后 MSI-X 是否送达；CQ 主机地址映射是否正确。\n\n（页码为已核实页：PCIe Base 5.0 p.686–687；NVMe Base 2.1 p.42/108/445/611）",
+          "seconds": 46.33,
+          "toolCalls": 6,
+          "review": {
+            "usability": "revise",
+            "reason": "准确解释 BME、下行门铃与上行 DMA，复测可区分三种断点。建议先写 0006 再复测，未把 ASQ/ACQ 的合法映射与 BME 写后读回设为前提；正文末尾仅把 CQ 映射列为待确认。",
+            "otherError": "补齐两项前提可交接；写配置时宜保留原有位。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 687
+            }
+          ],
+          "tokens": 18939
+        },
+        {
+          "caseId": "SSD-SHUT-04",
+          "status": "completed",
+          "answer": "## 结论：这个恢复点不能放行\n\n**判断依据（NVMe 2.1）**\n- CC.EN=1、CSTS.ST=0、CSTS.SHST=10b 表示**正常关机处理已完成**，不是\"待关机\"（p.133，§3.6.2 内存型 Controller Shutdown）。\n- 关机完成后若要再执行命令：**CC.EN=1 时必须先做 Controller Level Reset 把 CC.EN 清 0**，再在初始化序列中置 1（p.134）。\"CC.EN=1 且同写 CC.SHN=00b\"这条捷径**只在 CC.EN 已为 0 时可用**（p.134）；且 CC.SHN=00b 本身定义为 \"No notification and no effect\"（Figure 41，p.80）。所以\"只清 SHN、EN 保持 1\"不在规范允许路径内。\n- Controller Level Reset 会**删除所有 I/O SQ/CQ 并复位控制器内部状态**（p.140）。旧队列结构与旧 QID 必然失效，必须重建，不能沿用。\n\n**恢复路径**\n写 CC.EN=0 → 等 CSTS.RDY=0（CLR 完成）→ 初始化：写 AQA/ASQ/ACQ，写 CC.EN=1 → 等 CSTS.RDY=1 → 重新 Create I/O Submission Queue / Create I/O Completion Queue → Identify Controller 后再放业务。关机处理已完成，故 p.133 中\"关机进行中不宜清 CC.EN\"的告诫在此不适用。\n\n**一次区分检查（CLR 后读 CSTS）**\n- SHST=00b 且 RDY=1 → 按上式重建队列后放行；\n- SHST 仍为 10b 或 RDY 不回 1 → 不放行，保持现状并转厂商/带外恢复（p.134 允许 CLR 后控制器仍 \"ready to be powered off\"）。\n\n**仍待确认**：同 power scope（CAP.CPS）内其他控制器是否也已关机，若已关机需一并 CLR 后整组恢复；重建队列后的实际 I/O 往返尚未实测。",
+          "seconds": 48.94,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "主流程中 CLR 后等 RDY=0、写 Admin 队列和重新使能是正确的。紧接着又以“CLR 后读 CSTS，RDY 不回 1”作为失败条件，与主流程相冲突。未要求新队列创建成功和测试 I/O 成功才放行。",
+            "otherError": "应区分使能前/后的两个 RDY 期望值；先建目标 I/O CQ，再建引用该 CQ 的 SQ。",
+            "credits": {
+              "branch": 1,
+              "reset": 1,
+              "queues": 0.5,
+              "verify": 0.5
+            },
+            "rejectHits": [],
+            "score": 72.5,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 133
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 134
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 140
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 80
+            }
+          ],
+          "tokens": 38600
+        },
+        {
+          "caseId": "SSD-X-04",
+          "status": "completed",
+          "answer": "## 现在能确认的\n\n**1. 两条不是\"两个 AER\"。** NVMe 那条是 Asynchronous Event CQE：AET=001b = \"SMART / Health status\"（NVMe 2.1 p.197 Figure 147；p.196）。规范规定该事件只把 LID 置为 SMART/Health Information log page 的 02h，由主机 Get Log Page 读取以清除事件（p.196）。CQE 本身**不含温度、阈值或曲线**——\"过热\"目前零证据。异步事件还可能是瞬态或永久状态变化（p.197）。\n\n**2. PCIe 侧只是一条链路层可纠正错误。** Receiver Error 由硬件自行纠正、无需软件干预，其频率用于评估链路完整性（PCIe 5.0 p.506）——这不是\"数据损坏\"；无未纠正错误、无业务校验差异，业务数据未证实受损。\n\n**3. 工单位号与规范不符。** Receiver Error Status 是 **bit 0**，bit 1–5 为 RsvdZ，bit 6 为 Bad TLP（PCIe 5.0 p.848 Figure 7-127 / Table 7-103）。“位置 1”须按原始寄存器值重核。\n\n## 尚不能认定\n秒级采样定不了先后；NVMe 设备健康与 PCIe 链路层同秒只是**并存**，不构成因果。AEI=01h 的确切含义、以及触发该 SMART 事件的 Critical Warning 种类（Figure 150；Figure 206 p.232）未核。\n\n## 下个窗口的一次区分性检查\nGet Log Page SMART/Health（LID 02h，Retain AE=0）取 Critical Warning 与 Composite Temperature；同时按同一时钟 1 s 采样温度，并快照 AER Correctable Error Status **原始值**与 Header Log。\n\n- CW 温度位=1 且超阈值 → 只证并存：**不停机**；标记该盘+散热/降载，温度回落后复测（复现→换盘；不复现→另因）。\n- CW=0、温度正常 → “过热致损坏”不成立：SSD 留在线，转链路排查。\n- 置位落在 RsvdZ/bit 6 → 先修工单与工具位号映射，再按协议层另派。\n\n## 派单\n①物理链路（换线/重插/换槽位+Header Log） ②散热与温度告警阈值 ③监控工具位号映射。\n\n*待确认项：AEI=01h 定义、Header Log 内容、当时温度曲线与阈值配置。*",
+          "seconds": 84.54,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "能区分两类告警及可纠正错误，但没有利用题给 AEI=01h 确认温度阈值事件。提出温度回落后只要复现就换盘，未排除链路、端口或其他条件，当前数据不足以支持该动作。",
+            "otherError": "当前温度与告警时刻不能互换。采样、换槽及散热应预先设计成可分辨条件。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 75.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 848
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 197
+            }
+          ],
+          "tokens": 37595
+        },
+        {
+          "caseId": "SSD-DATA-08",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.01,
+          "toolCalls": 9,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内没有可评阅的最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 218
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 219
+            }
+          ],
+          "tokens": 17158
+        },
+        {
+          "caseId": "SSD-IO-07",
+          "status": "completed",
+          "answer": "**结论：两轮不能共用同一构造 —— A 轮成立，B 轮不成立。**\n**当前可作的决定**：暂停把\"PRP2＝第二页基址\"用于非页对齐起始；按下列规则重建 B 轮后复测。\n\n**依据（NVM Express Base 2.1）**\n- p.158（Fig.92, DPTR/PRP2）：PRP2 仅在\"恰好跨一个内存页边界\"时才是第二页基址；长度 ≥2 页且 PRP1 偏移非零时，PRP2 字段**必须是 PRP List 指针**。\n- p.174（Fig.110, PBAO）：仅命令内第一条 PRP 可带非零 offset（4 KiB 页时为低 12 位）；第二条与 PRP List 内条目须 offset=0，否则 PRP Offset Invalid（p.164，状态 13h）。\n- A 轮：8192 B=2×4096，跨 1 个边界 → PRP1 offset=0、PRP2=第二页基址，合法，无需 PRP List。\n- B 轮：3584+4096+512=**3 页**、跨 2 个边界 → PRP1=首地址|0x200；PRP2=指向 PRP List 的指针（列表含第 2、3 页基址，offset 0）。现构造把页地址直接塞入 PRP2，会被当作列表指针去解析数据页内容 → 这就是映射异常的来源；若 PRP1 未编码 0x200，数据还会整体错位 512 B。\n\n**一次区分检查**：B 轮原样重跑，只取 CQE Status、PRP1 低 12 位、数据首字节落点。\n- Status=13h → offset 违规 → 修 offset 字段。\n- Status 成功但落点=PBA+0 → PRP1 漏 0x200 → 补 offset。\n- 其他错误/页序错乱 → PRP2 语义误用 → 改列表指针并确保第 3 页已映射。\n- 三者均正常仍异常 → 不属 PRP 构造，转查 IOMMU/地址翻译（PCIe 候选 p.1185、p.1093 与本症状无关，未引用）。\n\n**尚不能认定**：控制器是否上报 13h（规范为 should，非必须）；抓包未证实 PRP1 低位是否置 0x200；第 3 页映射状态未确认——故暂不归责于控制器或 PCIe 层。",
+          "seconds": 56.78,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "两轮页数和 PRP List 内容正确。具体复测却把已确定的 B 轮 PRP2 错误有条件地处理，若状态/首字节看起来正常便转查 IOMMU，会错过未描述的尾部第三段和潜在数据错误。",
+            "otherError": "PRP2 为 PRP List 指针时可有 qword 对齐的页内偏移；不能一概要求 offset=0。应先修已知的两项列表，再验全部 8 KiB 与映射。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 158
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 174
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 164
+            }
+          ],
+          "tokens": 40808
+        },
+        {
+          "caseId": "SSD-PWR-12",
+          "status": "completed",
+          "answer": "## 现在可以作的决定\n**暂不归责，不向 NVMe 或 PCIe 任一方开缺陷单。** 现有两组数据只是 2×2 的\"全关\"\"全开\"两格，APST 与 ASPM 完全混淆，~2 ms 本身不能定责。量级上应先查 NVMe：链路侧只有 Link Capabilities 报告的 ASPM L1 退出时延（最高档\">64 µs\"，PCIe p.930），L1.2 子态进入还受 LTR 阈值约束（p.478、p.482）；而控制器非工作态 EXLAT 本就是 µs–ms 量级（NVMe p.352、p.557），与 2 ms 同量级。这只是排查排序，不是归因。\n\n## 一次区分检查\n补齐缺失两格（APST 开/ASPM 关、APST 关/ASPM 开），以相同 idle 时长、QD、LBA 各测一次首读；同时取：Get Features(APST) 的 ITPT 与 PSD 的 EXLAT；Link Capabilities 的 ASPM Support、L1 Exit Latency 及 LTR 值；空闲期是否发生 DL_Active 退出（NVMe p.263 记为 AER 05h）。\n\n## 结果对应动作\n- 仅 ASPM 开复现、且延迟与 L1 退出/LTR 吻合 → 转 PCIe 侧退出路径。\n- 仅 APST 开复现、且 ≈ EXLAT → 转 NVMe 控制器电源态。\n- 两格单独都不复现、只有同开才复现 → 交互效应（器件入深态后链路唤醒更慢），转平台电源域与驱动，按 p.557 用\"旧态退出+新态进入\"合计核对。\n\n## 仍待确认\n2 ms 是首命令完成延迟还是含排队/重训练；空闲时长是否已越过 ITPT 与 ASPM 空闲阈值；控制器电源驻留与 Link L 状态轨迹仍缺失。",
+          "seconds": 72.7,
+          "toolCalls": 8,
+          "review": {
+            "usability": "revise",
+            "reason": "可直接补齐两个单开组合，也明确两组单开均正常时查组合效应。要先改测点：DL_Active 意外退出事件不能代替普通 ASPM L1 进出轨迹，LTR 和能力编码也不能当本次读请求的实测退出时间。",
+            "otherError": "最高档 >64 μs 无上界，不能用该档与 2 ms 比较排查优先级；应以实际链路和控制器驻留、退出时间对齐。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 929
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 930
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 557
+            }
+          ],
+          "tokens": 48318
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

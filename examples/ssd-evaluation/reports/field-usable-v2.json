@@ -1,0 +1,1657 @@
+{
+  "schemaVersion": 1,
+  "title": "现场能否直接使用 · 12 道故障族留出题",
+  "cases": [
+    {
+      "family": "telemetry-capture-integrity",
+      "split": "challenge",
+      "question": "我们把一次卡顿的 telemetry 分六次抓全后给厂商分析，两端 header 的代号不同。能把中间六块当成同一时刻的一份证据吗？",
+      "observations": [
+        "读取的是 Host-Initiated Telemetry（07h），同一控制器、同一次开机、未做 Firmware Commit。开头 THDGN=2Ah，结尾 THDGN=2Bh。",
+        "第二个采集器在中途对同一控制器发送了 CTHID=1；主采集器的分段读取用 CTHID=0。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "从 CTHID=1 和 THDGN 递增识别换代，拒绝将拼接各段当单一事件快照。",
+          "weight": 5,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "以互斥创建、只读分块、比对首尾代号重新采集。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "不伪称重采可还原上一事件的瞬时原始状态。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N1"
+          ]
+        }
+      ],
+      "reject": [
+        "因偏移连续或主采集器 CTHID=0 就认定所有块同属一代。"
+      ],
+      "id": "SSD-OPS-10",
+      "referenceAnswer": "第二个采集器请求了新快照；即使主任务只读，代号从 2Ah 到 2Bh 已表明发生了新一代捕获。无法把现存各段全部归到原事件。保留分段时间和代号，互斥采集者，按需求只触发一次创建，然后用 CTHID=0 读完整数据，核对首尾 header；如再发生代际变化就重采。在已知事故后新抓的快照应使用新的时间标签。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 242,
+          "section": "Figure 213, CTHID",
+          "anchor": "representing the internal state of the controller"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 243,
+          "section": "Figure 214, THDGN",
+          "anchor": "incremented each time the internal controller state"
+        }
+      ]
+    },
+    {
+      "family": "ltr-latency-contract",
+      "split": "challenge",
+      "question": "SSD 报告 snoop LTR 为 32 μs；我们看到一次 NVMe Read 从提交到完成用了 180 μs。这能判定 PCIe 根复合体违反 32 μs 上限吗？",
+      "observations": [
+        "报告的 snoop Requirement 位有效。唯一测量由驱动的提交和完成时间戳构成，未采到该命令各次 PCIe Memory Request 与 Completion。",
+        "Root Complex 和路径上的设备支持 LTR。当前未知哪段用时较长。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "说明 LTR 的对象是端点对内存服务的要求，NVMe 端到端耗时不是同一指标。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P3"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "保留标准强度，RC 并非被要求无条件满足该报值，不能据此报告协议违规。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给出非 Posted Request 至第一个 Completion 的正确观测边界。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P3"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "将 PCIe 与 NVMe 时间轴对齐并按阶段定位，不能仅凭慢命令定责。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P3"
+          ]
+        }
+      ],
+      "reject": [
+        "将 LTR 直接作为 SSD Read 的强制 SLA，并凭 180 μs 判 RC 违约。"
+      ],
+      "id": "SSD-PWR-07",
+      "referenceAnswer": "不能用 180 μs 的 NVMe 端到端耗时验收 32 μs。LTR 是端点给 RC 的内存服务延迟需求，RC 被强烈鼓励满足；非 Posted 请求的服务区间是请求最后符号到首个 Completion 首符号。同步录端点相应 DMA Request/Completion、队列与命令完成，再定位主机服务、控制器处理或其他阶段。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 608,
+          "section": "6.18",
+          "anchor": "their service latency requirements for Memory Reads"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 609,
+          "section": "6.18",
+          "anchor": "not required to honor the requested service latencies"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 610,
+          "section": "6.18",
+          "anchor": "first symbol of the first Completion TLP"
+        }
+      ]
+    },
+    {
+      "family": "interrupt-coalescing",
+      "split": "challenge",
+      "question": "业务 CQ 在轮询线程开着时很少收到中断。有人拿 FID 08h 的 TIME 算了一个绝对截止期，超时就要把盘判失败。这个验收能用吗？",
+      "observations": [
+        "主机在 I/O CQ 上启用中断，配置了非零的 Aggregation Time 与非零 Threshold，该向量没有禁用中断合并。业务命令都成功。",
+        "复测中 CPU 持续更新该 CQ 的 Head Doorbell，轮询能持续看到新 CQE。尚无停轮询对照或设备到主机的 MSI-X 时间线。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "把 TIME 解释为推荐值，说明 Head Doorbell 活动可能推迟后续通知。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "按 CQE 与通知分别观测，拒绝单凭少中断宣判 I/O 超时。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "在保留待通知工作和足够 CQ 空位的条件下，做门铃活动对照并跟踪 MSI-X。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        }
+      ],
+      "reject": [
+        "只要距离该 CQE 的时间超过 TIME，就必定违反协议。"
+      ],
+      "id": "SSD-IO-08",
+      "referenceAnswer": "TIME 是推荐的合并等待上限。持续更新相关 CQ Head Doorbell 可让控制器认为主机已在处理该向量，因而推迟额外中断，并可重启聚合判断；少中断与数据完成可并存。做受控对照，记录 CQE、对应门铃和 MSI-X 消息/主机交付；若停止持续更新后仍无中断，再查 IEN、屏蔽、向量投递和实现。不能仅凭本段宣判固件未执行命令。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 428,
+          "section": "5.1.25.2.2",
+          "anchor": "may delay additional interrupts"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 428,
+          "section": "5.1.25.2.2",
+          "anchor": "Specifies the recommended maximum time"
+        }
+      ]
+    },
+    {
+      "family": "cq-interrupt-enablement",
+      "split": "challenge",
+      "question": "同一块盘的管理中断一直在涨，业务 CQ 却只能靠轮询取到完成。值班同事建议清全 Function 的屏蔽。现在能定位到哪一层，下一次复现要留哪两条记录才能决定怎样修？",
+      "observations": [
+        "普通 PCIe NVMe SSD。主机平台确认 MSI-X Enable=1、MSI Enable=0，Function Mask 从建队到取样一直为 0。管理队列使用表项 0，有独立计数。",
+        "目标业务 CQ 独占 MSI-X 表项 2 的分配；业务命令的 SQID、CID、状态与轮询读到的 CQE 全部匹配。表项 2 对应的操作系统 IRQ 计数一直为 0。",
+        "当前这次成功 Create I/O CQ 的 CDW11 没有归档，IRQ 配置日志也没有保留表项 2 的 Vector Control。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "以匹配的 CQE 确认命令已完成；Function Mask 已为 0，管理向量可以工作，清全局位不能更改表项 2 的独立屏蔽位。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "索取与当前 CQ 对应的成功 Create I/O CQ.IEN，以及复现时实际分配给它的 MSI-X 表项 2 Mask Bit；仅凭 IRQ 零计数和其他向量正常无法定位。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给出与两组观测对应的处置：IEN=0 且向量未屏蔽时保留轮询或按业务要求安全重建；IEN=1 且目标表项被屏蔽时按平台流程解除该向量屏蔽并用新 I/O 复测。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "只要管理中断存在就断言同一 Function 的所有 I/O CQ 与 MSI-X 表项都已启用。",
+        "将 Function Mask 清零描述成同时清除所有 per-vector Mask 或自动打开已有 CQ 的 IEN。",
+        "业务 CQ 一直有可匹配 CQE，仍仅以 IRQ 计数为零认定命令未执行或控制器已坏。"
+      ],
+      "id": "SSD-X-06",
+      "referenceAnswer": "现有证据能确认命令完成，管理向量可用，Function Mask 已清零。再次清全局屏蔽不能改变表项 2 的 Mask，也不能为一个 IEN=0 的业务 CQ 启用通知。抓本次目标 CQ 成功创建时的 IEN，并在复现窗口同步采集其实际映射表项 2 的 Mask Bit。若 IEN=0、向量未屏蔽，既有 CQ 配置只适合轮询；需要中断时，由驱动在业务静止后按依赖顺序重建并以 IEN=1 创建。若 IEN=1、表项 2 被屏蔽，则由平台 IRQ 管理路径恢复该向量并复测新 I/O，无须仅为此重建 CQ。两处均允许时仍需追查实际消息和主机中断交付，当前资料无法判定单一根因。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 441,
+          "section": "§5.2.1 Create I/O Completion Queue, Fig. 475, IEN",
+          "anchor": "interrupts are disabled for this Completion Queue"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 444,
+          "section": "§5.2.3 Delete I/O Completion Queue",
+          "anchor": "any associated I/O Submission Queue is deleted"
+        },
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 785,
+          "section": "§7.7.2.2 Message Control Register for MSI-X, Table 7-47",
+          "anchor": "has no effect on the value"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 788,
+          "section": "§7.7.2.8 Vector Control Register for MSI-X Table Entries, Table 7-53",
+          "anchor": "the Function is prohibited from sending a message"
+        }
+      ]
+    },
+    {
+      "family": "l1-substate-entry",
+      "split": "challenge",
+      "question": "两块系统板最终 L1.2 配置一样，一块偶发唤醒失败。先让固件团队换 TPOWER_ON 数值，还是先修平台的配置顺序？",
+      "observations": [
+        "两端都支持 ASPM L1.2。捕获到平台先写 SSD 的 Upstream Port 的 L1.2 Enable，再写 Root Port（Downstream Port）；写这两个位时 ASPM L1 仍启用。",
+        "TPOWER_ON、Common_Mode_Restore_Time 和 LTR 阈值在两个 enable 写入后才配置。快照显示最终值与能正常唤醒的板相同。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "要求设置 ASPM 子状态期间保持 ASPM L1 禁用。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "识别方向反转，设置位应先 Root Port 的 Downstream Port 再 SSD 的 Upstream Port。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "时序值和 LTR 阈值须在使能 L1.2 之前配置；不能凭静态最终值放行。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "P3"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "复跑正确顺序区分配置序列与残留物理/时序问题，避免确认唯一根因。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P3"
+          ]
+        }
+      ],
+      "reject": [
+        "以最终寄存器值相同证明配置过程有效，直接按随机调大延迟处置。"
+      ],
+      "id": "SSD-PWR-03",
+      "referenceAnswer": "先修已观测到的配置顺序，最终值相同不能验证初始化过程。为设置 ASPM L1 子状态应先禁用 ASPM L1，预编程相应时序和阈值，两端设置时先 Downstream Port 后 Upstream Port。按合规顺序复跑同一负载；若仍失败，再分段查退出握手、时钟及板级参数。现有证据未锁定唤醒失败的唯一原因。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 488,
+          "section": "5.5.4",
+          "anchor": "while ASPM L1 is disabled"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 488,
+          "section": "5.5.4",
+          "anchor": "must be performed at the Downstream Port"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 488,
+          "section": "5.5.4",
+          "anchor": "Prior to setting either or both"
+        }
+      ]
+    },
+    {
+      "family": "deep-wake-signaling",
+      "split": "challenge",
+      "question": "热插拔台上 SSD 的唤醒源触发了，但抓包里没看到 PM_PME。应从 PCIe Message 发送逻辑开始查吗？",
+      "observations": [
+        "板卡明确采用 WAKE# 侧带唤醒。设备和平台支持从 D3cold 唤醒，进睡前 PME_En=1，辅助电源可用。",
+        "触发时设备的上游链路仍处于非通信的 L2。当前探头只抓 TLP，未采 WAKE#、主电、参考时钟或链路重训。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "识别不能把 L2 时没有 PM_PME 作为消息逻辑故障。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "说明 WAKE#、恢复主电与参考时钟和链路重训在前，发送 PM_PME 在后。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "提出同一时间基准捕获侧带、电源或时钟、链路状态和 PM_PME。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "根据是否恢复通信分流到平台恢复或消息转发，保留根因不定。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P3"
+          ]
+        }
+      ],
+      "reject": [
+        "要求沉睡中的 L2 链路先发 PM_PME TLP，以这次未见包即判发包单元坏。"
+      ],
+      "id": "SSD-PWR-06",
+      "referenceAnswer": "当前 L2 不能先发送上行 PM_PME，应先查 WAKE# 及平台恢复供电和时钟，使链路重新可通信。待重训完成再查带 Requester ID 的 PM_PME 以及上游传播。根据 WAKE# 是否出现、链路是否恢复，可以区分唤醒源/平台供电路径和消息路径。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 455,
+          "section": "5.3.3.1",
+          "anchor": "the device cannot send a PM_PME"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 455,
+          "section": "5.3.3.2",
+          "anchor": "re-establish power and reference clocks"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 455,
+          "section": "5.3.3.2",
+          "anchor": "the Link has been re-activated and trained"
+        }
+      ]
+    },
+    {
+      "family": "runtime-queue-allocation",
+      "split": "challenge",
+      "question": "虚拟机热插 CPU 后，驱动打算在线把 NVMe I/O 队列从四组扩到十六组。初始化时就请求过十六，是不是可以直接建队列或补发一次 Number of Queues？",
+      "observations": [
+        "本地 PCIe 控制器本轮启动时，FID 07h 请求的 NSQR、NCQR 都为 15，成功 CQE 返回 NSQA、NCQA 都为 3。",
+        "已创建 SQ1～4、CQ1～4 并承载业务，无控制器复位。服务目标是继续提供 I/O；尚无已批准的停机窗口。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "按成功 CQE 的返回值从零计数得出各四，不能使用请求的十六。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "识别建 I/O 队列后在线 Set Features 的 Command Sequence Error 和分配生命周期。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N2",
+            "N3"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给出现有分配内的无中断方案，以及重新初始化后按实际返回规划的后续方案。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        }
+      ],
+      "reject": [
+        "把请求值当分配值直接启用额外队列，或宣称在线重发 FID 07h 可无条件扩容。"
+      ],
+      "id": "SSD-IO-10",
+      "referenceAnswer": "请求和返回都是从零计数，因此本次实际分配四个 SQ 和四个 CQ，不能按请求数十六当作已拥有。已创建任一 I/O 队列后，控制器必须以 Command Sequence Error 中止再次针对 07h 的 Set Features 命令；控制器在两次复位之间不得改变已分配值。目前将新 CPU 映射到既有队列。确需重新协商时安排受控维护，在下次初始化、建 I/O 队列前请求，再按返回分配数规划。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 428,
+          "section": "5.1.25.2.1 / Figure 444",
+          "anchor": "value allocated may be smaller or larger"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 427,
+          "section": "5.1.25.2.1",
+          "anchor": "only be issued during initialization prior to creation"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 427,
+          "section": "5.1.25.2.1",
+          "anchor": "shall not change the value allocated between resets"
+        }
+      ]
+    },
+    {
+      "family": "self-test-triage",
+      "split": "challenge",
+      "question": "换盘前要拿一次完整长自测作为判据。仪表显示 100%，但我们中间做过控制器复位，这样算长测通过吗？",
+      "observations": [
+        "已启动 extended self-test，复位前有过 DSTOS=2h 记录。复位后没有其他维护者发起新测试。",
+        "最新快照 DSTOS=0h、DSTCS=100；该采集器只保留了结果头，没有保存 RDS1 的 DSTR 与自测类型。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝用空闲状态下的 100% 签通过；说明 DSTOS=0 时进度应忽略。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "回读最新结果并按类型/时序确认是本轮长测。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "区分 DSTR=0 与 DSTR=2h 的处置，中止不能判介质损坏。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N3",
+            "N4"
+          ]
+        }
+      ],
+      "reject": [
+        "仅凭 100% 或空闲态签长测通过。"
+      ],
+      "id": "SSD-OPS-09",
+      "referenceAnswer": "DSTOS=0 时应忽略 DSTCS；长测离开进行态前必须生成结果条目，最新一条在 RDS1。确认与本轮长测匹配后，DSTR=0 才可记录本次完成无错；若为 2h 表示被 Controller Level Reset 中止，应在维护窗口重新安排完整测试。复位存在并不能代替实际 DSTR，也不能把一次中止等同介质故障。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 239,
+          "section": "Figure 211, DSTCS",
+          "anchor": "this field should be ignored by the host"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 239,
+          "section": "Figure 211, RDS1",
+          "anchor": "The newest Self-test Result data structure"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 240,
+          "section": "Figure 212, DSTR",
+          "anchor": "Operation completed without error"
+        },
+        {
+          "id": "N4",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 240,
+          "section": "Figure 212, DSTR",
+          "anchor": "aborted by a Controller Level Reset"
+        }
+      ]
+    },
+    {
+      "family": "sr-iov-secondary-controller-inventory",
+      "split": "challenge",
+      "question": "虚拟化主机已经撤下两块直通盘，资产巡检却仍从 NVMe 主控制器列出两个子控制器。应把它们标成还可直通的设备并恢复旧映射，还是重置整块盘清掉记录？后续重新交付时，用哪些证据判定可用？",
+      "observations": [
+        "该 NVMe SSD 通过同一 PCIe PF 向两个已停机的客户机各提供一项 VF；先由虚拟化管理程序解除绑定并停止两项 VF 的 I/O。",
+        "PF 保持 D0、主控制器仍响应 Admin 命令。管理程序已成功清除 SR-IOV Control.VF Enable，两秒后读回为 0；主机重新扫描后两个 VF 的 BDF 均已消失。",
+        "同一时刻由该 PF 的主控制器执行 Identify，CNS=15h、起始 CNTID=0。回包仍列出原来两个 SCID，两项 SCS.OLS 都为 0。未执行后续启用动作。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "依据 PF.VF Enable=0 判定原 PCIe VFs 已撤销，重启用将得到一组新 VFs，旧映射不作为直通凭据。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "解释 CNS 15h 仍列离线子控制器，OLS=0 与两项 BDF 消失可共存；没有为清空记录而重置 PF 的依据。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2",
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "重新枚举绑定后按 VF 编号与子控制器身份关联，核对本次目标及其 Online 状态。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P2",
+            "N2",
+            "N3"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "区分是否能枚举、是否 Online、是否已使能并 Ready；验收应取得当前目标的就绪与实际业务路径成功证据。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "N3",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "将 CNS 15h 条目数视为当前可直通 PCIe Function 数量。",
+        "因主控制器仍报告两个条目而要求重置 PF，或直接恢复两项 VF 的旧绑定及队列。",
+        "把读到新 BDF 或 Offline 条目直接判为 I/O 可用。"
+      ],
+      "id": "SSD-X-03",
+      "referenceAnswer": "巡检应记为两个可识别的 NVMe 子控制器均处于 Offline，当前没有对应的已实例化 PCIe VF 可交付。清除 PF 的 VF Enable 会撤销这些 PCIe Function，NVMe 的 Secondary Controller List 仍包含因该配置离线的子控制器，两份快照互相吻合。保留清单和状态，无需为消除两行记录重置 PF，也不能把旧 BDF 或队列映射当成仍有效。重新交付时由管理程序按配置新建并枚举 VF，哪怕新 BDF 恰与旧值相同也应重新绑定。按端口及 VFN 与 SCID 对应核对目标，依设备能力完成子控制器所需的资源配置和 Online 流程，再按正常路径使能并确认目标的 CC.EN 和 CSTS.RDY，最后验证目标命名空间可见及测试 I/O 成功。单凭新 BDF 或清单中的一行都不能验收。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 1128,
+          "section": "9.3.3.3.1",
+          "anchor": "Clearing VF Enable effectively destroys the VFs"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 1128,
+          "section": "9.3.3.3.1",
+          "anchor": "result in a new set of VFs"
+        },
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 367,
+          "section": "5.1.13.3.2",
+          "anchor": "All secondary controllers are represented"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 368,
+          "section": "Figure 332, VFN and SCS",
+          "anchor": "this field indicates its VF Number"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 626,
+          "section": "8.2.6.3",
+          "anchor": "enabled only when in the Online state"
+        }
+      ]
+    },
+    {
+      "family": "cq-memory-lifetime",
+      "split": "challenge",
+      "question": "热迁移优化想把已创建 CQ 的 PRP List 搬到另一页；空队列已经连续空闲 10 秒，能原地改旧列表再回收吗？",
+      "observations": [
+        "PCIe 控制器允许非连续队列。CQ3 以 PC=0 成功建立，PRP List 和 CQ 数据页都在主机内存。",
+        "CQ3 的控制器对象仍存在，无 Delete CQ 成功完成、也无控制器复位。迁移器准备重写旧列表中的页地址并把列表物理页还给分配器。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "明确空闲不是改动/释放活动 CQ 的 PRP List 的依据。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "保留原物理位置及表项直至成功删除对应队列或复位。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给出处理在途、解除关联、受控删除重建的迁移办法。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "N3"
+          ]
+        }
+      ],
+      "reject": [
+        "只要 CQ 为空就可重写或释放仍活动的 PRP List。"
+      ],
+      "id": "SSD-IO-06",
+      "referenceAnswer": "空闲不终止这份映射的生命周期。创建时描述 CQ 的 PRP List 必须一直留在原物理位置且内容不变，直到对应 Delete CQ 成功完成或控制器复位；中途改表的行为未定义。迁移时停止新流量，妥善处理在途请求，若仍有关联 SQ 则先删它们并确认，再删除 CQ，确认成功后重建新映射和相关队列。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 441,
+          "section": "5.2.1",
+          "anchor": "same location in host physical memory"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 441,
+          "section": "5.2.1",
+          "anchor": "If the PRP List values are modified"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 444,
+          "section": "5.2.3",
+          "anchor": "is deleted prior to deleting a Completion Queue"
+        }
+      ]
+    },
+    {
+      "family": "masked-msix-notification",
+      "split": "challenge",
+      "question": "中断维护窗口屏蔽一个 MSI-X 向量，期间业务 CQ 贴了三个完成。解除屏蔽只抓到一条 MSI-X 消息，可按少两条中断报丢 I/O 吗？",
+      "observations": [
+        "PCIe SSD，三个 CQE 均来自同一 I/O CQ、同一独占向量，SQID/CID 均可匹配。软件在屏蔽期间未服务这些事件。",
+        "屏蔽期间已观测到该向量的 Pending Bit 置位；解屏蔽前这些事件仍待处理，解屏蔽后见一条相应消息。尚未核对三份完成的最终回调。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "说明 MSI-X 屏蔽和解屏蔽的 Pending 位及通知行为。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "区分消息数与完成数，三项完成对应一次通知不足以断言丢 I/O。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "要求以三个 CID 的新 CQE、状态和回调是否对应来定位问题。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "N1"
+          ]
+        }
+      ],
+      "reject": [
+        "因只有一个 MSI-X 消息而把其余两个请求计为丢失。"
+      ],
+      "id": "SSD-IO-11",
+      "referenceAnswer": "屏蔽时函数不能发送对应消息，若原本会发则设置该向量的 Pending 位。这是按向量记录的一个位。解除屏蔽且位仍置位时应安排发送，发送后清位；该位不保存三条命令各自的计数。NVMe 一次中断也可提示一个或多个新 CQE。核对各 SQID/CID 的新完成、状态、消费和业务回调，只有实际缺失的事务才需继续定位。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "6.1.4.5",
+          "anchor": "must Set the associated Pending bit"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "6.1.4.5",
+          "anchor": "schedule sending the associated message"
+        },
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 108,
+          "section": "3.3.1.2",
+          "anchor": "more completion queue entries have been posted"
+        }
+      ]
+    },
+    {
+      "family": "reservation-persistence",
+      "split": "challenge",
+      "question": "集群主盘刚经历真实掉电。备机看到‘支持预留跨掉电’，有人想直接开放它写这个卷。这个证据够吗？",
+      "observations": [
+        "普通非 dispersed 命名空间。该命名空间声明支持 PTPL。掉电前有主机持有写独占预留，但变更日志没有保留实际 PTPL 设置。",
+        "业务尚停，暂未取得恢复后的 Reservation Report，也未做集群所有权确认。"
+      ],
+      "criteria": [
+        {
+          "id": "capability",
+          "text": "区分支持位与命名空间实际 PTPL。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "decision",
+          "text": "在所有权未证实时不许备机接管；能解释两种掉电结果。",
+          "weight": 5,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "action",
+          "text": "复核现状及集群隔离，区分协议状态和业务授权。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N2"
+          ]
+        }
+      ],
+      "reject": [
+        "支持 PTPL 就断定原预留一定已保留或一定已释放。",
+        "未查当前所有权就让备机直接写入。"
+      ],
+      "id": "SSD-DATA-12",
+      "referenceAnswer": "暂停备机写放行。支持 PTPL 与这个命名空间的实际配置不同。PTPL=1 时预留与注册者跨掉电保留；PTPL=0 时掉电释放预留并清除注册者。先获取未截断的 Reservation Report，读回预留、注册及持有者状态，对上集群所有权与隔离策略后再决定。即使协议层已释放，仍需防止双写。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 425,
+          "section": "Figure 440",
+          "anchor": "reservations are released and registrants are cleared"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 493,
+          "section": "7.8",
+          "anchor": "registration and reservation status of a namespace"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "既有处置自审与规范预取",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · domain · 120s · 共8次证据调用含2次预取 · decision-audit",
+      "results": [
+        {
+          "caseId": "SSD-OPS-10",
+          "status": "completed",
+          "answer": "## 结论：不能，六块不能算同一时刻的一份证据\n\n**可核对依据（NVMe Base 2.1）**\n- **p.242 Fig.213**（Log Specific Parameter，CTHID）：置 1 时控制器\"shall capture\"本次 Get Log Page 被处理时刻的内部状态；置 0 时数据不变，直到 ①再次 CTHID=1 的读取、②Firmware Commit、③上电复位。\n- **p.243 Fig.214**：THDGN 位于日志页 **byte 381**（1 字节），每次捕获递增；页头仅占 byte 0–511，数据块自 512 起。\n- **p.605 步骤 5a/5b**：读完各数据区后复读页头核对 THDGN，不一致即判为 \"not consistent\"，须以 RAE=1 重读。\n\n**理由**：同控制器、同一次开机、无 Firmware Commit ⇒ 上述三个变更原因只剩\"再次 CTHID=1 的读取\"，即第二个采集器那条命令。THDGN 2Ah→2Bh 证明分段读取中途发生了一次新捕获；主采集器 CTHID=0 的分块本来是稳定的，只被这次插入打断。\n\n**现在可作的决定**：这六块至少跨两代，不能当单份快照交厂商。第 1 块含页头，可确证属 2Ah；第 2–6 块偏移 ≥512，本身不含 THDGN（\"结尾 header\"只能来自额外的页头读取），无法判定各块属哪一代。归责只能到\"第二采集器的 CTHID=1 触发了一次新捕获\"，不能归到卡顿；2Bh 是那条命令被处理时刻的状态，未必等于卡顿时刻。\n\n**尚不能认定**：卡顿时刻的内部状态、任一计数器与卡顿的因果关系。\n\n**区分检查（一次）**：单采集器、全程 CTHID=0 且 RAE=1，采集起止各读一次页头比 THDGN。\n- 起止相同 → 六块同代，可作单份证据。\n- 不同 → 本次作废，按 p.605 重采后再交厂商。",
+          "seconds": 106.67,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "独占读取现有一代、以 CTHID=0 分块并复核首尾，是取得完整当前快照的可行办法，也明确不能还原卡顿。题面只给了首尾两个 header，无法推出“第 1 块含页头，可确证属 2Ah”。这会把六块中的第一块错误标为已获旧代证实。",
+            "otherError": "首尾跨代说明不能保证中间六块为同一代，不能单凭此断言中间六块必然已混代。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 242
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 243
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 605
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 606
+            }
+          ],
+          "tokens": 63896
+        },
+        {
+          "caseId": "SSD-PWR-07",
+          "status": "completed",
+          "answer": "**结论：不能判定 RC 违反 32 μs；当前也不需要复位、重试或新设时限。**\n\n**依据（PCIe Base 5.0，已核页）**\n1. 规范没有\"必须不超过\"条款：p.609 明确 \"The Root Complex is not required to honor the requested service latencies, but is strongly encouraged to provide a worst case service latency that does not exceed…\" —— 32 μs 是 SSD 申报的**可容忍**时延，即使超出也只属偏离\"强烈建议\"，没有规范级违规可归责 RC。\n2. 口径不符：p.610 定义设备发起 Non-Posted Request 的服务时延＝Request TLP 末符号发出 → 该请求第一个 Completion 首符号收到（p.612 的 Read \"Time D\" 同义，Clock PM 等待另计）。你的 180 μs 是驱动提交→完成，含软件排队、控制器/介质处理、中断投递，不能定位到 RC 的 snoop 解析段。\n3. 适用范围：snoop 值只约束确被 snoop 的请求，no-snoop 另有其值（p.609 的 Requirement 位语义）。\n\n**尚不能认定的原因**：没有该命令的 MRd/Cpl 时间戳，无法区分耗时落在 SSD 控制器内部、主机内存 DMA 还是 RC；也不确知该事务是否走 no-snoop。\n\n**一次区分检查**：抓这条 Read 的 PCIe 事务序列（含控制器经 PRP/HMB 写主存的那笔 Mw），量 RC snoop 解析时延（snoop 发出→snoop 数据返回请求者）。\n- ≤32 μs：耗时在端点/主机侧，RC 不涉偏离；\n- \\>32 μs 且确为 snoop：记为 RC 实现偏差（非规范性违规），再与平台自身 Max Snoop Latency（p.613）核对；\n- 若为 no-snoop 事务：snoop 32 μs 不适用，改用 no-snoop 值。\n\n**待确认**：32 μs 出自 SSD 自身的 Snoop Latency，还是平台的 Max Snoop Latency 寄存器。",
+          "seconds": 66.24,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确指出 LTR 的规范强度和非 Posted 事务边界，但实际要求“量 RC snoop 解析时延（snoop 发出→snoop 数据返回请求者）”并直接与 32 μs 比较。这个内部子区间不同于前文定义的端点内存服务时延，可能错把 RC 判为实现偏差，也可能错误排除 RC。",
+            "otherError": "普通写主存的 posted Memory Write 没有对应 Completion，不能套用 MRd/Cpl 或单次 snoop 返回作为它的判定区间。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 609
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 610
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 611
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 612
+            }
+          ],
+          "tokens": 27510
+        },
+        {
+          "caseId": "SSD-IO-08",
+          "status": "completed",
+          "answer": "**决定**：这个验收现在不能用，应撤下。\"TIME 到点没有中断 = 判盘失败\"会把合规行为判成故障。\n\n**依据（已核原文）**\n- NVMe 2.1 §5.1.25.2.2 *Interrupt Coalescing*（Feature ID 08h），PDF p.428：TIME（Set/Get Features Dword 11 bits 15:08，100 µs/LSB，0h=不延迟）是\"控制器因合并**可**延迟中断的**推荐**上限\"，非 shall，也不管命令完成时限。\n- 同页：若控制器发现该向量的中断已在处理、且与之关联的 CQ Head Doorbell 正被更新，则聚合时间/阈值**可被复位/重启**，\"在 TIME/THR 非零的某些负载下可致中断被无限期延迟\"。现场 CPU 持续写 CQH doorbell，正命中这一条件。\n- THR 在同一特征 Dword 11 bits 07:00（PDF p.429），是\"聚合条数下限\"，同样不产生时间截止期；2.1 中 FID 09h 已是 *Interrupt Vector Configuration*（PDF p.393 特征表），别沿用 1.x 的\"09h=聚合阈值\"叫法。\n- 候选 PCIe 片段（MSI-X 向量选择、Bus Master Enable）与截止期无关，未采信。\n\n**尚不能认定**：中断少是否真缺陷——无停轮询对照、无 MSI-X 端到端时间线，\"合规延迟\"与\"真丢中断\"现在分不开；也不能反推盘正常。\n\n**一次区分检查**：同业务负载做停轮询对照——只发命令、不更新该 CQ 的 CQH doorbell（改纯中断收尾），统计命令数与中断数、到达延迟。\n- 中断数与命令数相符（仅延迟偏大）：合规合并，验收项作废，改为\"仅在停轮询模式判中断缺失\"。\n- 仍缺失或数量不符：升级为设备问题，再用 MSI-X 时间线定位控制器侧/投递侧归责。",
+          "seconds": 53.85,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确撤下绝对 TIME 截止期，但“中断数与命令数相符”及“数量不符：升级为设备问题”给出了另一个错误门槛。单个 MSI-X 可通知多个 CQE，停主动轮询后仍可合并，会将正常合并升级为设备故障。",
+            "otherError": "复测未把有待通知的 CQE 与对应门铃、设备消息和主机交付对齐。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 428
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 427
+            }
+          ],
+          "tokens": 17767
+        },
+        {
+          "caseId": "SSD-X-06",
+          "status": "completed",
+          "answer": "## 当前判断（可作的决定）\n\n**能定位到\"每向量绑定层\"（MSI-X 表项 ↔ I/O CQ），不是控制器/数据通路问题**：业务 CQE 与轮询结果一致、且管理队列中断持续增长，说明仅表项 2 的中断没到。\n\n- 不采纳\"清全 Function 屏蔽\"：Function Mask 恒为 0，PCIe p.785 明确 Function Mask 的置/清**不影响各表项自身的 Mask 位**；且 MSI-X 模式下 NVMe INTMC 访问属未定义（NVMe p.78）。\n- 决定：业务 CQ 暂以轮询兜底，不重建队列、不刷固件，先取证。\n\n## 尚不能认定\n\n两条关键记录都没留，成因分不开：① Create I/O CQ 的 CDW11（IV[31:16]、IEN[1]，NVMe p.441 图475；IV 可指向任意有效向量，p.625）；② 表项 2 的 Vector Control 中 Mask 位（置位时设备禁止用该表项发消息、只能置 PBA pending，PCIE p.788/p.500）。故现在不能归责于驱动或固件。\n\n## 下次复现只留两条\n\n1. Create I/O CQ 的 **CDW11 原始值**（IEN、IV），连同该命令 CQE/状态码（8h Invalid Interrupt Vector 见 NVMe p.442）。\n2. MSI-X **表项 2 的 Vector Control（Mask 位）+ Message Address/Data**，另加 MSI-X **PBA pending 位**。\n\n## 一次区分检查（Mask 位 + CDW11）\n\n| 结果 | 动作 |\n|---|---|\n| Mask=1，CDW11 正常 | 主机/驱动漏解屏蔽：置 Mask → 写 Message 地址/数据 → 单独 DWORD 写 Vector Control 清 Mask（PCIE p.499 忌 QWORD 写，会改 Message Data） |\n| Mask=0、IEN=1、IV≠2 | 向量错配：按实际分配值重建 CQ |\n| Mask=0、IEN=0 | 未使能 CQ 中断：置 IEN=1 重建 |\n| 三者均正常且 PBA 无 pending | 设备未发该向量消息：升级为固件/设备问题，附表项 2 全量内容与 CDW11 |\n\n引用的位置：NVMe p.441/p.442/p.625/p.78；PCIe p.499/p.500/p.785/p.788。",
+          "seconds": 100.74,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "匹配 CQE、Function Mask、建队 IEN/IV 和目标表项 Mask 都找对了。但“三者均正常且 PBA 无 pending → 设备未发该向量消息”不成立。未屏蔽时消息可以已经发出且 PBA 为零，会跳过 MSI-X 发包和平台 IRQ 交付取证，直接误报设备。",
+            "otherError": "IEN=0 时直接“置 IEN=1 重建”缺少静止业务、妥善处理关联 SQ 的条件。Mask=1 也不等于驱动漏操作，变更应交由管理该 IRQ 的路径。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 441
+            }
+          ],
+          "tokens": 67211
+        },
+        {
+          "caseId": "SSD-PWR-03",
+          "status": "completed",
+          "answer": "**决定：先修平台的配置顺序，不要先让固件换 TPOWER_ON 数值。**\n\n**依据（PCIe 5.0，已核实页）**\n- p.488 §5.5.4：任一 enable 位必须\"performed at the Downstream Port before … Set at the Upstream Port\"；\"Prior to setting … TPOWER_ON, Common_Mode_Restore_Time, and … LTR_L1.2_THRESHOLD must be programmed\"；且须在\"ASPM L1 is disabled\"时配置。你们的捕获三条全不符：先写 SSD(Upstream) 的 ASPM L1.2 Enable 再写 Root(Downstream)；写 enable 时 ASPM L1 仍启用；三字段在 enable 之后才写。\n- p.839：Common_Mode_Restore_Time 与 LTR_L1.2_THRESHOLD_Value 仅在 ASPM L1.2 Enable 为 0 时可改，否则\"Port behavior is undefined\"。故末态值与好板相同≠行为确定，差异点在顺序而非数值。\n\n**尚不能认定**：具体触发的是哪一条违规；TPOWER_ON 数值本身有错（p.488/p.489：按连接元件与 AC 电容设计确定，本次记录无依据）；SSD 侧或链路硬件有缺陷。所给 NVMe 2.1 片段（EPF 恢复、非工作态 Permissive Mode）与本问题无关。\n\n**一次区分检查**（失败板，只重排顺序、值不动）：ASPM L1 关闭且两 enable 位为 0 时先写 TPOWER_ON、Common_Mode_Restore_Time、LTR_L1.2_THRESHOLD(Value/Scale，两端口一致)，再先 Root(Downstream) 后 SSD(Upstream) 置 ASPM L1.2 Enable，重复唤醒压测。\n- 不再失败 ⇒ 成因即顺序：合入平台顺序修改，固件不改数值。\n- 仍失败 ⇒ 转数值/时序侧：核对 SSD 通告的 LTR 与编程 TPOWER_ON、AC 电容与参考时钟设计，再定 TPOWER_ON。\n- 仅偶发 ⇒ 查两端口 LTR 阈值是否一致（p.488）与 Link Activation 使用（p.489 §5.5.6）。",
+          "seconds": 55.33,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "先修平台和只变更顺序的对照正确。但从关 ASPM L1、置两端子状态位直接跳到压测，再以“不再失败 ⇒ 成因即顺序”定责。若未恢复 ASPM L1 或未确认实际发生 L1.2 循环，可能因未进入故障状态而误结案；偶发问题未复现也不能确认唯一原因。",
+            "otherError": "PCIe pp.465–466 区分 ASPM L1 允许进入的配置与 L1.2 子状态使能。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 488
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 839
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 838
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 489
+            }
+          ],
+          "tokens": 29297
+        },
+        {
+          "caseId": "SSD-PWR-06",
+          "status": "completed",
+          "answer": "**判断：不必从 PCIe Message 发送逻辑查起。** 当前记录里没有 PM_PME 属预期现象，不能据此判责，也谈不上设备故障证据。\n\n**理由（PCIe Base 5.0 v1.0 / NVMe 2.1）**\n- WAKE# 是带外请求：断言后须保持低电平，直到主电恢复、Fundamental Reset 释放（PCIe p.455）；热插拔设备的唤醒由 Hot-Plug Controller 代为产生（p.567）。\n- PM_PME 在主电恢复且链路训练完成后才发送（p.494），且发送前上游链路必须先回 L0（p.458）。触发时上游链在 L2 非通信，那段时间不可能有 PM_PME TLP；只抓 TLP 的探头对它没有分辨力。\n- 板卡为 D3cold（NVMe RTD3，NVMe p.559）；p.567 中端口锁存 PME 状态的前提是端口处于 D1/D2/D3Hot 且 PME_En=1，此处不成立——不必再去根端口 PME 状态位找痕迹。\n- D3cold 退出后配置回到上电默认值（p.448），睡前的 PME_En=1 不能直接当作本次上送的前提。\n\n**一次区分检查**（复现时同采 WAKE#、主电 PWRGOOD/Fundamental Reset、根端口链路状态 L2/L3 Ready→L0 重训、枚举结果，并把抓包延长到 L0 之后）\n- 主电恢复 + 链路回 L0 + 枚举成功 → 唤醒通路正常，PM_PME 缺失由热插拔控制器代发解释，停止追查。\n- WAKE# 有但主电未恢复 → 查平台电源时序与侧带路由/缓冲。\n- 主电已恢复、链路仍停 L2 未重训 → 查参考时钟与重训，与 Message 无关。\n- 链路 L0、枚举正常但功能未醒 → 此时才查 PME/唤醒使能路径。\n\n**仍待确认**：PME_En 指根端口还是功能；WAKE# 是否真被平台采样；当前 L2 是否已是 L3 Ready；抓包窗口是否覆盖链路恢复之后。",
+          "seconds": 58.62,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "识别 L2 不能发 PM_PME 并提出同步采集。却说“主电恢复 + 链路回 L0 + 枚举成功 → PM_PME 缺失由热插拔控制器代发解释，停止追查”。PCIe p.567 针对热插拔事件，本题来源是 SSD 的 PME。枚举成功不能证明消息已发，应追踪恢复后的请求者及其消息。",
+            "otherError": "p.455 给出了启用唤醒并有辅助电源时 PME_En/PME_Status 跨复位维持的条件，不能仅依 D3cold 配置默认值排除睡前状态。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [],
+          "tokens": 24439
+        },
+        {
+          "caseId": "SSD-IO-10",
+          "status": "completed",
+          "answer": "## 结论\n两件都不能做：既不能直接建 SQ5~16，也不能补发一次 Number of Queues。\n\n## 依据（NVMe 2.1，已核实页）\n- **FID 07h（Number of Queues，Set Features）只能在初始化、任何 I/O SQ/CQ 创建之前下发**；已有 SQ1~4/CQ1~4 后再发，命令**必须以 Command Sequence Error 终止**。同节并写明\"控制器在两次复位之间不得改变已分配值\"（§5.1.25.2.1，p.427）。\n- Dword 11 的 NSQR/NCQR 只是**请求**（Figure 443，p.427–428）；生效值是 CQE Dword 0 的 **NSQA/NCQA**（Figure 444，p.428）。Figure 443 注：分配值可小于或大于请求值，虚拟化实现常见，控制器未必有那么多队列可分配。故 NSQA/NCQA=3 → 只有 4 组，是合法结果；\"请求过十六\"不是上限，也**不必归责**驱动或 hypervisor。\n\n## 尚不能认定\n只分到 4 组的原因（设备能力上限、平台侧配额、分配单位取整）记录中没有，不能推断；复位后重新请求是否仍为 4 也未知。\n\n## 一次区分检查发 **Get Features FID 07h**（Dword 11 忽略），读 CQE Dword 0：\n- **仍 = 3** → 上限就是 4：维持 4 组运行、不复位；扩容只能等有批准的复位/重新枚举窗口，在初始化期再请求。\n- **≥ 15** → 之前读数错位：按实际 NCQA/NSQA 建 SQ5~16、CQ5~16。\n- **报错** → 该控制器不支持此查询：维持 4 组，扩容只能依据下次初始化期的分配结果。\n\nPCIe 侧唯一能重开初始化期的是设备复位/重新枚举，需停机窗口，本次无授权。",
+          "seconds": 93.13,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "已正确读出各四个队列、已有队列后 Set Features 的序列错误和复位前分配固定。却说“≥15 → 之前读数错位：按实际 NCQA/NSQA 建 SQ5~16、CQ5~16”。同一控制器同一轮的成功返回已固定为 3/3，矛盾读数需要核对控制器、字段和复位历史，不能授权在线扩建。",
+            "otherError": "若查询报错也不能仅凭一次错误断言控制器不支持当前值查询。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 427
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 426
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 428
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 429
+            }
+          ],
+          "tokens": 80226
+        },
+        {
+          "caseId": "SSD-OPS-09",
+          "status": "completed",
+          "answer": "**结论：这次不能算“长测通过”，暂不要据此换盘。**\n\n**理由（已核对原文）**\n- NVMe p.239 Figure 211：当 DSTOS=0h 时，CDSTC.DSTCS “should be ignored by the host”。所以 “DSTOS=0h + DSTCS=100” 这组读数按规范就应被忽略，仪表那个 100% 不构成完成证据。\n- NVMe p.240 Figure 212：结论在结果结构的 DSTR（byte 00 bit 3:0）——0h=无错完成，**2h=被 Controller Level Reset 中止**。复位前那次 DSTOS=2h（extended 进行中，见 p.239 表）在 CLR 后属中止，不是通过。\n- p.239：控制器把 DSTOS 清 0h 前必须先生成结果结构；复位后无人再发起测试，采集器又只留了结果头（无 DSTR、无自测类型 DSTC）。因此没有任何证据表明存在一次无错完成的 extended。\n\n**区分性检查（一次）**：读 Device Self-test Log Page（LID 06h，p.238 §5.1.12.1.7），取 CDSTO/CDSTC 与 20 个 RDS 的 byte 00（DSTC 类型 / DSTR 结果）：\n1. 最新条目 DSTC=2h 且 DSTR=0h → 长测确已无错完成，可按原计划换盘；\n2. DSTR=2h 或其他非 0h → 未通过：不换盘，按 p.211 Figure 171 发 Device Self-test（CDW10.STC=2h）重跑完整 extended，结束后重读该日志；\n3. RDS1 为空（DSTC=0h）→ 无有效结果，同样重跑。\n\n**仍待确认**：仪表 100% 取自哪个字段；复位后是否另有 extended 被发起（现有记录称没有）。",
+          "seconds": 53.94,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "回读最新一条的测试类型与结果有效，却先断言“在 CLR 后属中止”。复位前的进行态不排除随后先结束、再复位。把所有非零结果都送往“不换盘、重跑”，会把 Fig.212 的 6h/7h 已完成且有失败段错作应重试的中止。",
+            "otherError": "是否实际换盘还取决于维护判据，不能仅因取得一条结果就代替该决定。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 80.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 239
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 240
+            }
+          ],
+          "tokens": 69691
+        },
+        {
+          "caseId": "SSD-X-03",
+          "status": "completed",
+          "answer": "**可以作的决定**\n\n1. **不重置整块盘，也暂不恢复旧映射。** NVMe 2.1 p.367(§5.1.13.3.2) 明确：CNS=15h 列出**全部** secondary controller，“包括因 SR‑IOV 配置（VF Enable 清零、NumVFs 未启用该控制器）而处于 Offline 的那些”。所以复位后这两条 SCID 照样在列表里——复位根本清不掉“记录”；即使用 PF FLR（PCIe 5.0 p.1144）也只清 VF Enable，不改该列表。\n2. **两条目是同一块 SSD 的两个 VF 的拓扑记录。** SCID 是 secondary controller 的 Controller ID（p.368 还带 VFN 字段），本就不该在资产表里当两块设备登记。SCS.OLS=0 即 Offline（p.368），与 VF Enable=0、两个 VF BDF 消失一致。\n3. **映射在位与否由 VF Enable / NumVFs 决定，不由该列表决定**（PCIe 5.0 p.1112 §9.2.1.1）。故应把资产表两条改为“该 SSD 的两个 SR‑IOV VF，当前已禁用、无映射”，保留“具备直通能力”属性。\n\n**尚不能认定**\n\n- 不能认定现在即可再交付：NumVFs 初值未定义、且只能在 VF Enable=0 时写（p.1131）；VF BAR 须在置 VF Enable 前编程（p.1112、p.1129）。\n- 客户机侧是否残留绑定属管理程序状态，规范不涉及，不能由本次记录断定。\n\n**一次区分检查**（PF 上、重新启用前）：读 SR‑IOV 扩展能力 VF Enable/NumVFs/TotalVFs/FirstVFN，同时读 CNS=15h 每条的 OLS 与 VFN。\n\n- VF Enable=0、TotalVFs≥2、两条 OLS=0、无 VF function 出现 → 判为陈旧拓扑：改表，不复位，不恢复映射；再交付按序：写 NumVFs→编程 VF BAR→置 VF Enable=1 并读回→重扫按实际枚举 BDF 绑定→各 VF 上 Identify CNS=01h 校验 CNTLID 与列表 SCID、VFN 匹配→VF MMIO 不返回 UR（p.1115、p.1129）后方交客户机。\n- 任一 OLS=1 或 VF function 仍在 → 存在活动 secondary controller：管理程序侧解绑后复测，仍不整盘复位。\n- TotalVFs=0/无 SR‑IOV 能力 → 不具直通条件。\n\n**待确认**：NumVFs 现值、VF BAR 旧值、重启用后 SCID/VFN/CNTLID 对应关系。",
+          "seconds": 80.46,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确保留 Offline 子控制器清单并要求重新枚举绑定。交付条件却停在 VF Identify 身份匹配和“VF MMIO 不返回 UR”，没有要求当前目标 Online、就绪且命名空间的实际 I/O 成功，可能交付无业务路径的 VF。",
+            "otherError": "仅见 VF Function 仍在便当作活动子控制器并要求解绑，混淆枚举与 Online 状态。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 80.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 367
+            }
+          ],
+          "tokens": 34916
+        },
+        {
+          "caseId": "SSD-IO-06",
+          "status": "completed",
+          "answer": "## 决定：不能\n\nCQ3 的旧 PRP List 不得原地改写，其物理页在 Delete I/O Completion Queue 成功完成（或控制器复位）前也不得交还分配器。“空闲 10 秒”不改变这一约束——空闲只是**删除队列**的前提，不是改写的前提。\n\n**依据（NVMe 2.1，页码已核实）**\n- p.441《Create I/O Completion Queue》：PRP List 须由主机在同一位置维护，其值在对应 Delete I/O CQ 成功完成或控制器复位前不得修改，修改则行为未定义。\n- p.441 Fig 474：QID 已被占用时 Create 报 Invalid Queue Identifier，故不能并存第二个 CQ3。\n- p.444《Delete I/O Completion Queue》：该命令完成后 PRP List 方可由主机释放；关联 SQ 必须先删，否则报 0Ch Invalid Queue Deletion。\n- p.141：合法路径是 Queue Level Reset（先删后建）以及 Controller Level Reset 后的重建。\n\n**仍待确认**：① CQ3 是否有关联 SQ；② 迁移后 CQ3 归源控制器还是目标控制器；③ 10 秒空闲只是观测，不证明无未完成命令、无未取走 CQE。\n\n**一次区分检查**：向持有 CQ3 的控制器下发 Delete I/O CQ（QID=3；有 SQ 则先删 SQ），读 Admin CQE：\n- **Success** → 此刻才可回收旧页，再用 Create I/O CQ 指向新 PRP List 重建。\n- **0Ch** → 先 Delete I/O SQ 成功后再删 CQ。\n- **非 Success／发不出** → 不改不还；改走源端 Controller Level Reset 后重建，或由目标控制器自行 Create 接管，旧页保持占用。\n\nPCIe 候选片段（ATC 缓存）只涉及设备侧地址转换缓存，与队列内存归属无关，不构成放宽依据。",
+          "seconds": 46.67,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "原地禁止改表、成功删 CQ 后方可释放及 SQ 依赖都正确。但“非 Success／发不出 → 改走源端 Controller Level Reset…或由目标控制器自行 Create 接管”把一次不明错误直接升级成范围更大的重置或接管，未确认业务静止、所有权和源端隔离，可能打断同控制器其他队列。",
+            "otherError": "下发 Delete 前没有落实停新流量、排空在途并消费完成项。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 441
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 444
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 141
+            }
+          ],
+          "tokens": 44194
+        },
+        {
+          "caseId": "SSD-IO-11",
+          "status": "completed",
+          "answer": "**不能按\"少两条中断\"报丢 I/O。**\n\n**依据**：PCIe 5.0 §6.1.4.5（p.500）——向量屏蔽期间设备禁止发消息，但每次\"本应发送\"必须置该 MSI‑X 表项的 Pending bit；解屏蔽且该位=1 时\"必须安排发送关联消息\"，发完清位。Pending bit 每表项仅 1 位（p.789 表 7‑54），不是计数器：3 个 CQE 只置 1 位，1 条 MSI‑X 恰是规定行为；NVMe 另有 Interrupt Coalescing 特性，同样允许一中断覆盖多完成，故消息数与完成数不能互推，PBA 只读无数值。\n\n**仍待确认**：① 三份完成的最终回调是否都已执行（未核对）；② 屏蔽方式——MSI‑X 下访问 INTMS/INTMC 属未定义（NVMe 2.1 p.78），需确认用的是表项 Mask 位（Pending 位随即置位）还是 Function Mask。\n\n**一次区分检查**：解屏蔽后读该 I/O CQ 的 CQE 槽与 CQ Head，用 phase tag 核对三个 SQID/CID，统计队头推进数。\n- 推进 3：未丢 I/O，撤回报\"缺两条中断\"，记为一次合并中断覆盖三条完成；不新增时限、复位、重试或归责。\n- 推进 3 但仅一条被处理：主机侧 CQ 处理遗漏，查取队列/溢出逻辑。\n- 推进 1 或 0：另两条是命令未完成而非完成丢失，按原 SQE 与超时路径查 SQ Head 与设备日志，暂不重试（避免同 CID 重复完成），不归责 SSD。",
+          "seconds": 50.62,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "一条 MSI-X 不代表少两个完成的结论正确。但“推进 1 或 0：另两条是命令未完成”与题给三个已匹配 CQE 冲突。CQ Head 反映主机消费，会把应查的消费或回调转到设备命令超时。",
+            "otherError": "“推进 3：未丢 I/O”同样不能取代逐个 SQID/CID 对照最终回调。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            }
+          ],
+          "tokens": 38899
+        },
+        {
+          "caseId": "SSD-DATA-12",
+          "status": "completed",
+          "answer": "**判断：不够。现在不能放备机写这个卷——业务继续停机，卷保持不接管。**\n\n**理由（可核对位置）**\n1. 备机看到的是\"能力\"位；真正决定行为的是命名空间的 PTPL 状态：Reservation Status Data Structure 的 **PTPLS**（byte 09，NVMe PDF p.495 / 规范页 473）。PTPLS=0 → 上电后释放预留并清除注册者；PTPLS=1 → 预留与注册者跨掉电保留。设备侧 Reservation Persistence 是否 saveable 仅为能力（p.491 / 规范页 469），不表明本命名空间当时是否开启。\n2. PTPL 状态只能作为 Reservation Register 的副作用被改（**CPTPL**，CDW10 bit 31:30，p.491 / 469）。变更日志未留实际设置 ⇒ 现在无法判定掉电后预留是否仍在、原注册者是否仍在。\n3. p.491 的 **DISNSRS** 是\"主机对 dispersed 命名空间预留的支持\"，与本例非 dispersed 命名空间无关；所给 PCIe 片段（FEP、margin）与此无关。\n\n**一次区分性检查**\n恢复后对该命名空间执行只读 **Reservation Report**，读 PTPLS 与 Registered Controller Data Structure 的 **RCSTS.AHHR**/**HOSTID**：\n- PTPLS=1 且 AHHR=1 指向原主库 → 预留仍被占用：备机不得写；先 fencing 确认原主机确已离线，再按流程正式接管。\n- PTPLS=0 → 上电后预留已释放、注册者已清空：无残留占用，但仍须完成所有权确认并隔离原主机后才写。\n- 报告取不到 → 继续停机升级，不得凭能力位放行。\n\n**仍待确认**：该\"支持\"位取自哪个字段（Identify/厂商 feature 还是支持位）；独占预留写访问与抢占的确切规则原文；原主机是否已隔离、是否会复挂。",
+          "seconds": 36.71,
+          "toolCalls": 11,
+          "review": {
+            "usability": "misleading",
+            "reason": "当前拒绝开放正确，但分支“PTPLS=0 → …无残留占用”把当前持久化设置当成当前无预留。恢复后若已有新注册或新预留，会跳过 Report 的 RTYPE、完整注册表和当前持有人核对，给交接人错误的清空结论。",
+            "otherError": "“只能作为 Reservation Register 的副作用被改”与 NVMe p.424 §5.1.25.1.30 冲突，Set Features FID 83h 也能修改。",
+            "credits": {
+              "capability": 1,
+              "decision": 1,
+              "action": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 491
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 495
+            }
+          ],
+          "tokens": 29454
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "现场决策 skill 与有边界的规范摘录",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · domain · 120s · 共8次证据调用含2次预取 · decision-audit · bounded + ssd-field-decisions",
+      "results": [
+        {
+          "caseId": "SSD-OPS-10",
+          "status": "completed",
+          "answer": "**决定：不能。** 这六块不能当同一时刻的一份证据，按规范本次采集本身应判为\"不一致、需重读\"。\n\n**依据**\n- §5.1.12.1.8（NVMe 2.1, p.243 字段381）：THDGN 每次捕获内部状态即递增。2Ah→2Bh 证明首尾之间至少发生过一次新捕获。\n- §8.1.27 步骤5b（p.605）：读完数据后须重读 header 核对 THDGN，不一致则\"捕获的数据不一致，应重读\"。\n- §5.1.12.1.8（p.242 字段08）：CTHID=1 时控制器须在该 Get Log Page 被处理时捕获；数据仅在后续 CTHID=1、FW Commit 或 POR 后才变。你未 commit、未复位，唯一可解释跳变的来源就是第二采集器那次 CTHID=1。\n\n因此：CTHID=1 之前读的块属 2Ah，之后属 2Bh，拼接文件混了两个不同时刻的快照；2Ah 的后半段已被覆盖，不可再取回。\n\n**尚不能认定**：跨越代次的是哪一块（取决于两路命令完成时序）；那次 CTHID=1 是否成功完成；2Bh 快照是否落在卡顿窗口内（捕获时刻=命令处理时刻，非卡顿时刻）。\n\n**下一步（只读、一次）**：现在用 CTHID=0 重读 07h 的 header，取当前 THDGN。\n- 仍为 2Bh → 最后一次捕获即第二采集器那次，其后无新捕获；把六块按 2Ah/2Bh 拆两段交付厂商，差值即卡顿前后状态差。\n- 变为 2Ch → 存在其他捕获源，拼接一律不可用；须在无并发采集者、全程 CTHID=0、收尾复读 header 核对 THDGN 相同并置 RAE=1（§8.1.27 5a, p.605）的条件下重抓。",
+          "seconds": 52.43,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒把首尾代号不同的文件当作同一快照，也说明旧数据无法取回。但“仍为 2Bh → 把六块按 2Ah/2Bh 拆两段交付厂商，差值即卡顿前后状态差”没有各块捕获边界和事故时间作依据，会交付归代和事件标签均不可靠的证据。",
+            "otherError": "补读当前页头只识别当前代号，不能补出历史分块与新捕获的执行时序。",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 605
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 606
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 241
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 242
+            }
+          ],
+          "tokens": 49753
+        },
+        {
+          "caseId": "SSD-PWR-07",
+          "status": "completed",
+          "answer": "**决定：不能据此判定 RC 违反 32 μs。** 本条只能记为\"归因未成立\"，先把 180 μs 定位到具体区段，再谈 RC。\n\n**理由**\n\n1. 对象错位：snoop LTR 约束的是 RC 对**该端点自己发出的 Request**（SSD 向主机内存的 DMA 读）的 snoop 完成时间；180 μs 是主机发起 NVMe Read 的端到端时间，主要含 SSD 内部队列/介质服务与驱动软件，与 RC 的 snoop 段不是同一段时间（PCIe 5.0 §6.18, p.608；p.610）。\n2. 记录不含可判定量：只有驱动提交/完成时戳，无该命令的 MRd/Cpl 时点。规范中可比的量是 service latency——Request TLP 末符号到首个 Completion 首符号（p.610）。\n3. LTR 非硬上限：p.609 原文 \"The Root Complex is not required to honor the requested service latencies, but is strongly encouraged to provide a worst case service latency that does not exceed the latencies indicated by the LTR mechanism\"（强建议层级，非\"违反上限\"）。\n4. 若路径含交换端口，RC 侧适用值还要扣减：Switch 上报 LTRconglomerated = LTRdnportMin − Lswitch，且 Lswitch ≤ 20% LTRdnportMin（p.611）。另默认 Completion Timeout 为 50 μs–50 ms（p.758），180 μs 不会留错痕。\n\n**下一步（一次只读检查）**：用协议分析仪或 RC 遥测，按 Requester ID（SSD）+Tag 关联出它向主机内存发出的 MRd 与对应 Cpl 时刻，与驱动时戳对齐，量出 PCIe 段长度。\n\n- PCIe 段 ≪ 32 μs → 排除 RC snoop，按设备/软件服务延迟处理（队列深度、介质延迟、并发 I/O）。\n- PCIe 段 > 32 μs → 仍不能直接归责 RC：再用同一 RC 上服务时间已知短的端点做对照读，或取 RC snoop 遥测，区分\"设备响应慢\"与\"RC snoop 路径慢\"。\n\n**仍待确认**：路径上是否有交换机及其 Lswitch；RC 是否提供 snoop 延迟遥测；该命令 PCIe 段占比。",
+          "seconds": 63.69,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝用 180 μs 判规范违规，列出了 MRd 的首尾符号并要求与驱动时间对齐。但只测 SSD 的内存读便声称可“排除 RC snoop”，遗漏相关内存写和其他服务阶段。",
+            "otherError": "按 Completion Timeout 范围断言“180 μs 不会留错痕”没有单笔请求时序或实际超时值支持。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 75.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 609
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 610
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 611
+            }
+          ],
+          "tokens": 47077
+        },
+        {
+          "caseId": "SSD-IO-08",
+          "status": "completed",
+          "answer": "**结论：这个验收不能用来判盘失败，建议先否决该判定条款。**\n\n**理由（已核实）**\n- TIME 不是绝对截止期。它是\"控制器因中断合并可延迟中断的推荐最大时间\"，单位 100 µs，可按单个向量或跨所有向量施加（NVMe 2.1 p.428 Fig 445）。它约束控制器，不是主机可自行换算的完成期限，因此\"用 TIME 算截止期、超时即判失败\"没有规范依据。\n- 现场症状有规范解释：CQ Head Doorbell 属性被更新时，控制器认为 CQE 已在处理，可复位/重启 aggregation time/threshold，\"在 TIME/THR 非零的某些负载下可致中断被无限期延迟\"（NVMe 2.1 p.428 §5.1.25.2.2）。持续轮询并写门铃正落在这条上。\n- 业务命令全成功、轮询持续见新 CQE，说明 CQ 通路正常；缺的只是中断路径的证据。\n\n**尚待确认**：TIME/THR 实际写入值与生效对象（FID 08h 仅适用 I/O 队列；Create I/O CQ 的 IV/IEN，p.441）；主机是否同时使能 MSI 与 MSI-X（PCIe 5.0 p.876：软件一次只应使能一种）。\n\n**下一步（一次、只读、可区分）**：同一 CQ、同样 TIME/THR，提交少量命令后停止写 Head Doorbell，测 CQE 产生→向量到达的时间，并读 MSI-X PBA Pending Bit（PCIe 5.0 p.789 Table 7-54）。\n- 停轮询后中断在 TIME 窗口内到达、PBA 平时为 0 → 属门铃写重启计时的合规行为；验收改为\"停轮询下的中断延迟\"，删掉按 TIME 判失败。\n- 仍无中断且 PBA 置位 → 属设备/主机侧投递问题（向量屏蔽、MSI/MSI-X 配置），转 PCIe 侧取证，此时再议盘是否异常。",
+          "seconds": 38.14,
+          "toolCalls": 5,
+          "review": {
+            "usability": "revise",
+            "reason": "可直接撤下 TIME 截止期。少量新 I/O 下停写门铃、比较 CQE 和中断到达是可行方向。对照先提交再停写，需保证停写后仍有新的待通知 CQE 和空槽。仅给了无中断且 PBA=1 的分支，PBA=0 时还要沿设备发出的 MSI-X 与主机交付分别查。",
+            "otherError": "停轮询后一次在 TIME 内收到通知与计时重启相容，不能单凭该结果确认具体机制。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [],
+          "tokens": 24868
+        },
+        {
+          "caseId": "SSD-X-06",
+          "status": "completed",
+          "answer": "**可以作的决定**\n\n1. **不要清全 Function 屏蔽。** Function Mask 全程已是 0；PCIe 5.0 §7.7.2.2（p.785）明确：置位/清零 Function Mask 都不改变各向量自身的 Mask 位，置位只会把正在增长的管理中断（表项 0）一并屏蔽。MSI-X 下访问 INTMC 属未定义（NVMe §3.1.4.4，p.78）。\n2. **能定位到\"向量绑定\"这一层，但还不能定责。** 队列侧正常（轮询到的 CQE 与 SQID/CID/状态全匹配）；Function 级通路正常（MSI-X Enable=1、MSI Enable=0、Function Mask=0、管理中断持续增长）。只剩两种解释：设备未把该 CQ 绑到向量 2，或主机侧表项 2 被屏蔽/未绑 IRQ。两者都能解释\"IRQ=0 而轮询正常\"，因为 Create I/O CQ 的 CDW11（IV=31:16、IEN=bit1，Fig 475 p.441）与表项 2 的 Vector Control（p.788）都没归档。\n\n**复现要留的两条记录**\n① 该 CQ 成功 Create I/O CQ 的 CDW11 + CQID；② MSI-X 表项 2 的 Vector Control（Mask 位）与 Message Address/Data 回读，附表项 0 对照、PBA（p.789）及该向量的 OS IRQ 绑定。\n\n**最有区分力的一次只读检查**\n读控制器状态的 I/O CQ State（Fig 361 p.382：IOCQIV=建队 IV、IOCQIEN=IEN）+ 表项 2 回读：\n- IOCQIV≠2 → 建队向量号错 → 修驱动（并确认 MSI-X 表项数≥3）；\n- IOCQIV=2、IEN=0 → 该 CQ 中断未使能 → 重建 CQ 置 IEN=1；\n- IEN=1 且表项 2 Mask=1 → 主机屏蔽 → 按 PCIe p.499 用 QWORD 写 Message Data+Vector Control 单独解屏蔽表项 2（掩蔽时才必须 DWORD 写），不动 Function Mask 与 MSI-X Enable；\n- 均正常而 IRQ 仍 0、PBA 无 bit → 设备未产生向量 2 的 MSI-X → 带上述两条记录升级厂商。\n\n仍待确认：主机是否真为向量 2 申请并绑定了 IRQ，以及设备侧实际记录的 IV/IEN。",
+          "seconds": 55.82,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "索取目标 CQ 的成功建队记录和表项 2 正确，但“PBA 无 bit → 设备未产生向量 2 的 MSI-X”没有观测支持。PBA 不记录未屏蔽时的消息历史，不能跳过设备发包与主机交付取证就升级厂商。",
+            "otherError": "普通 PCIe NVMe 设备未给出可取控制器状态数据的迁移能力；且线路恢复应经 IRQ 管理路径，CQ 重建应停流并先解除关联 SQ。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 382
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 441
+            }
+          ],
+          "tokens": 66446
+        },
+        {
+          "caseId": "SSD-PWR-03",
+          "status": "completed",
+          "answer": "**决定：先修平台的配置顺序，不要先让固件改 TPOWER_ON 数值。**\n\n依据（PCIe 5.0 v1.0）\n- §5.5.4（p.488）：置 L1.2 enable 前**必须先**编程 TPOWER_ON、Common_Mode_Restore_Time、LTR_L1.2_THRESHOLD（Value+Scale）；置 ASPM L1.2 enable 时 ASPM L1 **必须已关闭**；enable **必须先在 Downstream Port（Root）置起，才允许在 Upstream Port（SSD 侧）置起**。捕获到的顺序（先 Upstream、ASPM L1 仍开、时序值后写）三条都违反。\n- T_POWER_ON Value/Scale（L1 PM Substates Control 2，offset 0Ch，p.840）与 Common_Mode_Restore_Time、LTR_L1.2_THRESHOLD（Control 1，offset 08h，p.839）均\"只能在 ASPM L1.2 / PCI-PM L1.2 Enable 为 0 时修改\"，enable=1 时修改\"行为未定义\"。所以 enable 置位后补写时序值，最终快照与好板相同**并不等于**实际用于 L1.2 退出的时序等效。\n- TPOWER_ON 数值\"依连接元件与 AC 耦合电容而定\"（p.488），属设计实现相关；两板最终值相同，**没有改动该数值的依据**。\n\n尚不能认定：不能断定唤醒失败就由该顺序引起（若两板顺序相同，它只是合规缺陷而非区分项）；失败那次 CLKREQ# 断言→TPOWER_ON 等待与共模恢复行为尚未观测。\n\n区分检查（低干扰，只读）：在故障板复现唤醒时同步抓 RC 配置写时序（带时间戳）与 L1.2 退出过程。\n- A) 坏板 enable 先写、ASPM L1 未关，好板相反 → 顺序即差异项：改平台流程为 D0 → 关 ASPM L1 → 写 TPOWER_ON/CMRT/LTR（两端口 LTR 值相同）→ 先 Downstream 后 Upstream 置 enable，再复测唤醒。\n- B) 两板顺序与数值一致，且坏板在 TPOWER_ON 等待后仍未回 L0/发生重训练 → 转向 L1.2 电气表征（TCOMMONMODE、AC 电容、T_POWER_ON 标度 2/10/100 μs，Table 5-11，p.489），届时再评估是否调整数值。",
+          "seconds": 51.46,
+          "toolCalls": 5,
+          "review": {
+            "usability": "misleading",
+            "reason": "给出的合规使能顺序和参数前置条件正确。分支 B 却在“两板顺序与数值一致”且仍唤醒失败时直接转电气表征。两板可使用同一违规顺序，该分支会让现场跳过先修已知配置问题并复跑的决定。",
+            "otherError": "复跑还需让两端恢复 ASPM L1 并确认有实际 L1.2 进入与退出，才能解释故障板是否复现。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 488
+            }
+          ],
+          "tokens": 21051
+        },
+        {
+          "caseId": "SSD-PWR-06",
+          "status": "completed",
+          "answer": "**决定：不要从 PCIe Message 发送逻辑查起。** WAKE# 侧带方案下\"抓不到 PM_PME\"是预期结果，不是发送逻辑缺陷。\n\n**依据（PCIe 5.0）**\n- p.494 §5.11：PCIe 的 Wakeup Event 关联 WAKE#（D3cold 且 PME_En=1 时由 Function 拉低）；PM_PME Message 要等主电恢复、链路训练完成之后才发。\n- p.455 §5.3.3.2：WAKE# 是开漏侧带，由电源控制器观察；断言方须持续拉低直到主电恢复（Fundamental Reset 失效）。\n- p.455 §5.3.3.1 首条、p.458 §5.3.3.3：上游处于非通信 L2 时设备不能向上游发 PM_PME，且发送前必须回 L0。\n- NVMe 2.1 p.559 §8.1.17.4：RTD3 即 D3cold，主电已移除。\n\n故触发瞬间上游仍在 L2、主电已撤，TLP-only 抓包没有 PM_PME 属结构必然；PM_PME 应出现在重训之后。\n\n**尚不能认定**：WAKE# 是否真的拉低、主电/refclk 是否恢复、链路是否重训并随后发出 PM_PME；也不排除热插拔控制器代设备发起唤醒（p.567 §6.7.3.4 注）。\n\n**最有区分力的一步**（下次触发，示波器同时看 WAKE#、主电、refclk 与链路状态，TLP 窗口延长到重训之后）：\n1. WAKE# 拉低 → 主电/refclk 恢复 → 链路回 L0 → 随后出现 PM_PME：侧带路径正常，PM_PME 本就滞后，无需改 Message 逻辑。\n2. WAKE# 从未拉低而唤醒源已触发：查设备 PME 上下文与辅助电，读 PMCSR.PME_En、PME_Status（p.448、p.714）。\n3. 主电已恢复但链路未重训：查 refclk 门控，PM_PME 本就发不出。",
+          "seconds": 46.88,
+          "toolCalls": 7,
+          "review": {
+            "usability": "ready",
+            "reason": "能据此安排同一窗口的 WAKE#、供电、参考时钟、重训及重训后 PM_PME 捕获。给出了侧带未动作、平台链路未恢复和正常发送的分流，足以回答当下应先查哪一层。",
+            "otherError": "把“主电已撤”写成事实超出了已给前提，但给出的实测方案本身会核实主电，且 L2 已足以解释当时没有 TLP。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 455
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 494
+            }
+          ],
+          "tokens": 37343
+        },
+        {
+          "caseId": "SSD-IO-10",
+          "status": "completed",
+          "answer": "**决定：本轮不能在线扩到 16 组，也不要补发 Set Features FID 07h。**\n\n**依据（均为已核实页码）**\n1. 上限是控制器“已分配数”：NCQA/NSQA=3 为 0 基值 → 只有 4 组；请求的 15 只是愿望值，规范允许分配少于请求（NVMe Base 2.1 p.428，Figure 444 及其 Note）。§3.3.1.1 要求创建队列“在控制器分配的数目限制内”（p.107）。vCPU 热插不改变该分配。\n2. 现在补发 FID 07h 必被中止：“仅可在初始化、创建任何 I/O SQ/CQ 之前发出；之后发出须以 Command Sequence Error 中止”，且“控制器在两次复位之间不得改变已分配值”（p.427，§5.1.25.2.1）。补发无害，但换不来队列。\n3. 唯一合法路径是控制器级复位（清 CC.EN 1→0，p.140 §3.7.2）后重发 FID 07h 并重建队列；复位期间已建 I/O 队列的命令以 Command Sequence Error 中止（p.115）。这与“不中断服务、无停机窗口”冲突，且规范允许复位后仍只分配 4 组。\n\n**区分检查（只读、低干扰）**：在 Admin Queue 上发 Get Features FID 07h（p.427–428，返回当前 NSQA/NCQA）。\n- 仍返回 3/3 → 上限确为 4 组，QID≥4 的 Create I/O CQ 会被 Invalid Queue Identifier（01h，p.167）中止；维持 4 组，扩队列排入下一个维护窗口。\n- 返回 ≥15 → 分配数已变，再按 §3.3.1.1 顺序建 CQ5~16 / SQ5~16。\n\n**仍待确认**：控制器为何只给 4 组（规范无“最大队列数”字段，CAP.MQES 只限队列大小），需厂商资料或复位窗口验证。题给 PCIe 两段（SR-IOV p.1101、RP PIO Mask p.960）与队列分配无关，不能作为扩队列依据。",
+          "seconds": 44.67,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "对当前分配和在线 Set Features 的序列错误判断正确。但“返回 ≥15 → 分配数已变，再…建 CQ5~16 / SQ5~16”与两次复位间分配固定直接冲突，可能据矛盾记录擅自在线建队。",
+            "otherError": "“QID≥4 … Invalid Queue Identifier”将 0 基分配字段错用于 QID 范围，本题 QID 4 已成功建立；容量与队列标识也须分别核对。",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 427
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 428
+            }
+          ],
+          "tokens": 44663
+        },
+        {
+          "caseId": "SSD-OPS-09",
+          "status": "completed",
+          "answer": "**结论：不能算长测通过。** 仪表的 100% 是 DSTCS（完成百分比），不是判据；按 NVMe 2.1 Figure 211（PDF p.239），当 DSTOS=0h（无自测进行中）时\"DSTCS should be ignored by the host\"。现在正是 DSTOS=0h，这个 100% 无效。\n\n**已成立的原因：** 复位前记录 DSTOS=2h＝扩展自测进行中（Figure 211 同页）；按 Figure 212（PDF p.240），DSTR=2h 即\"Operation was aborted by a Controller Level Reset\"，被复位中断的扩展自测不构成通过结论。采集器未保存 RDS1 的 DSTC/DSTR，故结果本身尚未认定；也不能排除自测在快照与复位之间已完成——这一层待证。\n\n**下一步（只读，换盘前）：** 不做任何复位，重新读取 Device Self-test Log Page（06h）全 512 字节，取 RDS1 字节 00：\n- DSTR=0h 且 DSTC=2h → 该次扩展自测确为无错完成，可作长测记录；\n- DSTR=2h 或其他非 0h → 无有效长测，须重新下发 Device Self-test 命令（DSTC=2h），全程不复位。\n\n依据：NVMe Base 2.1 Figure 211（p.239）、Figure 212（p.240）。",
+          "seconds": 32.57,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒签 100%、读回本轮 RDS1、区分成功与复位中止都对。但“DSTR=2h 或其他非 0h → 无有效长测，须重新下发”会把 6h/7h 明确已完成且有失败段的有效长测误作未完成，可能掩盖换盘所需的失败证据。",
+            "otherError": "NVMe Fig.211 的完整日志到 byte 563，因此“全 512 字节”表述有误；512 字节足以读取当前所需的 RDS1。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 239
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 240
+            }
+          ],
+          "tokens": 17296
+        },
+        {
+          "caseId": "SSD-X-03",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.01,
+          "toolCalls": 7,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内无最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 1126
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 1127
+            }
+          ],
+          "tokens": 18731
+        },
+        {
+          "caseId": "SSD-IO-06",
+          "status": "completed",
+          "answer": "## 决定：不可以原地改旧 PRP List 并回收\n\n对 CQ3 的现有 PRP List 只能\"读\"，不能改写、也不能把其物理页交回分配器。空闲 10 秒不构成例外。\n\n**依据（已核实）**\n- NVM Express Base 2.1，p.441 §5.2.1（Create I/O Completion Queue）：描述 CQ 的 PRP List 须\"maintained by host software at the same location in host physical memory\"，其值\"shall not be modified until the corresponding Delete I/O Completion Queue command for this CQ is completed successfully or the controller is reset\"；\"If the PRP List values are modified, the behavior is undefined.\" → 原地改页地址即落入 undefined，且当前既无 Delete CQ 成功完成也无复位，前提不成立。\n- 同规范 p.444 §5.2.3（Delete I/O Completion Queue）：\"After this command has completed, the PRP List that describes the Completion Queue may be deallocated by host software.\" → 回收的时点是 Delete CQ 成功完成之后，而不是\"队列看起来空了\"。\n- 同规范 p.141 §3.7.3（Queue Level Reset）：主机只需在删除前保证相关队列 idle；未完成删除的 CQ 仍是活对象，控制器仍会向该 CQ 投递完成项。\n\n**合规路径（唯一）**：先删关联的 I/O SQ（p.444：关联 SQ 未先删除时 Delete CQ 会以 Invalid Queue Deletion 中止；p.141：SQ 应在 CQ 重建后再重建）→ Delete I/O CQ(CQID=3) 成功 → 用新地址 Create I/O CQ(PC=0) → 重建 SQ3 → 此时才释放旧 PRP List 页。\n\n**最有区分力的一次检查**：在 SQ3 已删且无在途命令的前提下，提交 Delete I/O CQ(CQID=3) 并读其 Cpl状态。成功 → 立即走上述重建，旧页此刻方可释放；中止（如 Invalid Queue Deletion）→ 说明 SQ 关联或在途命令未清，退回处理 SQ3（等待完成或处理 abort）后重试，期间旧页保持不动。\n\n**仍待确认**：SQ3 是否有在途 I/O、迁移器是否被授权改变该队列对象状态；以及若平台启用 ATS/IOMMU，释放物理页前是否需完成地址转换失效（PCIe Base 5.0 p.1185 §10.2.3.1 描述 Function 的 ATC 条目须在收到覆盖该地址的 Invalidation Request 时删除）——此项我尚未核实你们的实际启用情况。\n\nSources: `kb/nvme/_source/pages/page-441.md`, `page-444.md`, `page-141.md`",
+          "seconds": 36.22,
+          "toolCalls": 5,
+          "review": {
+            "usability": "misleading",
+            "reason": "对 PRP List 的原位置、内容及删除成功前的寿命判断正确。主路径虽提“关联 SQ”，实际操作却限定“重建 SQ3”、失败“退回处理 SQ3”。题面没有给出 SQ3→CQ3 的关联；可能处理无关 SQ、遗漏其他关联 SQ，或删后只恢复一部分业务。",
+            "otherError": "0Ch 应核对所有仍关联该 CQ 的 SQ，不能单凭这个状态把问题定为在途命令。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 141
+            }
+          ],
+          "tokens": 23911
+        },
+        {
+          "caseId": "SSD-IO-11",
+          "status": "completed",
+          "answer": "**结论：不能报\"丢两条中断\"，也不能据此报丢 I/O。**\n\n**依据（已核实原文）**\n- PCIe 5.0 §6.1.4.5（PDF p.500）：向量被屏蔽时禁止发消息，但\"必须置对应 Pending bit\"；解除屏蔽时\"必须调度发出该消息，发出后清 Pending bit\"。Pending bit 是每向量一个电平标志（§7.7.2.9, Table 7-54, p.789），不是计数器。屏蔽期三次完成合成一条消息，正是规范预期行为。\n- NVMe 2.1 §5.1.25.2.2（p.428–429）：中断聚合按\"每向量聚合的 CQE 数\"和聚合时间发中断，一条中断覆盖多条完成合法。中断只是提示主机去查 CQ，权威状态是 CQ 内存中的完成条目；屏蔽不会使已写入的 CQE 消失。\n\n**尚不能认定**：三份完成的最终回调与状态码未核对，故\"零丢失\"也尚未成立。\n\n**最有区分力的一步（只读）**：解屏蔽后立即 drain 该 I/O CQ，核对 CQE 条数、SQID/CID、状态码，并记录实际收到的 MSI-X 消息数。\n- 三条齐全且状态正常 → 中断聚合/掩码合并所致，未丢 I/O；只需修正\"每完成一条中断\"的验收假设。\n- 不足三条或状态异常 → 才进入真正丢完成路径，再取控制器错误日志与驱动统计。\n\n附带可查：Get Features 08h 核对该向量聚合阈值；MSI-X 下不要访问 INTMS（NVMe 2.1 p.78）。",
+          "seconds": 44.42,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "每向量 Pending 位与一消息覆盖多 CQE 均解释正确。但“三条齐全且状态正常 → …未丢 I/O；只需修正”会在没核对三份最终回调时关闭事件，漏查驱动已收 CQE 却未向业务交付的请求。",
+            "otherError": "返回非成功状态仍是命令完成，不应和缺失完成合并归责；drain CQ 通常也会改变消费状态。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            }
+          ],
+          "tokens": 54557
+        },
+        {
+          "caseId": "SSD-DATA-12",
+          "status": "completed",
+          "answer": "**结论：证据不够，不能据此开放备机写这个卷。**\n\n- 备机看到的是命名空间属性 PTPL/PTPLS（Get Features FID 83h，或 Reservation Report byte 09，p.425、p.495），含义只是\"掉电当时若有预留则保留\"，不等于\"预留已跨掉电存活\"。8.1.22（p.583）：预留与注册默认不跨掉电保留，仅当掉电瞬间 PTPLS=1 且确有预留/注册才保留；PTPLS 可被 Reservation Register（7.6，p.491）或 Set Features（5.1.25.1.30，p.424）改写。\n- 变更日志缺掉电前的实际 PTPL 设置，而 Reservation Persistence 特性\"shall not be saveable\"（p.425），故此刻读到的 PTPL 无法绑定到掉电瞬间。\n- 若预留实际存活：Write Exclusive 下非注册者写为 N（Fig 645，p.583），备机直写本不被允许；若为绕过而注册/抢占（8.1.22.7，p.587），会夺走原主机的写独占，原集群若仍自认持有即双写。\n\n**下一步（只读、区分力最大）**：备份端对该命名空间发 Reservation Report（7.8，p.493），读 Reservation Status 结构（Fig 581，p.495）：byte 09 PTPLS 与 24*n+47 注册者列表。\n- 有注册者且持有人是原主机 → 预留已存活：禁止直写，先 fencing、完成所有权移交，再由授权方抢占。\n- 列表为空 → 掉电时无预留或 PTPLS=0，预留已释放：预留不再阻挡写，但仍需所有权确认与主盘隔离。\n\n**仍待确认**：掉电瞬间 PTPLS 值及当时是否有注册者；原主机是否已隔离；数据一致性不由预留条款保证（PCIe Base 5.0 的 AER/Margin 片段与此决定无关）。",
+          "seconds": 56.2,
+          "toolCalls": 8,
+          "review": {
+            "usability": "revise",
+            "reason": "保持备机禁写、查持有人并先做隔离和移交，方向正确。开头把题给的支持能力写成 FID 83h / Report.PTPLS，实际这两个字段返回配置状态。还需用 RTYPE、REGCTL 与完整注册表确认目前确无预留，才能执行“列表为空”的分支。",
+            "otherError": "给出的固定 24 字节注册者格式只适用 64 位 Host ID；128 位需要对应的扩展结构。当前报告用于确定现状，不能独自证明掉电时的历史。",
+            "credits": {
+              "capability": 0.5,
+              "decision": 1,
+              "action": 0.5
+            },
+            "rejectHits": [],
+            "score": 75.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 491
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 425
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 424
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 493
+            }
+          ],
+          "tokens": 45005
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

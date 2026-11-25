@@ -12415,3 +12415,6 @@ msgstr "Panggilan alat"
 
 msgid "Weight"
 msgstr "Bobot"
+
+msgid "Open SSD example"
+msgstr "Buka contoh SSD"

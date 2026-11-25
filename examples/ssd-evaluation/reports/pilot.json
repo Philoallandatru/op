@@ -1,0 +1,1030 @@
+{
+  "schemaVersion": 1,
+  "title": "SSD 启停工程问答 · 首轮试跑",
+  "cases": [
+    {
+      "family": "cold-enumeration",
+      "split": "dev",
+      "question": "冷启动偶尔报“SSD 不见了”。同事想加大 NVMe 控制器就绪超时，或者直接把这块盘判坏。看这段时间线，先改哪里？给我一个复测点，能把枚举失败与后续的控制器启动慢分开。",
+      "observations": [
+        "单个 PCIe SSD 直连支持 16 GT/s 的下行端口；本次没有使用 Readiness Notifications，已启用 CRS Software Visibility。",
+        "端点 Conventional Reset 结束记为 0 ms，分析仪确认链路在 80 ms 进入 DL_Active。",
+        "系统在 110 ms 向端点发第一个配置读，在 150 ms 因未获成功完成停止枚举并标记设备损坏。整个窗口内主机没有写 NVMe CC.EN。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "辨认当前失败发生在配置枚举阶段，未写 CC.EN，增大 NVMe RDY 等待不能改变当前观测。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "将 100 ms 从训练完成计，算出最早 180 ms，指出 110 ms 过早。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "把判坏门槛与初次发请求分开，无 Readiness Notifications 时至少从 Conventional Reset 后给足 1 s，150 ms 不能判坏。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P2"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "复测有可区分的观测和分支，分别记配置请求/成功完成，以及枚举成功后实际 CC.EN 与 CSTS.RDY 转换。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "N1"
+          ]
+        }
+      ],
+      "reject": [
+        "从 PERST# 释放算 100 ms，认定本例 110 ms 的请求合规。",
+        "以一次早期配置失败或 150 ms 未响应认定 SSD 坏盘，或宣称 NVMe 已发生 RDY 超时。"
+      ],
+      "id": "SSD-BOOT-01",
+      "referenceAnswer": "先修正枚举器的时间基准。该下行端口支持大于 5 GT/s，未使用 Readiness Notifications，首次配置请求至少在训练完成后 100 ms，即本例 180 ms 才可发。复位结束后至少留 1 s，再因有效配置请求始终未成功判设备异常；150 ms 停止不成立。当前未写 CC.EN，尚未开始 NVMe 就绪计时。用同一时间源记录复位结束、DL_Active、配置请求及其 Completion；若延后请求可成功，再单独记录 CC.EN 置 1 到 CSTS.RDY 置 1。两段测量足以区分枚举器时序和后续 NVMe 初始化。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 553,
+          "section": "6.6.1",
+          "anchor": "after Link training completes before sending"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 553,
+          "section": "6.6.1",
+          "anchor": "before determining that the device is broken"
+        },
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 124,
+          "section": "3.5.1",
+          "anchor": "The host enables the controller by setting"
+        }
+      ]
+    },
+    {
+      "family": "admin-queue-dma",
+      "split": "challenge",
+      "question": "这块盘配置空间和 BAR 都能读，RDY 也起来了，但开机第一条 Identify 就超时。有人说是 MSI-X 漏中断或 NAND 太慢。你会先验证哪条因果链？说明怎么用一次复测区分没取命令、没写完成和单纯没通知。",
+      "observations": [
+        "普通 Type 0 PCIe Endpoint，Admin SQ、CQ 均在主机内存；从创建队列至超时，PCI Command 读回一直是 0x0002。",
+        "CSTS.RDY=1 后主机填写 Identify Controller SQE，并写了 SQ0 Tail Doorbell；分析仪看到了该下行 MMIO 写。",
+        "按该 BDF 过滤，窗口内没有上行读 Admin SQ 的 Memory Read，也没有写 Admin CQ 的 Memory Write；CPU 轮询未见该 CID 的新 CQE。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "将 0x0002 解为 MSE=1、BME=0，并说明入站 BAR 可访问与端点主动 DMA 能力是两个条件。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "串起写 Doorbell、端点从主存取 SQE、写回主存 CQE，利用 trace 定位第一个未发生的取队列动作。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P2",
+            "N1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "明确缺少新 CQE 时仅修 MSI-X 不能恢复这次命令路径，给定迹象不能指认 NAND。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P2",
+            "N1"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "提出在有效 DMA 映射/队列就绪下恢复并读回 BME 的受控复测，按 SQ 读、CQ 写/轮询和中断的先后区分三个断点。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "P2",
+            "N1"
+          ]
+        }
+      ],
+      "reject": [
+        "声称 CSTS.RDY=1 或读通 BAR 已证明 PCIe BME 已开启。",
+        "只更换中断向量或反复等待 NAND，把从未写回 CQE 的现象当成单纯的漏中断。"
+      ],
+      "id": "SSD-BOOT-02",
+      "referenceAnswer": "0x0002 使能 MSE，但 bit 2 BME=0。BAR 应答和 Doorbell 是主机发往端点的访问；对这个 Type 0 端点，BME=0 禁止其主动发起 Memory/I/O 请求，也阻断 MSI-X 写。主存 SQE 需要控制器取，CQE 需要控制器写回。现有 trace 首先指向 DMA 被门控，在看到新 CQE 前不能仅归因于中断，也没有证据支持 NAND 延迟。确认驱动建立合法的主存队列地址和 DMA 映射后，走正常初始化路径启用并读回 BME，重复同一请求。依次核对 Doorbell 后是否读 SQ、是否写入并能轮询到对应 CID 的新 CQE、是否随后出现 MSI-X。若已有新 CQE 而没有通知，转查 MSI-X 配置；若读 SQ 后仍无 CQ 写，再查 CQ 映射和命令处理。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 686,
+          "section": "7.5.1.1.3, Table 7-3",
+          "anchor": "Controls a Function's response to Memory Space accesses"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 687,
+          "section": "7.5.1.1.3, Table 7-3",
+          "anchor": "not allowed to issue any Memory or"
+        },
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 42,
+          "section": "2.1, Memory-Based Transport Model (PCIe)",
+          "anchor": "The controller fetches SQ entries in order"
+        }
+      ]
+    },
+    {
+      "family": "firmware-activation-reset-scope",
+      "split": "challenge",
+      "question": "维护窗口做了 SSD 固件升级。工具提示重启后生效，同事执行了驱动里的 reset-function，重连后还是旧版本。该报升级失败、重刷，还是调整复位方式？旁边另一块业务盘也在同一座下行桥后，请给验证步骤。",
+      "observations": [
+        "Firmware Commit 的 CQE 为命令专用状态 SCT=1、SC=0Bh。已记录旧版本 A、目标版本 B。",
+        "主机 trace 只显示对目标 Function 发起 FLR，链路保持活动；没有记录 Conventional Reset。",
+        "重新初始化后 Identify Controller 的 FR 仍显示 A。尚未核对桥下其他 Function 的停机窗口。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "把 SCT=1/SC=0Bh 正确解释为提交成功、待 Conventional Reset 激活。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "解释 FLR 或 NVMe Controller Reset 在该条件下应继续运行 A，读旧版不足以认定镜像损坏或要求重刷。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "N1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "提出覆盖目标的 Conventional Reset，结合共享拓扑先确认影响范围、协调业务再复位，指出桥端 SBR 会向下游发 Hot Reset。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "从 trace 核实真正发生的复位类型，重新初始化后读取 FR 与 B 对照；给出仍为旧版时的核查方向。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "N1"
+          ]
+        }
+      ],
+      "reject": [
+        "把 0Bh 解释成无效镜像，要求立即重刷。",
+        "把反复 FLR 或 CC.EN 切换当成足以满足 0Bh 的激活条件。",
+        "不检查共享拓扑便无条件要求立即复位上游桥。"
+      ],
+      "id": "SSD-BOOT-03",
+      "referenceAnswer": "0Bh 表明提交成功，激活需要 Conventional Reset。在它之前仅做 FLR 或 NVMe Controller Reset，控制器应继续运行当前镜像；读到 A 与规范相符。PCIe FLR 针对一个 Function，保持 Link 状态；与 Conventional Reset 有不同范围。无需据此重刷。先核对桥下拓扑，协调受影响设备的 I/O 与停机窗口，选择平台支持、可证实覆盖目标且影响范围已确认的 Conventional Reset。不要在共享路径上直接发 Secondary Bus Reset；该操作会向下游发送 Hot Reset。记录实际复位类型，待重新枚举、控制器就绪后再次读 FR 对比 B，若仍旧再查活动槽和激活状态。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 216,
+          "section": "5.1.8.1, Figure 183",
+          "anchor": "continue operation with the currently executing firmware image"
+        },
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 555,
+          "section": "6.6.2",
+          "anchor": "Only the targeted Function is affected"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 552,
+          "section": "6.6.1",
+          "anchor": "There are three distinct types of Conventional Reset"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 554,
+          "section": "6.6.1",
+          "anchor": "must cause a hot reset to be sent"
+        }
+      ]
+    },
+    {
+      "family": "media-ready-deadline",
+      "split": "dev",
+      "question": "我们的开机验收把“RDY 后第一次读失败”统一记成坏盘。下面两轮来自相同固件，你会怎样分别判定？下一次抓什么可以判断是否仍是介质初始化窗口，还是该升级调查？",
+      "observations": [
+        "本地 PCIe NVMe 控制器，CAP.CRMS=11b，启用前 CC.CRIME=1；两轮均观测到 CRTO.CRIMT=1、CRTO.CRWMT=4。",
+        "所有时间相对同轮 CC.EN 从 0 变 1；CSTS.RDY 在 200 ms 置 1。无中途复位或再次启用。已建立 I/O 队列，NSID 已附加，读请求参数有效。",
+        "A 轮在 600 ms 发 Read，610 ms 返回 Namespace Not Ready、DNR=0；B 轮在 2.3 s 首发相同 Read，2.31 s 同样返回该状态。尚无更深的设备内部日志。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "确认 CRIME=1 时 RDY 和介质可服务的时限不同，CRIMT=0.5 s，CRWMT=2.0 s，两者均从 CC.EN 转换起算。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "判定 A 轮是附加命名空间在窗口内允许的 Namespace Not Ready、DNR=0，给出有界重试。",
+          "weight": 2,
+          "critical": true,
+          "evidence": [
+            "N3"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "判定 B 轮已经跨过适用的 2 s 窗口，不能沿用正常窗口解释，同时不能凭现象指认 NAND 或宣判坏盘。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "N2",
+            "N3"
+          ]
+        },
+        {
+          "id": "C4",
+          "text": "用同一时间基准记录使能、复位/模式、提交与 CQE 状态，以边界前后完成结果是否持续区分正常就绪和待查异常。",
+          "weight": 2,
+          "critical": false,
+          "evidence": [
+            "N2",
+            "N3"
+          ]
+        }
+      ],
+      "reject": [
+        "从 RDY=1 重新开始计算 CRWMT。",
+        "把两轮都判作合法初始化等待，或都判定为物理介质损坏。"
+      ],
+      "id": "SSD-BOOT-04",
+      "referenceAnswer": "这里选择了 Controller Ready Independent of Media。CRIMT=1 对应 0.5 s，200 ms 置 RDY 符合较早的控制器就绪时间。CRWMT=4 对应自 CC.EN 起 2.0 s，控制器先就绪时，访问已附加命名空间的 I/O 仍可在这个窗口内以 Namespace Not Ready 且 DNR=0 中止。因此 A 轮符合允许行为，可有界重试观察就绪。B 轮的请求在 2.0 s 之后才提交，无法再用这次正常的早期窗口解释，应保留异常并调查；这个状态单独不足以判定物理坏盘。复测同步记录 CC.EN、模式、CRTO、RDY、每次提交/完成时间、CID/NSID 和 DNR，在 2.0 s 前后做受控重试。若超过边界仍持续，核对复位/附加状态变化及错误或持久事件记录（若支持），再分析原因。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 92,
+          "section": "3.1.4.21, Figure 57",
+          "anchor": "This field is in 500 millisecond units"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 131,
+          "section": "3.5.4",
+          "anchor": "all attached namespaces and media required to"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 129,
+          "section": "3.5.3",
+          "anchor": "Namespace Not Ready with the Do Not Retry bit"
+        }
+      ]
+    },
+    {
+      "family": "d3hot-poll-order",
+      "split": "dev",
+      "question": "关机偶发超时，驱动同事说 SSD 在收到普通关机通知后卡住了。这个 trace 能定位到固件吗？我们该改哪段时序，下一次抓什么才能区分两种原因？",
+      "observations": [
+        "单功能单控制器 PCIe SSD，正常关机。主机在 D0 停止 I/O 并成功写入 CC.SHN=01b；最后一次成功读 CSTS 得到 ST=0、SHST=01b。",
+        "随后平台配置写将 PMCSR.PowerState 置为 D3hot，配置空间仍可读。驱动在此之后轮询同一功能的 BAR 上的 CSTS，分析仪显示该 Memory Read 收到 Unsupported Request。",
+        "设备和平台时间戳已对齐，进入 D3hot 前没有更晚的 CSTS 样本。"
+      ],
+      "criteria": [
+        {
+          "id": "state",
+          "text": "区分最后成功读到的处理中与后续无有效状态，结论不能判固件卡死。",
+          "weight": 25,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "pcie",
+          "text": "解释 PMCSR 在 D3hot 可读、BAR Memory Read 为不受支持请求，因此 UR 符合预期。",
+          "weight": 25,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "order",
+          "text": "提出在进入 D3hot 之前于 D0 观察 ST=0、SHST=10b 并按正常关机顺序交接。",
+          "weight": 25,
+          "critical": true,
+          "evidence": [
+            "N2",
+            "P1"
+          ]
+        },
+        {
+          "id": "discriminate",
+          "text": "给出延后 D3hot 的对照，按同一时钟采 SHN、CSTS 和 PMCSR 并解释两类结果。",
+          "weight": 25,
+          "critical": false,
+          "evidence": [
+            "N1",
+            "N2",
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "把 D3hot 后 BAR 返回的 UR 当作固件报告 SHST 一直为 01b。",
+        "建议在 D3hot 继续轮询同一 BAR，或据该 UR 直接认定 SSD 固件故障。"
+      ],
+      "id": "SSD-SHUT-01",
+      "referenceAnswer": "最后一个有效样本只说明当时关机还在处理。进入 D3hot 后，PCIe Function 只接受配置和消息请求，BAR Memory Read 得到 UR 符合该电源态行为；这次轮询没有取得新的 SHST 值。进入 D3 应按 NVMe 正常关机步骤处理，先在 D0 等待单控制器 ST=0、SHST=10b，再交接 PCI 电源管理。将 SHN 写、每次成功读取的 SHST 和 PMCSR 状态写放进同一时间轴。若延后 D3hot 后在 D0 收到完成状态，原超时可由主机顺序解释；若保持在 D0 并给足等待窗口后仍一直读到处理中，再查设备关机耗时和固件轨迹。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 83,
+          "section": "Figure 42",
+          "anchor": "Shutdown processing in progress"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 133,
+          "section": "3.6.1",
+          "anchor": "for a normal controller shutdown should be followed"
+        },
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 447,
+          "section": "5.3.1.4.1",
+          "anchor": "Configuration and Message requests are the only TLPs"
+        }
+      ]
+    },
+    {
+      "family": "shared-power-domain",
+      "split": "challenge",
+      "question": "双端口 SSD 共用一根主电源轨。机箱准备按 A 口的完成标志拉掉整盘主电，这条放行逻辑够吗？怎么设计一个能抓到误放行的验收条件？",
+      "observations": [
+        "设备只有一个 NVM 子系统，控制器 A、B 分别在两棵独立的 PCIe 层次结构上，Identify/属性记录显示 CAP.CPS=11b。题设采用各控制器单独的关机通知。",
+        "A 的主机记录 CC.SHN=01b，随后读到 ST=0、SHST=10b。A 支路已见 PME_Turn_Off / PME_TO_Ack；电压探头显示此刻主电仍在。",
+        "同一时刻 B 仍有未结束的业务 I/O，读到 ST=0、SHST=00b。两个主机的记录和电源探头共用时基。"
+      ],
+      "criteria": [
+        {
+          "id": "gate",
+          "text": "明确禁止按 A 单侧放行，指出 B 仍有 I/O 或 SHST=00b 的现场矛盾。",
+          "weight": 25,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "scope",
+          "text": "区分控制器关机 ST=0 与子系统电源范围 CAP.CPS=11b，指出同一范围内 B 未就绪则不能切整轨。",
+          "weight": 25,
+          "critical": true,
+          "evidence": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "handshake",
+          "text": "说明 A 支路的 PCIe 握手属于该支路的电源准备，不能代表 B 或电压已下降。",
+          "weight": 20,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "test",
+          "text": "给出 B 延后或保持负载的对照及可观察判据，按两端关机状态、PCIe 交接与电源边沿决定通过或失败。",
+          "weight": 30,
+          "critical": false,
+          "evidence": [
+            "N1",
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "允许在 B 仍有普通业务 I/O、SHST=00b 时仅凭 A 支路完成信号切断共享主电。",
+        "将 A 的 ST=0、SHST=10b 解释为整个 NVM 子系统已完成子系统关机。"
+      ],
+      "id": "SSD-SHUT-02",
+      "referenceAnswer": "不能按 A 单侧放行。ST=0、SHST=10b 只确认 A 的控制器关机完成；CAP.CPS=11b 对应整个 NVM 子系统的供电范围，在 B 未就绪时整盘尚未就绪。A 支路的 PME 握手属于 PCIe 断电准备，在独立另一支路上没有证明力，也不能证明主电已经移除。用 B 有负载且延后正常关机的场景验收。主机应停止并排空 B 的 I/O，按各控制器关机流程取得 A、B 有效完成状态并核对两侧 PCIe 电源交接；在既定平台断电流程要求的各项条件齐备前电源探头必须始终保持上电。记录两边状态和电源边沿，若 A 单边完成就出现主电下降即判失败。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 134,
+          "section": "3.6.1",
+          "anchor": "is not ready to be powered off"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 233,
+          "section": "Figure 206",
+          "anchor": "when all controllers in the NVM subsystem are shutdown"
+        },
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 454,
+          "section": "5.3.2.3",
+          "anchor": "ultimately achieved when the platform removes"
+        }
+      ]
+    },
+    {
+      "family": "power-loss-counter-forensics",
+      "split": "challenge",
+      "question": "夜测掉电后 SMART 的 Unsafe Shutdowns 加一，测试单却写着关机成功。能据此报数据损坏或者固件误计数吗？请解释这个组合，并给一个能区分原因的复测。",
+      "observations": [
+        "同一单控制器 SSD、同一 SMART 日志字段 bytes 159:144，试验前后各读一次；期间只有本次主电源掉电。设备实现 NVMe Base 2.1。",
+        "供电切断前，主机曾读到 ST=0、SHST=10b。BMC 随后发过一条带外管理请求，但当前日志没有操作码、Ignore Shutdown 位、完成记录或切电前最后的介质状态。",
+        "恢复后设备可识别；测试没有保存掉电前业务数据校验基线。"
+      ],
+      "criteria": [
+        {
+          "id": "field",
+          "text": "识别字段是 UPL（旧名 Unsafe Shutdowns），以主电实际掉落时的状态解释增量。",
+          "weight": 15,
+          "critical": false,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "exception",
+          "text": "给出带外例外的完整条件：已处理需访问介质的 Admin 命令、Ignore Shutdown=1，且主电丢失时介质不在关机状态。",
+          "weight": 30,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "limit",
+          "text": "说明先前 SHST=10b 和发送过 BMC 请求都不足以判定条件成立，不能据计数证明数据损坏或固件误计。",
+          "weight": 25,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "action",
+          "text": "设计带外任务开关或等价对照，核对命令、标志、处理结果和实际断电时序；用已知持久化数据比对单独检验损坏。",
+          "weight": 30,
+          "critical": false,
+          "evidence": [
+            "N1"
+          ]
+        }
+      ],
+      "reject": [
+        "声称曾观察到一次 SHST=10b，之后的掉电必然不能增加 UPL。",
+        "把计数加一等价为业务数据已经损坏，或把任何 BMC 请求均当作触发条件。"
+      ],
+      "id": "SSD-SHUT-03",
+      "referenceAnswer": "Base 2.1 将该字段称作 Unexpected Power Losses，旧名 Unsafe Shutdowns。主电掉落时 SHST 尚未到 10b 是一个计数条件。即使此前报告了完成，如果带外处理了要求访问介质的 Admin 命令且 Ignore Shutdown=1，使介质在实际断电时没有处在 shutdown 状态，也可触发计数。这里只知道 BMC 发过请求，无法确认命令类型、是否处理或到断电时介质状态。计数增加本身不能证明实际数据损坏或固件误计。对照关闭带外任务与受控启用它的两轮，记录完整 BMC 命令、Ignore Shutdown、处理结果、最终状态和电源边沿，比较 UPL 增量。若要判数据损坏，另对已知持久化且有校验基线的数据进行恢复后比对。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 233,
+          "section": "Figure 206",
+          "anchor": "count shall be incremented if, and only if"
+        }
+      ]
+    },
+    {
+      "family": "cancel-controller-shutdown",
+      "split": "dev",
+      "question": "这次整机下电被取消。驱动想清掉 SHN，沿用旧的 I/O 队列，直接让同事恢复业务。这个恢复点可以放行吗？请写出恢复路径和验证条件。",
+      "observations": [
+        "单控制器内存型传输。正常控制器关机完成后采到 CC.EN=1、CSTS.ST=0、CSTS.SHST=10b。此后供电一直正常，没有复位，没有带外访问。",
+        "关机前驱动成功删除了该控制器的所有 I/O SQ 和 CQ，保留的只是主机内存里的旧队列结构。PCIe 链路可用，能够正常读 NVMe 属性。"
+      ],
+      "criteria": [
+        {
+          "id": "branch",
+          "text": "解释当前为 ST=0、SHST=10b 的控制器关机并选取 CC.EN=1 的恢复分支。",
+          "weight": 15,
+          "critical": false,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "reset",
+          "text": "明确需要 Controller Level Reset 使 EN 回 0 并重新初始化使能，单清 SHN 不够。",
+          "weight": 30,
+          "critical": true,
+          "evidence": [
+            "N1"
+          ]
+        },
+        {
+          "id": "queues",
+          "text": "利用已成功删除队列的现场证据，要求重建业务队列并收到成功完成，拒绝直接用旧控制器队列上下文。",
+          "weight": 30,
+          "critical": true,
+          "evidence": [
+            "N2",
+            "N5"
+          ]
+        },
+        {
+          "id": "verify",
+          "text": "给出可观察恢复门槛，包含 RDY=1 后再提交命令、建队列成功及在新队列完成验证 I/O。",
+          "weight": 25,
+          "critical": false,
+          "evidence": [
+            "N3",
+            "N4",
+            "N5"
+          ]
+        }
+      ],
+      "reject": [
+        "对已完成关机且 EN=1 的状态只清 SHN 后恢复业务。",
+        "把主机内存中保留的旧队列直接当作控制器里仍有效的 I/O 队列。"
+      ],
+      "id": "SSD-SHUT-04",
+      "referenceAnswer": "当前是已完成的控制器关机，且 CC.EN 仍为 1，单清 SHN 无法恢复命令处理。在此分支需要 Controller Level Reset 使 CC.EN 回到 0，待相应复位完成后按控制器初始化流程配置 Admin 队列属性并重新使能，等待 RDY=1 再提交 Admin 命令；重建业务所需的 I/O CQ 和 SQ，不能复用已删除队列的控制器上下文。用寄存器轨迹、队列创建成功的 CQE 和重新建立队列后的只读 I/O 完成记录作为放行证据。另外的 EN=0 分支不适用于这个快照。",
+      "evidence": [
+        {
+          "id": "N1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 134,
+          "section": "3.6.1",
+          "anchor": "a Controller Level Reset is required to clear"
+        },
+        {
+          "id": "N2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 133,
+          "section": "3.6.1",
+          "anchor": "the host should delete all I/O Completion"
+        },
+        {
+          "id": "N3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 124,
+          "section": "3.5.1",
+          "anchor": "Admin Completion Queue"
+        },
+        {
+          "id": "N4",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 84,
+          "section": "Figure 42",
+          "anchor": "Commands should not be submitted to the controller"
+        },
+        {
+          "id": "N5",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 125,
+          "section": "3.5.1",
+          "anchor": "I/O Completion Queues based on the number required"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "control",
+      "label": "无工具基线",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · 无工具 · standard",
+      "results": [
+        {
+          "caseId": "SSD-BOOT-01",
+          "status": "completed",
+          "answer": "**判断：先改主机 PCIe 枚举，不改 NVMe 就绪超时，也不能据此判盘坏。**DL_Active 只说明链路可用，不等于配置空间已就绪；110 ms 首读仅等 40 ms，且从未写 CC.EN，NVMe 启动计时尚未开始。\n\n先核对首条 Type-0 Config Read 的 Completion：CRS 应重试，不能当作设备缺失（PCIe 5.0 §2.2.9、§7.5.4，CRS Software Visibility）；UR/CA/无响应则查请求、路由、复位及电源/时钟。主机改为有界重试/重扫，CRS 复测先覆盖首读后 100 ms。\n\n**复测分界取“主机写 CC.EN=1”**（NVMe 2.1 Controller Registers）：此前无成功配置读即枚举失败；写下后测 CSTS.RDY=1，其延迟才是控制器启动慢。仍待确认首读 Completion 状态及重试后能否成功配置访问。",
+          "seconds": 81.03,
+          "toolCalls": 0,
+          "review": {
+            "usability": "revise",
+            "reason": "定位到尚未写 CC.EN 的枚举阶段，以配置成功后实测 EN→RDY 划分两段。110−80 被算成 40 ms，且把 100 ms 重试覆盖窗放在首读后；未给训练完成后最早 180 ms 首读及复位后至少 1 s 才判坏两个门槛。",
+            "otherError": "将 110 ms 与 80 ms 之差写成 40 ms。",
+            "credits": {
+              "C1": 1,
+              "C2": 0,
+              "C3": 0,
+              "C4": 1
+            },
+            "rejectHits": [],
+            "score": 40.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-BOOT-02",
+          "status": "completed",
+          "answer": "先验证“**BME 未开→Endpoint 不能发起 DMA→Admin SQ 未取→无 CQE**”链，不要先追 MSI-X/NAND。PCIe 5.0 §7.5.11（Command Register，04h）：`0x0002`仅置 Memory Space Enable（bit1），Bus Master Enable（bit2）仍为0。故主机可下发 doorbell，但端点不能发上游 Memory Read；现场零取指、零 CQ 写完全吻合。漏中断只影响完成后的通知，NAND 慢也解释不了零取指。\n\n最有区分力的复测：RMW Command，保留 bit1、置 bit2（应至少读回`0x0006`），重建 Admin 队列，仅触发一次 Identify 并抓满超时窗口：\n\n- 无 Admin SQ Memory Read：未取命令；\n- 有取指、无 Admin CQ Memory Write/CQE：完成未落地；\n- CQ 写存在且轮询见 CQE：仅通知故障，再查 MSI-X。\n\n仍待确认 BME 确实生效，以及 doorbell、SQE 地址和 CID 正确。",
+          "seconds": 38.43,
+          "toolCalls": 0,
+          "review": {
+            "usability": "ready",
+            "reason": "从 0x0002 和下行写、零上行 SQ 读定位 BME，解释了没有 CQE 时不能只追中断。提出保留其余位的 RMW、BME 读回和逐阶段抓取。未明确先确认队列 DMA 映射，最后一支还需要实际观察通知是否缺失，才能从‘完成已落地’推进到‘只缺通知’。",
+            "otherError": "仅见 CQ 写和轮询到 CQE，还需结合 MSI-X 消息/主机中断交付判断通知是否确实丢失。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-BOOT-03",
+          "status": "completed",
+          "answer": "结论：记为“升级已提交、待按规定复位激活”，不要报失败或重刷。NVM Express 2.1《Status Codes》§7.4（SCT=1、SC=0Bh；另见§8.12 Firmware Commit）定义0Bh为“Firmware Activation Requires Subsystem Reset”，即须NVM Express Subsystem Reset（NSR）。PCIe 5.0 §2.7说明FLR只复位目标Function，不等价于NSR；桥级总线/Conventional Reset会向下传播，不能直接冒险试。\n\n验证：①读Log ID 03h Firmware Slot Information，确认目标槽为B、活动槽仍A；②枚举桥下Functions，区分“同桥”与“同NVMe subsystem”，对复位作用域内设备停I/O并取得邻盘停机确认；③确认厂商NSR入口及作用域，只发一次NSR；④重新初始化，以Identify Controller FR=B验收，再检查邻盘挂载、SMART、健康和I/O。链路仍活动不是失败判据。\n\n仍待确认：邻盘是否属同一subsystem、其他Function停机状态及平台NSR实现；未确认前禁止桥级复位。",
+          "seconds": 102.45,
+          "toolCalls": 0,
+          "review": {
+            "usability": "misleading",
+            "reason": "辨认已提交、FLR 后仍见 A 不能据此重刷，并要求停 I/O、确认邻盘与复查 FR。关键误把 0Bh 解释成要求 NVM Subsystem Reset，执行指定的 NSR 不能保证得到所需的 Conventional Reset；也没要求重新取证实际复位类型。",
+            "otherError": "将一个可能波及同一 NVMe subsystem 的 NSR 指定为唯一激活动作，可能承担维护风险而仍未满足真正激活条件。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 0.5,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-BOOT-04",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "没有交付最终回答。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-01",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.01,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "未形成可评阅答案。",
+            "otherError": "",
+            "credits": {
+              "state": 0,
+              "pcie": 0,
+              "order": 0,
+              "discriminate": 0
+            },
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-02",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "未形成可评阅答案。",
+            "otherError": "",
+            "credits": {
+              "gate": 0,
+              "scope": 0,
+              "handshake": 0,
+              "test": 0
+            },
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-03",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "未形成可评阅答案。",
+            "otherError": "",
+            "credits": {
+              "field": 0,
+              "exception": 0,
+              "limit": 0,
+              "action": 0
+            },
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-04",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.01,
+          "toolCalls": 0,
+          "review": {
+            "usability": "no_answer",
+            "reason": "未形成可评阅答案。",
+            "otherError": "",
+            "credits": {
+              "branch": 0,
+              "reset": 0,
+              "queues": 0,
+              "verify": 0
+            },
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "label": "双规范 MCP",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · domain 检索 · 8 次调用 · standard",
+      "results": [
+        {
+          "caseId": "SSD-BOOT-01",
+          "status": "completed",
+          "answer": "**判断**：问题在 PCIe 枚举时序，不在 NVMe。主机全程没写 CC.EN，NVMe 的就绪超时根本没参与，调大它或把盘判坏都不会改变这次现象。\n\n**理由（可核对）**——PCIe 5.0 §6.6.1（PDF p.553）：\n① 下行端口 >5.0 GT/s 时，软件必须在链路训练完成（DL_Active）后至少等 100 ms 才发配置请求；本例 80 ms 上链、110 ms 发读，只等了 30 ms。\n② 未使用 Readiness Notifications 时，RC/软件必须给 Conventional Reset 后至少 1.0 s 才能判定设备损坏；本例 150 ms 即判坏。\n③ 设备须在复位后 1.0 s 内对有效配置请求回 SC；CRS Software Visibility 已开（Root Capabilities §7.5.3.13, p.752），回 CRS 应重试而非判坏。\n\n**先改**：BIOS/RC 枚举时序（不是 NVMe）。DL_Active 后 ≥100 ms 再发首个 Cfg 读（用 DLL Link Active 位/中断确认）；判坏阈值 ≥1.0 s 且从复位起算；保留 CRS 重试路径。可先降 8 GT/s 或换线做 A/B，看 80 ms 训练是否变短。\n\n**复测点**：同一条 trace 上打两戳——T1 = 首个 Cfg 读拿到 SC 的完成（同时记 Completion Status、Request Retry Status、AER Device Status 的 Completion Timeout 位）；T2 = 写 CC.EN 后 Identify 完成、CSTS.RDY=1。T1 之前属枚举层；T2 之后才是控制器启动路径（那时才轮到 CTP.CAP.TMO、Identify 超时等 NVMe 规则）。本次无 T2，故盘既不能定罪，控制器慢也未被证实。\n\n**待确认**：110 ms 那笔读是否收到 Completion（SC/CRS/UR）、RC 是否发生重放、AER 超时位；80 ms 训练是否含一次 RcvrLock→Detect（48 ms）重试；NVMe 侧 CAP/CC 字段以 Base 2.1 正文核对。",
+          "seconds": 59.18,
+          "toolCalls": 9,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分训练完成后加 100 ms 的首读门槛与复位后 1 s 的判坏门槛，并算对本例只等 30 ms。复测记录了配置成功，但将 Identify 完成与 RDY 合成 T2，写成 T2 之后才进入启动路径，还引入无依据的 CTP.CAP.TMO，不能直接从 T2 得出 EN→RDY 时延。",
+            "otherError": "附带的 CTP.CAP.TMO 字段无依据；T2 把 RDY 与 Identify 完成混在一起，不能用来量 EN→RDY 时延。核心枚举器修正仍可执行。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          }
+        },
+        {
+          "caseId": "SSD-BOOT-02",
+          "status": "completed",
+          "answer": "**判断：先查 Bus Master Enable（BME），不是 MSI-X、也不是 NAND。**\n\nCommand=0x0002 只置了 Memory Space Enable（bit1），bit2 BME=0 ⇒ 设备不允许发起任何 Memory/I/O Request；而 MSI/MSI-X 本身是带内内存写，BME=0 会一并禁掉（PCIe Base 5.0 §7.5.4，PDF p.686–687；MSI-X 表项即 Memory Write，p.787–788）。所以\"不取指 / 不写完成 / 不通知\"是同一根因的三个下游表现，此刻无法据此区分，\"漏中断\"也不能独立成立。Identify 不访问 NAND，超时属控制器 Admin Timeout（CSTS.RDY=1，NVMe 2.1 p.108/130），与闪存速度无关；门铃写仍到，是因为它由主机发起，不受 BME 约束。\n\n**一次复测如何区分：** 置 Command=0x0006，确认 MSI-X Enable 位与表项（addr/data/ctrl，Mask=0）已编程，重发一次 Identify，分析器同步抓三笔：\n1. 上行 MRd 命中 Admin SQ 内该 SQE 地址 → 已取指\n2. 上行 MWr 写 Admin CQ head（含 Phase）→ 已写完成\n3. 上行 MWr 命中 MSI-X 表项地址 → 已发通知\n\n判读：无①＝设备未取门铃（核 BAR 门铃偏移、SQID、CC.EN、host 是否真写入 SQE）；有①无②＝设备侧故障（查 CSTS.CFS/CC.Shst、AER）；有②无③＝中断路径问题（未使能/表项未写/被 mask）；三者齐全而 host 读不到 CQE＝host 侧 CQ 映射或 Phase。\n\n**仍待确认：** BME 是否被驱动漏置或在 Create SQ 之前未置位；置位后仍无①则核 CAP.DSTRD、门铃偏移、SQE 写后读回；以及分析器是否过滤掉了 device-initiated 事务。",
+          "seconds": 46.46,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确解释 MSE/BME，门铃与端点 DMA 方向，以及现有首个断点在取 SQ；轮询无 CQE 时不应先追中断或 NAND。复测列出 SQ/CQ/通知三个抓点，但没有先验证队列 DMA 映射与改动后的 BME 读回，并将无 CQ 写直接定性为设备侧故障。",
+            "otherError": "“命中 MSI-X 表项地址”容易把 BAR 中存放表项的位置当成应抓的中断消息目标；应抓发往表项所编程消息地址的上行写。把无 SQ 读等同于没收到门铃、把有 SQ 读无 CQ 写等同于盘故障，同样越过了可观测证据。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-BOOT-03",
+          "status": "completed",
+          "answer": "**结论：不是升级失败，也不必重刷；是复位方式不满足要求。**\n\n1. **判据**：SCT=1/SC=0Bh = \"Firmware Activation Requires Conventional Reset\"（NVMe 2.1, Fig.183, p.216）。固件提交本身已成功（B 已入 slot），但只在 Conventional Reset 激活；同段明写：Conventional Reset 之前发生 FLR 或 Controller Reset，控制器将继续运行当前固件。所以用 reset-function(FLR) 后 FR 仍为 A 属预期结果；PCIe 5.0 p.555「FLR 不影响链路状态」与你的 trace 一致。\n\n2. **下一步（最有区分力）**：先读 Log Page 0x03 与 Identify 的 Firmware Slots/AFS。slot 中已有 B、AFS 仍指旧 slot ⇒ 提交成功待激活（FR 只反映运行中固件）；slot 中无 B ⇒ 下载/提交未落盘，才谈得上重刷。\n\n3. **复位方式**：改用 Conventional Reset（hot/warm/cold，PCIe 5.0 p.552）。驱动里的 reset-controller/subsystem 属 Controller/NVM Subsystem Reset，按 0Bh 不算数，须总线/域级复位。\n\n4. **邻居盘**：桥的 Secondary Bus Reset 会向下游端口发 hot reset，PERST# hot reset 同样向下传播（PCIe 5.0 p.554）⇒ 同桥业务盘会被一起复位。优先找只对目标盘生效的 hot reset（独立 root port/独立 PERST# 路径）；否则窗口内先停邻居盘 I/O，再复位、逐盘恢复。\n\n5. **验证**：复位后 FR=B，Log 0x03 的 active slot/版本与 FR 一致；邻居盘 I/O 错误 0、SMART 无新增、挂载与数据校验通过；留存 lspci -vv。\n\n**待确认**：Commit Action（000b~011b）与 slot 号；slot 内是否真有 B；本机是否具备可控范围的 Conventional Reset 手段（BIOS/root complex 或桥 SBR）；Conventional Reset 在 NVMe over PCIe Transport 的确切映射（该文档不在本次资料内）。",
+          "seconds": 62.89,
+          "toolCalls": 11,
+          "review": {
+            "usability": "revise",
+            "reason": "正确解码 0Bh，解释 FLR/Controller Reset 后仍运行 A；指出桥上 SBR 造成下游 Hot Reset，要求先确认影响、停邻盘业务再做适用的 Conventional Reset。包含槽信息和复位后 FR 对照，缺少验证这一轮真实复位类型的 trace 抓点。",
+            "otherError": "把 PERST# 描述为 Hot Reset，混淆基本复位与链路内 Hot Reset；操作和验收前应把平台控制动作、真实复位类别与实测作用域对上。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1,
+              "C4": 0.5
+            },
+            "rejectHits": [],
+            "score": 90.0,
+            "passed": true
+          }
+        },
+        {
+          "caseId": "SSD-BOOT-04",
+          "status": "completed",
+          "answer": "## 判定：两轮同一结论——都不能记为坏盘\n\n1. **0x82 Namespace Not Ready + DNR=0**：按 NVMe Base 2.1 状态码表，这是\"命名空间未就绪、允许重试\"，与介质/数据完整性类故障（Data Transfer Error 类状态码、SMART/Health 的介质与数据完整性错误计数）不同类。\"首次读失败=坏盘\"在这里是误判，应改为按状态码分流。\n2. **CSTS.RDY@200 ms** 只表示控制器级就绪，不代表各 NSID 已完成初始化。\n3. **A 轮 600 ms**：与\"初始化窗口\"一致，但仅单点样本。\n4. **B 轮 2.3 s**：同样没有\"之后成功\"的样本，只把未就绪时间下界推到 2.3 s；既不支持坏盘，也未单独证伪初始化窗口。两轮同固件同现象，是一个问题而非两个。\n\n## 下一步（一次抓完，最有区分力）\n\n同 NSID 每 200 ms 重发同一 Read，直到成功或 30–60 s 超时，记录首次成功时刻；同时并发查 Identify Namespace、SMART/Health 与其他 NSID。\n\n- 限时内成功、其余命令正常 → 仍是初始化窗口，验收改为\"重试至就绪\"，不计坏盘；\n- 超时仍 0x82，且 Identify/SMART/其他 NSID 同状 → 控制器未完成命名空间初始化，按固件缺陷升级并索取设备内部日志，勿走介质 RMA；\n- 仅单 NSID 受累 → 指向该命名空间元数据加载/介质区，向厂商提单（附状态码与时序）。\n\n## 待确认\n\n- CRTO 字段编码须按 PCIe 5.0 的 CAP/CC/CRTO 表复核：CRIMT=1 与 CRWMT=4 无法同出于一个 4-bit 读值（低两位应读 0）；且 Contiguous Ranges 字段只描述内存范围消息，与命名空间就绪无关，不要据此推介质。\n- 仍缺：0x82 后是否自愈、各 NSID 是否一致、冷/热启动差异、厂商设备侧日志。\n\n## 可核对位置\n\nPCIe Base 5.0 第 3 章 NVMe 控制器寄存器（CAP.CRMS、CC.CRIME、CRTO 表及 Contiguous Ranges 小节）；NVMe Base 2.1 状态码表（0x82）、Status 字段 DNR 位、CC/CSTS 定义。",
+          "seconds": 91.87,
+          "toolCalls": 0,
+          "review": {
+            "usability": "misleading",
+            "reason": "认识到 RDY 与介质就绪有别，A 轮可重试，提出同 NSID 重测并避免立即判坏。但错误质疑两个 CRTO 字段可以并存，遗漏从 EN 起 0.5 s/2.0 s 的时限。把 B 轮仍按可能正常初始化处理，提出统一等 30–60 s 后只要成功就归正常；该复测不能检验规范窗口。",
+            "otherError": "把 NVMe 的 CRTO 字段错归 PCIe 规范并质疑现场读数；在超过 2 秒后仍把 30–60 秒内成功归为正常窗口。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 0.5,
+              "C3": 0.5,
+              "C4": 0.5
+            },
+            "rejectHits": [
+              2
+            ],
+            "score": 50.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-01",
+          "status": "completed",
+          "answer": "**结论**：这条 trace 定位不到固件。UR 是 D3hot 后的**合规**响应；真正的缺陷是关机完成判据用错 + 平台过早进 D3hot。\n\n**依据**\n- PCIe 5.0 §5.3.1.4.1（PDF p.447）：D3Hot 仅接受 Configuration/Message TLP，其余请求\"must be handled as Unsupported Requests\"；同时规定 D3hot 必须响应配置空间访问。故\"配置可读 + BAR 读 UR\"是规范行为。\n- NVMe 2.1 Fig 42（p.83）：CSTS.SHST=01b = \"shutdown processing **in progress**\"，完成是 10b。01b 只是 CC.SHN 的请求码，驱动误当完成码——说明进 D3hot 时关机仍在进行。\n- NVMe 2.1 p.133：进 D3 前应走正常关机流程，等 SHST=10b 且 CSTS.ST=0，至少等 RTD3 Entry Latency（Identify 图 312；为 0 则≥1 s），关机处理中不得清 CC.EN。\n\n**改哪段时序**：停 I/O → 写 CC.SHN=01b → **在 D0** 轮询 CSTS 至 SHST=10b/ST=0 → 驱动终结未完成事务后移交平台写 PMCSR=D3hot（PCIe p.447 要求移交前 quiesce）；D3hot 后禁止再轮询 BAR。\n\n**下次抓什么（区分力最强）**\n1. D3hot 前持续轮询 CSTS：SHST 何时变 10b、耗时 vs RTD3 延迟；若始终未到 10b 就进 D3 → 指向控制器/固件。\n2. 对照实验：不进 D3hot，SHST=10b 后继续读 CSTS；仍可读 → UR 仅源于 D3hot 规则；D0 下即 UR → 设备侧。\n3. **UR Completion 的 Completer ID**：设备 ID → 设备自产（如 DevCtl.MEMS=0，p.686：MEMS 清零时所有内存访问按 UR 处理）；RC/交换机 ID → 无人解码（平台路由/窗口）。\n4. D3hot 后回读 DevCtl/PMCSR/BAR，并核对读宽度与对齐（CAP+0x1Ch 常非 8 字节对齐，64 位读本身也会得 UR）。\n\n**待确认**：D3hot 前 SHST 是否曾达 10b；PMCSR 由谁写；MEMS 是否被清；Completer ID；是否随后转 D3cold；所谓\"超时\"是设备卡死还是驱动遇 UR 后放弃。",
+          "seconds": 88.48,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "区分了 D3hot 的 BAR UR 与可读的配置空间，提出在 D0 观察 ST=0、SHST=10b 后再移交。把驱动误读完成码、转入 D3hot 时设备仍在处理写成既定事实；最后样本到 D3hot 之间存在空档。虽提出延后 D3 对照，却又把“未到 10b 就进 D3”直接指向固件，未正确区分 D0 等待充足仍未完成与平台提前进入 D3。",
+            "otherError": "声称驱动已把 SHN 的 01b 误当 SHST 完成码，且把没有等到完成就进 D3 的复测结果指向固件。现场未证明该驱动决策，提前进入 D3 本身就使后续状态不可判定。另把清 CC.EN 的“不推荐”改成禁止。",
+            "credits": {
+              "state": 0.5,
+              "pcie": 1,
+              "order": 1,
+              "discriminate": 0.5
+            },
+            "rejectHits": [],
+            "score": 75.0,
+            "passed": false
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-02",
+          "status": "completed",
+          "answer": "**判断：不够——按 A 口完成拉整盘主电是误放行，且 A 的 SHST=10b 并不代表本盘可断电。**\n\n**依据**\n- CAP.CPS=11b ⇒ 主电源域是整个 NVM 子系统（NVMe 2.1 PDF p.75）；此域内**所有**控制器关机才可报告“可断电”，任一控制器未就绪则整域不可断电（p.112、p.211）。\n- B 的 SHST=00b 且有在途 I/O，故整机此刻不具备断电资格；此时切电=非预期掉电（SMART UPL 递增、可能数据损坏，p.211）。\n- A 支路 PME_Turn_Off/PME_TO_Ack 只保证 PME 已冲刷、链路达 L2/L3 Ready（PCIe PDF p.449/457），≠ 介质已安全落盘。\n\n**放行设计（合取 + 失效安全）**\nA、B 均 SHST=10b、队列无未完成命令、主机静默 → 两路 PME 握手完成、达 L2/L3 Ready → 稳定窗 Δ 后才拉电；缺项或超时只保电并告警，禁止超时强拉；CLR 后须重新武装（CLR 会清 SHST）。\n\n**验收条件**\n造“B 永久在途 I/O、A 走完 SHN”。判据：①拉电信号不动作，主电在 A 完成后 Δ 内保持有效（Δ 取 B 最坏完成时间 p99.9+余量）；②B 命令须完成或返回错误码，不得静默丢失；③UPL 不增；④再上电后已确认数据一致。负向：屏蔽 B 的 SHST 时不得拉电；A 完成后发 CLR 须重新武装。\n\n**待确认**：CAP.NSSS/NSSES（能否用 NSSD.NSSC 统一关断）；完成标志来源（BMC 直读 SHST 还是主机上报）；B 支路 PME 时序；两控制器是否真共主电及 B 在途命令掉电的错误语义。",
+          "seconds": 70.0,
+          "toolCalls": 9,
+          "review": {
+            "usability": "revise",
+            "reason": "明确指出 B 仍有 I/O，A 单侧完成和支路握手不能释放共享主电，给出了双侧合取放行以及 B 延后时保电的对照。验收表把对电压的明确观察写成 A 完成后的有限 Δ；B 在 Δ 后仍未就绪而平台误切电，也应失败。宜补一轮 B 延后再正常完成，实际验证两侧状态与切电边沿的先后。",
+            "otherError": "额外声称 CLR 一定清 SHST。控制器关机已完成时，CLR 后设备可能保持也可能失去断电就绪，应该重新核验状态（NVMe Base 2.1 第 134 页）。",
+            "credits": {
+              "gate": 1,
+              "scope": 1,
+              "handshake": 1,
+              "test": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-03",
+          "status": "completed",
+          "answer": "**判断**：不能据此报数据损坏，也不能据此报固件误计数。+1 只说明\"掉电瞬间器件不处于可安全断电状态\"。\n\n**依据**（NVMe 2.1，该字段已改名 Unexpected Power Losses/UPL，SMART 159:144）：仅当掉电时 (a) CSTS.SHST≠10b，或 (b) 媒体因\"经带外机制且 Ignore Shutdown=1 处理访问介质的 Admin 命令\"不在关机态，才加1（图206，PDF p.233）。你读到 ST=0、SHST=10b 仅表示控制器级关机处理完成（图42 p.82；p.133），其后 BMC 的带外请求正好可能命中(b)。所以\"关机成功\"与 +1 可并存：前者是控制器自报，后者计的是带外扰动后的掉电。若 CAP.CPS=10b/11b，还需域内全部控制器关机（p.233）。数据损坏不能由 UPL 推出，需 MDIE(175:160)、NEILE(191:176) 增量及 Critical Warning bit4 VMBF(p.231)，且本次无校验基线。\n\n**复测（可区分）**\n- A 对照：置 CC.SHN=01b→等范围内所有控制器 SHST=10b、ST=0→期间无任何带外请求→切电。期望 UPL 不变。\n- B 复现：同 A，但在切电前发与 BMC 相同的带外 Admin 命令（Ignore Shutdown=1）。期望 UPL+1，且持久事件日志 UPLI bit0 UPLOA=1（图237 p.265；p.264）。\n- C 突发：不发 SHN 直接切电。期望 UPL+1（规则a）。\n- 判读：A 也+1→计数偏离图206，可报固件误计数；A 不变、B +1 且 UPLOA=1→计数正确、根因是带外访问；B 不变→查域范围/其他控制器或另有掉电事件。\n- 数据：预先写入已知图样并保存 CRC 基线，恢复后逐块比对；仅当 MDIE/NEILE 同步增加才可主张损坏。\n\n**待确认**：BMC 请求的实际操作码与 Ignore Shutdown 取值、CAP.CPS、是否多控制器、持久事件日志是否含该事件、器件是否具掉电保护。",
+          "seconds": 52.41,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确区分 UPL 增量、先前 SHST 完成及数据损坏；开头准确列出带外访问介质、Ignore Shutdown=1、介质在主电丢失时仍未关机等条件，提出带外开关试验和已知数据校验。但 B 对照直接预期 UPL+1，未控制命令实际处理及切电时介质是否又进入关机状态；还把两项错误计数同时增加列为证明数据损坏的必要条件。",
+            "otherError": "成功处理带外命令后，介质可能回到原状态（第 133 页），故 B 不增不能仅归因于供电范围或其他掉电。第 233 页将 MDIE 定义为控制器检测到的未恢复完整性错误，NEILE 为累计错误日志条目；可靠的已持久化数据校验出现错误时，不需要两项同时增加才能成立。",
+            "credits": {
+              "field": 1,
+              "exception": 1,
+              "limit": 1,
+              "action": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          }
+        },
+        {
+          "caseId": "SSD-SHUT-04",
+          "status": "completed",
+          "answer": "**结论：不可放行该恢复点。**\n\n**依据**：ST=0、SHST=10b ＝ 控制器关断处理已完成（NVMe Base 2.1 p.133，内存型控制器 PCIe 关断流程），控制器仍处 shutdown 态；整机未掉电、无复位，故须显式 CLR 后再执行 §3.5 初始化序列（p.134）。CC.EN 现为 1，单写 CC.SHN=00b 不是许可路径（该捷径仅在 CC.EN=0 时可用），须写 CC.EN=0（＝Controller Reset，即 CLR，p.135、p.140）。CLR 会删除全部 I/O SQ/CQ（p.140），控制器侧已无旧队列，\"沿用旧队列\"必须否决。\n\n**恢复路径**：①对目标 Function 发 FLR（或写 CC.EN=0）完成 CLR——FLR 后仍不恢复即指向硬件故障；②重建 Admin 队列与门铃；③单次写 CC.EN=1、SHN=00b；④待 CSTS.RDY=1、SHST=00b；⑤Identify Controller/Namespace 后重新 Create I/O SQ/CQ（新 QID）再放业务。关断至 CLR 间控制器仅收 Fabrics 命令；CC.EN 清零后主机关联仅保 2 分钟（p.135），需在窗口内完成重初始化。\n\n**验证条件**：RDY=1、SHST=00b；Identify 容量与关机前一致；新队列写入+读回比对、CQE phase 正确；AER 与健康日志无新增致命/掉电中止项。\n\n**待确认**：SHST=10b 是主机请求还是控制器自发关断（查健康日志与 AER）；整机另有 NVMe 设备时禁用子系统复位；该平台 FLR 许可与 PCIe Base 5.0 对应条款号待核。",
+          "seconds": 85.01,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "按现场 ST/SHST/EN 选择 CLR，要求重新使能、等 RDY 后发命令、重建队列并在新队列上验证完成，未沿用旧队列。创建成功可由后续新队列实际完成 I/O 间接验证。额外提出两分钟内完成重初始化，把消息型传输的主机关联条件误用于本题；仅凭 FLR 后未恢复也不能断定硬件故障。写回测试应限定在专用验证介质或地址。",
+            "otherError": "NVMe 2.1 第 134 页后段至 135 页讨论消息型传输；该页是关联至少保留两分钟，并非本题 PCIe 驱动必须两分钟内完成重初始化。另以 FLR 后未恢复即指向硬件，跳过了复位完成与重新初始化检查。",
+            "credits": {
+              "branch": 1,
+              "reset": 1,
+              "queues": 1,
+              "verify": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "handoff-dev",
+      "label": "交接提示复测",
+      "config": "Pi 1.5.2 · magpie / auto/deepseek-v4.1-flash · thinking off · 120 s · domain 检索 · 8 次调用 · handoff，仅复测 SSD-SHUT-04",
+      "results": [
+        {
+          "caseId": "SSD-SHUT-04",
+          "status": "completed",
+          "answer": "**现场交接单**\n\n**决定：不放行。** 本恢复点不能承接业务，旧 I/O 队列不可复用，\"清 SHN\"也不是合法动作。\n\n**依据（逐项核对）**\n1. 设备/传输/状态命中的是 NVMe 2.1 §3.6.1 内存型(PCIe)正常控制器关机（PDF p.133）：完成信号即 CSTS.SHST=10b、CSTS.ST=0，与观测吻合。\n2. Figure 85（p.132）CC.EN=1/RDY=1/SHST=10b 行：该控制器不能处理 Admin 与 I/O 命令，介质已处 shutdown。\n3. CSTS.SHST 注（p.84）：CC.EN=1 时关机后必须先 CLR 再置 CC.EN=1；缺 CLR 直接下发命令，行为未定义。\n4. 不适用 §3.6.3 子系统关机（该路径以 ST=1 报告、需子系统复位）、不适用 Fabrics 属性集路径；单控制器无电源域条款。\n5. SHST 只读，只能由 CLR 后初始化、或 CC.EN=0 时同写 CC.EN=1+SHN=00b 清除（p.134）。\n\n**恢复路径**：CLR（PCIe FLR；此时控制器不能处理 Admin，Controller Reset 命令不可用；无 FLR 则总线复位/下电）→ 等 CSTS.RDY=0（§3.5，p.124）→ 改写 AQA/ASQ/ACQ（仅 CC.EN=0 时可改，p.82）→ 置 CC.EN=1 → 等 RDY=1 → 重新 Create I/O SQ/CQ、重新做 PRP 映射并重新 Identify。队列上下文已随删除与 CLR 丢失，旧结构仅是主机内存残留。\n\n**验证（一次）**：CLR 后读 CSTS 应为 CC.EN=1、RDY=1、SHST=00b、ST=1，并用新建队列完成一次读；未 CLR 时 SHST 不清零且不处理命令，二者可区分。\n\n**仍待确认**：观测无法区分正常/突然关机（终态相同、恢复路径相同，不影响本次处置）；CSTS.RDY 实测值、FLR 能力位（PCIe 5.0 条款本轮未取证）、CAP.CPS 是否确为单控制器；CLR 后 namespace 数据须先做只读校验再放量。",
+          "seconds": 80.12,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "识别 ST=0、SHST=10b 且 EN=1 的分支，明确需要 CLR、重新使能并等待 RDY，拒绝沿用已删除的队列且提出在新队列完成读验证。FLR 在支持时是一种 CLR，核心 reset 判据给分。验证另要求正常运行时 ST=1，且提议从 CSTS 读取 CC.EN，因而不能按给出的门槛验收。",
+            "otherError": "将 Controller Reset 错写成因不接收 Admin 命令而无法执行的命令，再把总线复位或下电列为无 FLR 时的退路。NVMe Base 2.1 第 140 页明载主机将 CC.EN 从 1 清到 0 即可发起 Controller Reset，无需提交 Admin 命令；题设属性可读，未给出必须扩大复位范围的依据。第 82 页说明 SHST=00b 时主机应忽略 ST，且非子系统复位的其他 CLR 不改变 ST。要求题设的 ST=0 变成 1 会把已恢复的设备错判失败。",
+            "credits": {
+              "branch": 1,
+              "reset": 1,
+              "queues": 1,
+              "verify": 0.5
+            },
+            "rejectHits": [],
+            "score": 87.5,
+            "passed": true
+          }
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

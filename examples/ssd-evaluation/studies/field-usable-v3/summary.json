@@ -1,0 +1,255 @@
+{
+  "planned_per_arm": 12,
+  "arms": {
+    "baseline": {
+      "labels": {
+        "ready": 1,
+        "revise": 0,
+        "misleading": 9,
+        "no_answer": 2,
+        "unreviewed": 0
+      },
+      "planned": 12,
+      "completed": 10,
+      "ready_per_planned": 0.08333333333333333,
+      "misleading_per_completed": 0.9,
+      "misleading_per_planned": 0.75,
+      "passed": 7,
+      "strict_pass_hit_gold_but_not_ready": [
+        "SSD-F3-05",
+        "SSD-F3-01",
+        "SSD-F3-08",
+        "SSD-F3-12",
+        "SSD-F3-07",
+        "SSD-F3-09"
+      ],
+      "median_seconds": 48.405,
+      "median_successful_evidence_calls": 7.0,
+      "skill_expansions": 12,
+      "mcp_init_failures": 0,
+      "timeouts": 2,
+      "gold_pages": 20,
+      "read_gold_pages": 14,
+      "possible_gold_pages": 20,
+      "observed_models": {
+        "auto/deepseek-v4.1-flash": 12
+      },
+      "exposure_counts": {
+        "nonempty_value_table_delivered": 0,
+        "nonempty_condition_index_delivered": 0
+      }
+    },
+    "candidate": {
+      "labels": {
+        "ready": 2,
+        "revise": 0,
+        "misleading": 10,
+        "no_answer": 0,
+        "unreviewed": 0
+      },
+      "planned": 12,
+      "completed": 12,
+      "ready_per_planned": 0.16666666666666666,
+      "misleading_per_completed": 0.8333333333333334,
+      "misleading_per_planned": 0.8333333333333334,
+      "passed": 7,
+      "strict_pass_hit_gold_but_not_ready": [
+        "SSD-F3-05",
+        "SSD-F3-08",
+        "SSD-F3-06",
+        "SSD-F3-07",
+        "SSD-F3-11"
+      ],
+      "median_seconds": 50.265,
+      "median_successful_evidence_calls": 7.0,
+      "skill_expansions": 12,
+      "mcp_init_failures": 1,
+      "timeouts": 0,
+      "gold_pages": 19,
+      "read_gold_pages": 11,
+      "possible_gold_pages": 20,
+      "observed_models": {
+        "auto/deepseek-v4.1-flash": 12
+      },
+      "exposure_counts": {
+        "nonempty_value_table_delivered": 10,
+        "nonempty_condition_index_delivered": 12
+      }
+    }
+  },
+  "paired": {
+    "ready_all_planned": {
+      "n": 12,
+      "improved": 1,
+      "regressed": 0,
+      "unchanged": 11,
+      "candidate_minus_baseline_pp": 8.333333333333334,
+      "exact_two_sided_p": 1
+    },
+    "misleading_both_completed": {
+      "n": 10,
+      "improved": 1,
+      "regressed": 0,
+      "unchanged": 9,
+      "candidate_minus_baseline_pp": -10.0,
+      "exact_two_sided_p": 1
+    },
+    "by_case": {
+      "SSD-F3-05": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        }
+      },
+      "SSD-F3-01": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        },
+        "candidate": {
+          "usability": "ready",
+          "passed": true,
+          "score": 100.0
+        }
+      },
+      "SSD-F3-08": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 100.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        }
+      },
+      "SSD-F3-12": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 35.0
+        }
+      },
+      "SSD-F3-02": {
+        "baseline": {
+          "usability": "ready",
+          "passed": true,
+          "score": 100.0
+        },
+        "candidate": {
+          "usability": "ready",
+          "passed": true,
+          "score": 100.0
+        }
+      },
+      "SSD-F3-04": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 50.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 50.0
+        }
+      },
+      "SSD-F3-06": {
+        "baseline": {
+          "usability": "no_answer",
+          "passed": false,
+          "score": 0.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        }
+      },
+      "SSD-F3-07": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 100.0
+        }
+      },
+      "SSD-F3-11": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 65.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        }
+      },
+      "SSD-F3-09": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": true,
+          "score": 85.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 65.0
+        }
+      },
+      "SSD-F3-10": {
+        "baseline": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 70.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 65.0
+        }
+      },
+      "SSD-F3-03": {
+        "baseline": {
+          "usability": "no_answer",
+          "passed": false,
+          "score": 0.0
+        },
+        "candidate": {
+          "usability": "misleading",
+          "passed": false,
+          "score": 65.0
+        }
+      }
+    }
+  },
+  "rate_delta_pp": {
+    "ready_per_planned": 8.333333333333332,
+    "misleading_per_completed": -6.666666666666665,
+    "misleading_per_planned": 8.333333333333337
+  },
+  "agreement": {
+    "labels_equal": 20,
+    "answers": 24,
+    "ready_binary_equal": 21,
+    "misleading_binary_equal": 20
+  }
+}

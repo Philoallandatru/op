@@ -12415,3 +12415,6 @@ msgstr "Chamadas de ferramentas"
 
 msgid "Weight"
 msgstr "Peso"
+
+msgid "Open SSD example"
+msgstr "Abrir exemplo de SSD"

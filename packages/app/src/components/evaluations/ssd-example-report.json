@@ -1,0 +1,1397 @@
+{
+  "schemaVersion": 1,
+  "title": "核对结果与处置分支 · 12 道新现场工单",
+  "cases": [
+    {
+      "family": "wear-field-range",
+      "split": "challenge",
+      "question": "两块 SSD 的 Percentage Used 分别为 102 和 255。导入器把前者报成非法遥测，把后者记作精确 255% 并发起故障退役，两项规则能用吗？",
+      "observations": [
+        "取自 NVMe SMART / Health Information 的 byte 5，读取有效；没有报 Available Spare 字段异常。",
+        "两块都仍在线，未提供介质出错、数据可靠性或厂商退役阈值。客户可依自定寿命策略安排维护，但故障工单要求证据。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "102 可合法出现，估计耐久达到100不等于确认故障。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "255 代表大于254范围，禁止反推精确消耗。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "保留原始值，区分计划寿命维护与故障处置。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把 102 当非法编码或把 255 解释为确定的精确寿命/盘故障。"],
+      "id": "SSD-F3-05",
+      "referenceAnswer": "102 是允许的厂商寿命消耗估计；100 代表预计耐久已耗尽，不足以确认设备故障。255 覆盖所有大于 254 的百分数，不是一个可反推出的精确点值。记录寿命预警，并按客户策略、厂商判断和实际错误/健康证据决定维护或故障归类。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 231,
+          "section": "Fig. 206",
+          "anchor": "The value is allowed to exceed 100"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 231,
+          "section": "Fig. 206",
+          "anchor": "Percentages greater than 254 shall be represented as 255"
+        }
+      ]
+    },
+    {
+      "family": "abort-outcome-ownership",
+      "split": "challenge",
+      "question": "驱动的取消接口收到成功，应用立即要拿回这块读缓冲并对用户显示“已取消”。现在可以交还吗？该用哪份记录决定这条 I/O 的结局？",
+      "observations": [
+        "PCIe SSD 的 Admin Abort 指向 SQID=5、CID=47，其自身 CQE 的状态为 Success，DW0.IANP=1。",
+        "该笔 I/O 的 CQ 仍由轮询线程负责，当前抓取截止时尚未保存对应目标 CQE。缓冲未复用，队列未删除、未复位。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "区分 Abort 的成功完成与目标 I/O 的最终状态。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "准确说明 IANP=1 未立即中止，保留延迟中止及先完成等可能。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "按实际目标 CQE 分类交付；等待期间保留缓冲和关联标识。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["仅凭 Abort 的成功或 IANP=1 即交还 DMA 缓冲或通知确已取消。"],
+      "id": "SSD-F3-01",
+      "referenceAnswer": "暂停交还和终态通知。IANP=1 只表示未立即中止，允许延后中止、命令已先完成等情况。回收与通知以目标 SQID/CID 的真实终态及主机完成处理为准。目标为 Command Abort Requested 则报告取消，若成功则按成功交付，其他失败依其具体状态处理，未见时保持所有权并追查完成路径。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 194,
+          "section": "§5.1.1",
+          "anchor": "a deferred abort"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 195,
+          "section": "Fig. 144",
+          "anchor": "the host should examine the status"
+        }
+      ]
+    },
+    {
+      "family": "slot-attention-cancel",
+      "split": "challenge",
+      "question": "现场同事想在第二次按键后马上拔出混合背板上的 SSD，说“两次确认已经完成”。值班员应放行这次物理拔盘吗？",
+      "observations": [
+        "插槽配有标准 Attention Button、Power Indicator 和热插拔软件。第一次按下后软件接受了移除请求，电源指示灯开始闪；2 秒后又按了一次同一按钮。",
+        "没有软件已完成下线、指示可移除或电源已经断开的记录，业务在此前有活动。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "由闪烁起算5秒，第二次按键在该窗口内。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明它取消这次请求，拒绝物理移除。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "重新按平台流程核实业务停用、插槽状态及实际移除许可。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把第二次按键作确认，或仅等够5秒就允许拔盘。"],
+      "id": "SSD-F3-08",
+      "referenceAnswer": "不放行。指示灯开始闪后有 5 秒可撤销期，期间再次按同一按钮取消操作。确认当前插槽与软件状态；如仍需拔盘，重新按受控移除流程停止/迁走业务并等平台确认可移除，不能只靠两次按键或计时自行拔出。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 561,
+          "section": "§6.7.1.5",
+          "anchor": "a 5-second abort interval exists"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 561,
+          "section": "§6.7.1.5",
+          "anchor": "second depression of the Attention Button cancels the operation"
+        }
+      ]
+    },
+    {
+      "family": "partial-completion-timeout",
+      "split": "challenge",
+      "question": "SSD 发起一笔 PCIe Memory Read，用来读取主机中的一段描述数据。工具在看到第一段带 Success 的 Completion 后，把整段内存标为已取齐，并据此宣称后面的超时来自 NVMe。该接受这个归因吗？",
+      "observations": [
+        "分析仪确认该请求需要多个 Completion；当前只有同一请求的前半段数据，尚无完整覆盖。Requester 报告该请求 Completion Timeout。",
+        "采集未覆盖路径各段，没有该描述符对应的后续 NVMe 完成证据。允许做只读抓取，不允许主动重放业务命令。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "单个成功 Completion 不等于整笔读完成，需要完整覆盖。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "超时时允许保留或丢弃已返数据，不能据此假定部分数据仍可安全使用。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "按同请求的分段与返回路径取证，证据不足时不归责 NVMe 或重发业务。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把前半段 Success 当作整笔 MRd 的成功，或假定规范强制丢弃/保留全部已收数据。"],
+      "id": "SSD-F3-12",
+      "referenceAnswer": "不接受。多 Completion 的读只有收齐全部 Completion 才算完成；超时前的部分数据，Requester 允许保留或丢弃，不能按一半成功发布为全部有效，也不能由第一段给 NVMe 定责。依据请求 ID/Tag、字节范围、返回状态和时序核对余段是否发出并到达；保留端口或抓包盲区等可能。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 204,
+          "section": "§2.8",
+          "anchor": "only when all Completions have been received"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 204,
+          "section": "§2.8",
+          "anchor": "permitted to keep or to discard the data"
+        }
+      ]
+    },
+    {
+      "family": "hmb-return-identity",
+      "split": "challenge",
+      "question": "恢复程序给 SSD 准备好 HMB，又想保留上次的缓存收益。恢复的这份内存能按“归还原缓冲”交回吗？",
+      "observations": [
+        "控制器支持 HMB。上次按正常流程禁用 HMB；恢复后总大小、描述符列表地址和每项地址都一样，主机却在恢复期间把 HMB 数据页清零。",
+        "设备仍未重新启用 HMB。这次允许正常重新分配并启用缓存，要求不向设备提供错误的缓存历史。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "不能仅凭地址、大小相同声称 MR=1。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "查明内容已被改动并解释列表与缓冲内容均须满足原样条件。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "按新分配处理或暂不启用，无须伪造或还原未知缓存。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["对已清零 HMB 设置 MR=1。"],
+      "id": "SSD-F3-02",
+      "referenceAnswer": "不能置 MR=1。原缓冲归还要求大小、列表地址、列表内容和缓冲内容均与控制器上次所见相同；清零已经破坏内容前提。按新资源（MR=0）正确配置并启用，或保持关闭；若真能证明四项一致才可按归还处理。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 430,
+          "section": "Fig. 447",
+          "anchor": "the exact same size, descriptor list address"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 613,
+          "section": "§8.2.3",
+          "anchor": "with the same contents"
+        }
+      ]
+    },
+    {
+      "family": "feature-selector-provenance",
+      "split": "challenge",
+      "question": "资产平台只读到 Saved 和 Default 相同，准备把这份导出作为“维护脚本已把该值持久写入”的证明。现在可以签吗？",
+      "observations": [
+        "目标是一个可查询的控制器级 Feature。同一对象的 SEL=010b 和 SEL=001b 都成功并返回 X，而 SEL=000b 返回 Y。",
+        "变更窗口未留 Set Features 的提交、Save 位或成功 CQE。也未保存此 Feature 的 supported capabilities。业务盘不允许为核实而改值或复位。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "给出拒签决定并区分相等的多个来源。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C2",
+          "text": "解释 saved 回退与当前生效值的独立语义。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C3",
+          "text": "能力查询说明可否保存，只有当时动作和完成证据才能证明历史。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2", "P3"]
+        }
+      ],
+      "reject": ["因 Saved=Default 即断言必然保存过或必然从未保存过。"],
+      "id": "SSD-F3-04",
+      "referenceAnswer": "不能签。010b 在不支持保存或没有保存值时按默认处理；也有可能真正保存过 X。000b 表示当前生效 Y，不能反证或证明谁保存过什么。只读获取 SEL=011b 核对 saveable 能力；要证明那次写入还需当时命令、SV 及成功记录。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 221,
+          "section": "Fig. 192",
+          "anchor": "does not currently have any saved values"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 222,
+          "section": "§5.1.11.1",
+          "anchor": "returns the current operating attribute value"
+        },
+        {
+          "id": "P3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 223,
+          "section": "Fig. 195",
+          "anchor": "then the feature values are saveable"
+        }
+      ]
+    },
+    {
+      "family": "volatile-cache-capability",
+      "split": "challenge",
+      "question": "采购的 SSD 把 Get Features 的缓存开关读成 Invalid Field in Command，验收程序准备判盘故障；供应商又要据此直接签全部数据已具备掉电保护。哪两个结论可以签？",
+      "observations": [
+        "读取的是 FID 06h；同一控制器 Identify 报告 VWC.Present=0。本轮采集没有断电试验、特定写请求的完成记录或外部平台持久性证据。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "按 VWC.Present=0 解释 FID 06h 的返回为规定行为。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分无 volatile cache 和整机从未使用任何缓存，含受保护非易失缓存可能。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "分开签控制器接口一致性与端到端数据持久性。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["用这一次返回认定设备故障或证明平台所有写已持久化。"],
+      "id": "SSD-F3-06",
+      "referenceAnswer": "两项都不能据此签。无 volatile write cache 时，对该 FID 的 Get/Set 要返回 Invalid Field in Command；这是协议一致性依据。掉电能写入非易失介质的写缓存可被视为非易失，不受此开关控制。特定工作负载或整个平台的持久性需另有边界、写完成记录和符合验收要求的验证。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 398,
+          "section": "§5.1.25.1.4",
+          "anchor": "a volatile write cache is not present"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 398,
+          "section": "§5.1.25.1.4",
+          "anchor": "that write cache is considered non-volatile"
+        }
+      ]
+    },
+    {
+      "family": "vpd-asynchronous-read",
+      "split": "challenge",
+      "question": "一次盘资产抓取把上一槽序列号登记到了这块盘。采集器发起 VPD 读取后，看到 F 仍为 0 就重写地址跳到下一项，随后直接取 Data。该按哪笔数据登记？",
+      "observations": [
+        "VPD 能力和地址有效。第一笔读用同一次寄存器写提交 F=0 与目标对齐地址。读回 F 尚为 0，此时另一个工作线程写入了另一目标地址。",
+        "未保留第一笔 F 变 1 的记录；没有授权改写任何 VPD 内容。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "识别 F=0 表示读请求尚无完成证据。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "识别重写地址时仍在进行的请求造成未定义行为。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "串行化，等 F=1 后取四字节并与本次地址关联；不给旧采样贴标签。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把未等 F=1 的 Data 直接用于登记，或把 F=1 写入当作发起只读请求。"],
+      "id": "SSD-F3-07",
+      "referenceAnswer": "这两次交错采样不能可靠归给任一地址，先撤下错误绑定。读取需一次写 F=0 与地址，监视 F，待硬件置 1 再读取该地址的四字节；之前改地址或写 Data 行为未定义。串行化访问后只读重采，并把地址与完成观测绑定。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 980,
+          "section": "§7.9.19",
+          "anchor": "after it becomes 1b, read the VPD information"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 980,
+          "section": "§7.9.19",
+          "anchor": "Behavior is undefined if either the VPD Address"
+        }
+      ]
+    },
+    {
+      "family": "vc-two-ended-negotiation",
+      "split": "challenge",
+      "question": "业务流量已在默认通道运行。维护员刚给存储链路启用了一个新 VC，看到 Root Port 侧 Pending 清了，就要求把测试流切到该 VC。可以切吗？",
+      "observations": [
+        "链路报告 DL_Active，双方都是多 VC 实现，同一非默认 VC 在两端 Enable 均为 1。Root Port 的 VC Negotiation Pending=0，但 SSD 一端同一 VC 的 Pending 仍为 1。",
+        "未观察到两端同一时刻都清零。原业务可以留在原通道。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "利用 DL_Active 和对应 VC 均启用确认状态读数有意义。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "一端仍 Pending 拒绝切流，要求相同 VC 的两端都 Clear。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "保持旧通道，复核双端状态或协商配置再决定。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["任一端 Pending 清零就开始在这个新 VC 上发流量。"],
+      "id": "SSD-F3-11",
+      "referenceAnswer": "暂缓使用新 VC。使能写入和本端 Pending=0 均不能替代双端协商完成。当前 Link 与 Enable 使这两个 Pending 读数有效；应在两端对同一个通道核实均清零后再使用。持续 pending 时保留当前通道，查两端 VC 配置和协商，不能据此推出介质故障。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 897,
+          "section": "§7.9.1.7",
+          "anchor": "must use the VC Negotiation Pending bit"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 898,
+          "section": "§7.9.1.8",
+          "anchor": "Clear in both components on the Link"
+        }
+      ]
+    },
+    {
+      "family": "dpc-release-gates",
+      "split": "challenge",
+      "question": "链路保护触发后，盘的 MMIO 全读成 F。脚本准备认定盘被拔出，随即清 DPC Trigger Status 试图重新发现设备。这一拍能清吗？",
+      "observations": [
+        "该 Root Port 支持 RP Extensions for DPC。DPC Trigger Status=1，DLL Link Active 已读为 0，但同一拍 DPC RP Busy=1。",
+        "平台已知会把保护期间的某些 UR 读合成为全 F。尚无物理存在和受控恢复后的枚举记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "DLL Link Active=0 仍不足以释放正 Busy 的 Root Port。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "解释保护可产生错误完成/全 F，不足以证明物理移除。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "待 Busy 清且符合前提时才受控恢复，并用恢复后的链路、枚举或物理观测分辨。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["Busy=1 时即清 Trigger Status，或用全 F 直接登记物理移除。"],
+      "id": "SSD-F3-09",
+      "referenceAnswer": "不能清。DPC 会隔断下游传输，错误完成在本平台可呈现全 F，不能区分移除。即便 DLL Link Active=0，支持扩展且 RP Busy=1 时还应等 Busy=0。留存触发原因/状态；满足释放条件后按平台恢复，观察重训和下游身份/业务，再判断是否确实离线。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 526,
+          "section": "§6.2.10",
+          "anchor": "until the DPC RP Busy bit reads 0b"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 527,
+          "section": "§6.2.10",
+          "anchor": "completes them with an error"
+        }
+      ]
+    },
+    {
+      "family": "power-budget-index",
+      "split": "challenge",
+      "question": "同一插槽换装两种 SSD 后，财务资产系统固定从 Power Budgeting Data Select=8 取值。两块 Data 都是全零，它想把二者的 D0 最大功率登记为 0 W 并增加装机数。能这样核预算吗？",
+      "observations": [
+        "两块都实现 PCIe Power Budgeting Capability。此前没有从 index 0 顺序枚举过记录，也未检查返回记录的 PM State、Type 或 Power Rail。",
+        "槽位和 PSU 的可用预算单独管理，没有外部实测功耗。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "说明索引越界须返回全零，不能推断 D0 的实际功耗。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C2",
+          "text": "不同设备的工作条件顺序并非固定，应从0枚举并匹配条件。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C3",
+          "text": "按匹配的功率编码和平台预算核对，未匹配时不放行。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2", "P3"]
+        }
+      ],
+      "reject": ["把任一固定索引的全零当 D0 最大功率零瓦，直接超配。"],
+      "id": "SSD-F3-10",
+      "referenceAnswer": "不能按 0 W 放行。索引越过设备提供的工作条件数会返回全零，各工作条件没有固定索引顺序；单次零值不证明特定 D0 状态功耗为零。从0顺序枚举并识别对应 PM State/Type/rail 等条件，按 Base Power 和 Scale 正确解码，与系统预算核对，缺项时保留未知。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 830,
+          "section": "§7.8.1.3",
+          "anchor": "this register must return all zeros"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 830,
+          "section": "§7.8.1.3",
+          "anchor": "returned in any particular order"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 831,
+          "section": "Table 7-89",
+          "anchor": "multiplying the contents of the Base Power field"
+        }
+      ]
+    },
+    {
+      "family": "timestamp-clock-domain",
+      "split": "challenge",
+      "question": "维护后，盘日志时钟比同一采集机上的上一条早了。可以把早的那段按重复事故剔除，再以控制器时间差给本次停顿定时长吗？",
+      "observations": [
+        "同一 SSD 支持可保存的 Timestamp feature，维护前曾保存一个时间值，期间发生过控制器复位，维护后没有主机重新校时的记录。",
+        "本次 Get Features 的 SYNC=1。采集机保留了不跨重启的单调时间戳和命令序列号。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "倒退与恢复先前保存值相容，不能据此丢记录。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "SYNC=1 允许暂停，并不能证明本次一定暂停或计时连续。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "用同一主机单调时间、事件序号和复位边界重建范围。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把两端控制器 Timestamp 之差直接用作这次停顿的确定时长。"],
+      "id": "SSD-F3-03",
+      "referenceAnswer": "保留两段记录。保存值可在复位时恢复导致倒退，SYNC=1 又允许计数暂停；单独差值不能证明重复事件或真实持续时长。用采集侧单调时间、序号和复位边界重建次序。若要关联控制器时间，先按初始化时代对齐，再验证计数连续性。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 402,
+          "section": "§5.1.25.1.7",
+          "anchor": "timestamp may appear to move backwards"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 403,
+          "section": "Fig. 396",
+          "anchor": "may have stopped counting during vendor specific intervals"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "上一版现场 skill 与范围摘录",
+      "config": "Pi 1.5.2 · magpie/auto/deepseek-v4.1-flash · thinking off · domain · 120 s · 8次取证（含双协议预取）· decision-audit · bounded + v2 skill",
+      "results": [
+        {
+          "caseId": "SSD-F3-05",
+          "status": "completed",
+          "answer": "## 决定：两条规则都不能用\n\n**1) 102 不是“非法遥测”。** NVMe 2.1 SMART/Health（Figure 206，byte 05，PDF p.231）原文：PUSED 是厂商对已用寿命的估算，\"The value is allowed to exceed 100\"；100 只表示预估寿命已用尽，\"may not indicate an NVM subsystem failure\"。故 102 应正常入库，不应拒收。\n\n**2) 255 不能记作“精确 255%”。** 同页规定 \"Percentages greater than 254 shall be represented as 255\"——255 是截顶编码，语义是 “>254%”，精度已丢失。它表达寿命估算耗尽，不表达故障，单凭它发起**故障退役无规范依据**。\n\n**3) 规则来源疑为串字段**：byte 04 AVSPT 的 \"The values 101 to 255 are reserved\"、byte 03 AVSP 的 0–100%，都是可用备用容量字段的约束，与 byte 05 无关。PCIe 5.0 无对应字段（引用的 p.660 VPD、p.172 Read Completion 段与本案无关）。\n\n## 仍待确认\nPUSED 是厂商估算、每上电小时才更新一次（p.231 同段），既不能证明介质/数据可靠性故障、也不能排除；现场未读 byte 0 CW、byte 6 EGCWS，也无介质错误记录，故工单证据不足。\n\n## 下一步（只读、零干扰）\n对两块盘各读一次：SMART log page **02h** 全 512 字节，取 byte 0 Critical Warning（bit2 NDR / bit3 AMRO / bit0 ASCBT）与 byte 6 EGCWS（p.232）；再读 Error Information log page **01h**（§5.1.12.1.2，p.229）查介质/数据完整性错误。\n\n- CW/EGCWS 全 0 且无介质错误 → 按客户自定寿命策略做**计划性维护退役**，故障工单不得引用 PUSED。\n- 任一位置位或错误日志含介质错误 → 以该记录作为故障退役证据，PUSED 仅作旁证。",
+          "seconds": 38.19,
+          "toolCalls": 5,
+          "review": {
+            "usability": "misleading",
+            "reason": "“任一位置位……以该记录作为故障退役证据”过宽。Critical Warning 的温度阈值等位只反映采样时的条件，不能单独证明盘故障；该分支会把临时告警升级为故障退役。两项编码判断本身正确。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 231
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 232
+            }
+          ],
+          "tokens": 33016
+        },
+        {
+          "caseId": "SSD-F3-01",
+          "status": "completed",
+          "answer": "**结论：现在不能交还缓冲，也不能对用户显示\"已取消\"。**\n\n**为什么**\n- Abort 自身的 CQE（Status=Success）只说明\"取消请求\"这条命令本身完成，不决定被取消 I/O 的结局（NVMe 2.1 §5.1.1.2, p.195）。决定这条读结局的记录是 **I/O CQ 上 SQID=5 / CID=47 的目标 CQE 的 DW3 Status**；p.195 明确要求 host 检查\"被取消命令的 CQE 状态\"。\n- 你记录的 DW0.IANP=1（Figure 144, p.195）= **未执行立即中止**：目标命令在 Abort CQE 投递时尚未被中止（数据传送已开始且未完成时禁止立即中止，§5.1.1.1, p.194–195；也可能目标命令已不在队列中）。所以该读要么随后被延迟中止（目标 CQE 状态为 Command Abort Requested），要么早已正常完成。\n- 目标 CQE 未取回前，控制器仍可能向该缓冲发起 DMA，缓冲不得复用或交还（§5.1.1.1：目标命令 CQE 投递后不得再访问该主机内存, p.195）。\n\n**下一步（只读、低干扰）**：让轮询线程取回并保存 CID=47 的目标 CQE（核对 DW2.SQID=5、DW3.CID=47），读其 DW3 Status：\n- Command Abort Requested → 才可释放/复用缓冲并显示\"已取消\"；\n- Success → 取消未生效、数据可能有效，按实际结果上报，**不得**显示\"已取消\"；缓冲仍待该 CQE 取回后才可复用；\n- 仍无目标 CQE → 读仍在飞或待延迟中止，继续等待；此时不要自行复位或删除队列，以免引入无记录的结局。\n\n**待确认**：记录中的 \"Admin Abort\" 按 CDW10(SQID/CID, p.194 Figure 143) 理解为提交在 Admin 队列上的 Abort 命令；已核对页面中无 PCIe 同名状态字段，若另有所指需另行取证。",
+          "seconds": 57.76,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "“仍无目标 CQE → 读仍在飞或待延迟中止”把尚未保存记录当成设备端仍在处理。目标可以早已完成，状态也可能是普通 I/O 错误；照此分支会一直等设备，漏查已被消费或未留存的完成记录。",
+            "otherError": "§5.1.1.1 描述立即中止时 Abort CQE 发布后的效果，所引条文并非在解释目标 CQE 发布后的通用保证。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 195
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 194
+            }
+          ],
+          "tokens": 42076
+        },
+        {
+          "caseId": "SSD-F3-08",
+          "status": "completed",
+          "answer": "**结论：不放行这次拔盘。**\n\n**依据**\n\n1. PCIe 5.0 §6.7.1.5（p.561）：软件接受 Attention Button 请求后电源指示灯开始闪烁，并进入 **5 秒中止窗口**；此窗口内第二次按同一按钮是**取消**该操作。同事\"按两次＝确认\"的前提与规范相反——2 秒时的第二次按键落在窗口内。\n2. Table 6-9 / §6.7.1.1.2（p.560）：Blinking＝电源转换中、热插拔操作进行中，明确\"不允许插入或拔出\"；只有 **Off（电源关）** 才允许拔出。闪烁状态下拔盘本身即不合规。\n3. NVMe 2.1 §3.1.4.5（p.80）：断电前主机应写 CC.SHN 发起关机通知，并以 CSTS.SHST=10b 判定关机处理完成。现有记录无此完成标志，且此前有业务活动，直接断电会丢失未完成 I/O。\n\n**尚不能认定**：第二次按键后软件实际执行的是\"取消\"还是继续；指示灯当前是 Blinking 还是已 Off；控制器是否已完成关机。\n\n**下一步（只读、一次）**：现场读一次电源指示灯状态＋热插拔软件/带外管理面状态。\n- 仍 Blinking：电源转换未完成，不许拔。\n- 回到 On 且软件报\"操作取消\"：需重新发起一次移除，且此后勿在 5 秒内再按。\n- Off 且软件报移除完成：方可进入拔盘流程（先确认业务已停、控制器关机完成）。",
+          "seconds": 38.62,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒绝当场拔盘、解释二次按键和查看插槽软件状态都正确。末尾把“控制器关机完成”列为放行前提，并用 NVMe CC.SHN/CSTS.SHST 指导核实。混合背板题面未确定该盘使用 NVMe；即使指示灯 Off、平台已批准移除，照此仍可能查错接口并误阻断。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 561
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 560
+            }
+          ],
+          "tokens": 39413
+        },
+        {
+          "caseId": "SSD-F3-12",
+          "status": "completed",
+          "answer": "## 决定：不接受该归因；\"整段已取齐\"这一判定同样不成立\n\n**依据（PCIe Base 5.0）**\n- §2.8 及 Note（PDF p.204）：产生多个 Completion 的 Memory Read，**只有 Requester 收齐全部 Completion 才算完成**；超时前返回的部分数据，Requester 可保留也可丢弃。分析仪已确认该请求需多个 Completion、目前仅见前半段，故第一个 Success 不能代表整段——工具的\"已取齐\"与此条直接冲突。\n- 同页：Completion Timeout 是**与 Requester Function 关联的报告错误**，限值取自 Device Control 2 的 Completion Timeout Value；§6.2.3.2.4.4（PDF p.512）的超时后恢复与错误上报同样属 PCIe 事务层机制。现有采集没有该描述符对应的 NVMe 完成证据，把事务层超时归到 NVMe 属于跨层推断，缺\"同一对象、同一事件\"的连接。\n\n**仍待确认**：剩余 Completion 是主机未发出、链路/端点丢失，还是仅被采集盲区漏掉；该描述符究竟挂在哪条 NVMe 命令上。\n\n**下一步（只读，不重放）**：在主机 RC 与 SSD 之间按同一 Requester ID + Tag 只读抓取该 Memory Read 的全部 Completion。\n- 能看到剩余字节范围的 Completion → 丢在 SSD 接收侧或采集盲区，与 NVMe 无关；\n- 看不到 → 主机 completer 未返回，属主机内存/RC 路径问题，同样非 NVMe；\n- 只有当同笔请求能对应到某条 NVMe 命令、且其 CQ 条目显示失败/未完成时，才可把原因落到 NVMe。\n\n工具侧应改为按请求聚合全部 Completion 后再判完成。",
+          "seconds": 30.06,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "“看不到 → 主机 completer 未返回，属主机内存/RC 路径问题”把观测点未见等同于主机未发送；没有分段定位和时序就会误派责任。能看到余段也不能单凭此排除链路途中丢失或超时后才到。",
+            "otherError": "后续 NVMe CQE 失败或未完成可作关联证据，本身不能把 PCIe 超时的原因定在 NVMe。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 204
+            }
+          ],
+          "tokens": 14043
+        },
+        {
+          "caseId": "SSD-F3-02",
+          "status": "completed",
+          "answer": "**决定**：不能。这份恢复内存不能按 MR=1（归还原缓冲）交回；应发 Set Features HMB，用 EHM=1 + MR=0 正常重新分配并启用。设备尚未重新启用 HMB，现在改代价最低。\n\n**依据**（NVMe Base 2.1 §5.1.25.2.4）\n- Figure 447，Dword 11 bit 01 MR（PDF p.430）：交回的 HMB 必须在 size、descriptor list address、descriptor list contents、host memory buffer contents 四项上与“禁用前控制器最后看到的”完全相同。恢复期数据页被清零 → contents 不相同 → MR=1 前提不成立；强行置 MR=1 恰好是把“旧缓存仍有效”这段错误历史交给设备。\n- 同节（p.429–430）：禁用后控制器不再访问 HMB，且投递该命令的 CQ 条目即确认主机可安全修改 HMB 内容。所以清零本身不违规，只是切断了 MR 前提。\n- MR=0 语义就是“分配内容未定义的内存”；§8.2.3（PDF p.613）“控制器负责初始化这些主机内存资源”，故新分配由控制器重新初始化，不沿用陈旧缓存，符合“不提供错误缓存历史”。代价是上次的缓存收益无法保留。\n\n**仍待确认**：是否存在逐字节相同的原始 HMB 数据区副本；且“每项地址相同”不等于描述符列表内容相同，核对要覆盖列表原始字节。\n\n**一次区分检查**：查找并逐字节比对禁用前的 HMB 数据区副本。\n- 相同 → 发 HMB Set Features（EHM=1、MR=1），可保留缓存收益。\n- 不同或无副本 → 发 EHM=1、MR=0 重新分配，启用前不向设备声称任何旧缓存内容有效。",
+          "seconds": 71.73,
+          "toolCalls": 10,
+          "review": {
+            "usability": "ready",
+            "reason": "对当前已清零且尚未启用的内存给出 EHM=1、MR=0，并明确区分数据页、描述符地址和列表原始字节。在四项都能证明一致时才具备归还条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 429
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 430
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 431
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 432
+            }
+          ],
+          "tokens": 51026
+        },
+        {
+          "caseId": "SSD-F3-04",
+          "status": "completed",
+          "answer": "**结论：现在不能签。** 这份导出最多支持“该 FID 当前生效值为 Y”，不能支持“已持久化”。\n\n**依据（可核对位置）**\n1. NVMe 2.1 §4.4（PDF p.181）：“Feature 不可保存或没有保存值时，读 saved 返回默认值”；Figure 192（p.221）同义：SEL=010b 且控制器不支持保存或无保存值时，按 001b(Default) 应答。所以 Saved=X=Default 正是“未保存”时的规范输出，证明力为零。\n2. §5.1.11.1（p.222）：SEL=010b 返回“最后一次无错误完成且 Save=1 的 Set Features”所存的值。当前 Y≠X ⇒ 若脚本曾以 SV=1 成功保存 Y，Saved 必为 Y；现场读数与“Y 已持久化”相反。\n3. 变更窗口无 Set Features 提交、SV 位、成功 CQE（SV 位定义见 p.393 Figure 383），也未读 Identify Controller 的 SSFS 与该 FID 的 Supported Capabilities，故“是否可保存”尚未确认。\n\n**已成立**：同一控制器同一 FID 的 Current=Y、Default=X；Saved 读数=X 无独立含义，也不能把 Y 归因于脚本。\n\n**区分性检查（只读，不改值、不复位）**：从主机侧命令轨迹/脚本日志调出变更窗口那条 Set Features 的 Command Dword 10（FID、bit31 SV）与 CQE status。\n- SV=1 且 status=0：保存已成功，按 p.222 Saved 应为 Y，与 X 矛盾 → 先复核导出读的是否同一控制器同一 FID、以 CQE 为准，仍不得凭本导出签字。\n- SV=1 且 status=Feature Identifier Not Saveable（p.393），或无此命令：未持久化 → 不签，记为“仅当前生效”，另开窗口用 SV=1 重做并留存 CQE。\n- 辅助只读：Get Features SEL=011b 读 CQE Dword 0 的 Saveable 位（p.223）、Identify Controller ONCS 的 SSFS（p.181），确认该 FID 有无保存路径。\n\n**待确认**：SSFS/Saveable 取值；脚本是否发出过 SV=1。所给 PCIe Base 5.0 片段（Margin Command、Message Control）与本判定无关。",
+          "seconds": 59.14,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒签方向正确，但“SV=1 且 status=0：保存已成功，按 p.222 Saved 应为 Y，与 X 矛盾”把当前 Y 当成脚本的写入值。脚本若成功保存了 X，后来只改当前值为 Y，这批读数完全相容；工程师会误判导出冲突并重做维护。",
+            "otherError": "对照历史需核实该次写入的对象、实际载荷和完成，并考虑之后另有变更。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 0.5,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 50.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 224
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 181
+            }
+          ],
+          "tokens": 53754
+        },
+        {
+          "caseId": "SSD-F3-06",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.02,
+          "toolCalls": 8,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内未收到最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 398
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 182
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 183
+            }
+          ],
+          "tokens": 48805
+        },
+        {
+          "caseId": "SSD-F3-07",
+          "status": "completed",
+          "answer": "**结论**：这次 VPD 读到的数据不能用于登记；\"上一槽序列号\"的登记应作废重取。\n\n**依据**（PCIe 5.0 §7.9.19，PDF p.980–981）：读 VPD 须\"单次写 VPD Address（F=0、地址）→ 硬件搬满 4 字节置 F=1 → 再读 VPD Data\"，且明确\"在 F 变 1b 之前写 VPD Address 或 VPD Data 属未定义行为\"。另一线程在 F=0 时写地址已构成未定义；采集器在 F 未变 1 前再改写地址并直接取 Data，同样未定义。VPD Data 字节对应\"当前 VPD Address 所指地址\"（Table 7-229, p.981），地址已被并发覆盖又被改写，故这 4 字节不归属任何地址——既不能当本盘序列号，也不能当\"下一项\"。\n\n**仍待确认**：第二次写地址时 F 是 0 还是 1。若为 1，即已发起一次写请求，其结果不可预测（p.980 写流程），须核 VPD 只读区是否完好（记录只显示未主动写 VPD Data）。\n\n**下一步（只读、单线程+互斥）**：写 VPD Address（F=0、4 字节对齐地址），轮询至 F=1 后再读 VPD Data；同时读 NVMe Identify Controller CNS 01h 的 SN（bytes 23:04，NVMe p.321 / §4.5.2 p.184）。\n- 两值一致 → 按该值登记；\n- VPD 乱码但 Identify SN 稳定 → 按 Identify SN 登记并标注来源；\n- 二者不符 → 判为 VPD 内容与本盘不匹配，挂起复核上一槽记录，不做推测。",
+          "seconds": 36.04,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "原采样作废和串行只读重采正确。“VPD 乱码但 Identify SN 稳定 → 按 Identify SN 登记”缺少槽位绑定和两类标识等价的依据。Identify SN 标识 NVM 子系统（NVMe PDF p.321）；直接覆盖预期 VPD 资产号可能再次错绑。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 980
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 981
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 979
+            }
+          ],
+          "tokens": 27944
+        },
+        {
+          "caseId": "SSD-F3-11",
+          "status": "completed",
+          "answer": "**结论：现在不能切。**\n\n**依据（PCIe 5.0 v1.0）**\n- §7.9.1.8（p.898）：使用某 VC 前，软件必须确认该 VC 在链路**两端组件**的 VC Negotiation Pending 位均为 Clear。\n- §2.6.1（p.192）：该 VC 完成初始化（退出 FC_INIT2）前，不得用任何 VC 0–7 传输 TLP；且两端都必须已退出 FC_INIT2。\n\nRoot Port 侧清零只是单端条件，SSD 端同一 VC 仍为 1，放行条件不成立。\n\n**已成立的局部结论**\n- 启用动作本身合规：§7.9.1.7 注2（p.897），两端 VC Enable 均为 1 才算启用该 VC。\n- 业务留在 VC0 不受影响：§3.4（p.215），新 VC 初始化期间其他已启用 VC 的流量与之无关。\n\n**尚不能认定**\nSSD 端 pending=1 的原因区分不了：初始化尚未完成、卡在 FC_INIT1（未换得对端信用），还是两端 VC ID/仲裁表配置不一致致 SSD 实际未开始该 VC 的 FC init。另需复核维护员读的是 bit1 Pending（bit0 是 Port Arbitration Table Status，易混）且为同一 VC 索引。\n\n**下一步（只读，在 Root Port 侧）**\n连续采样 SSD 的 VC Resource Status（bit1、bit0）与 VC Resource Control（bit31 Enable、bit26:24 VC ID），与 Root Port 同名字段配对，看是否出现两端同时为 0。\n- 两端同时为 0：再把测试流切到该 VC。\n- SSD 端持续为 1：先比对两端 VC ID；一致则按 §7.9.1.7 注5（p.897）在两端完全禁用后重新启用（禁用时该 VC 上无流量，不动 VC0）；仍为 1 则属 SSD 侧问题，交厂商，测试流继续留 VC0。\n\n所给 NVMe 片段（p.263、p.626）与 VC 协商无关，不能作依据。",
+          "seconds": 39.05,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "“仍为 1 则属 SSD 侧问题，交厂商”没有足够证据。VC ID 一致、重新启用后本端仍挂起，不能排除对端没有送达初始化信息或链路问题，会误派 SSD 厂商。",
+            "otherError": "给出的使能位和双端检查正确，未交代 DL_Active 是 Pending 有定义的前提。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 898
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 897
+            }
+          ],
+          "tokens": 25002
+        },
+        {
+          "caseId": "SSD-F3-09",
+          "status": "completed",
+          "answer": "**决定：这一拍不能清；\"盘被拔出\"也不能成立。**\n\n依据（PCIe Base 5.0 v1.0）：\n- §7.9.15.4 DPC Status（偏移 08h，p.958）：DPC Trigger Status=1 且 DPC RP Busy=1 时，软件无权清 Trigger Status，此时清为未定义行为。\n- §6.2.10（p.526）：Trigger Status=1 且 RP Busy=1 时，**必须**让端口留在 DPC，直到 DPC RP Busy 读回 0b。\n- 全 F 不证明移除：DPC 期间下游端口丢弃请求并以 UR/CA 完成，平台常返回全 1（p.527 Implementation Note \"Data Value of All 1's\"）；且 DPC 下 LTSSM 被导向 Disabled，Data Link Layer Link Active=0 是保护动作本身的结果（§2.9.3，p.206）。你已知的 UR→全 F 合成正好解释该现象。物理在位与恢复后枚举均无记录。\n\n下一步（只读、低干扰）：轮询 DPC Status bit4 至 0，再清 bit0（RW1CS）；随后等 DL_Active（Data Link Layer State Changed 中断或 DL_Active ERR_COR，§6.2.10.5，p.533），在已知 BDF 做一次配置读：\n- 读到有效 Vendor/Device ID → 盘在位，全 F 系保护期 UR 合成，按常规重新枚举/绑定。\n- 仍读全 1 → 用\"已知非全 1\"读法（p.527）或槽位存在检测，区分 completer 移除与平台合成。\n\n仍待确认：盘物理在位状态、触发 DPC 的原始错误、恢复后是否需要 NVMe 重新枚举（NVMe 2.1 p.262–263 的 05h Link Not Active 事件仅作事件记录，不构成移除证据）。",
+          "seconds": 25.62,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "bit4 才是 DPC RP Busy，先等它清零的操作正确。但“读到有效 Vendor/Device ID → ……全 F 系保护期 UR 合成”不能由恢复后的读数证明，还可能是 CA 或先前设备不可达。按此定因并直接重绑会漏核实际设备身份和原始错误。",
+            "otherError": "把清 Trigger Status 描述为“只读”也不准确。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [],
+          "tokens": 15279
+        },
+        {
+          "caseId": "SSD-F3-10",
+          "status": "completed",
+          "answer": "**结论：不能这样核预算。** 全零≠0 W，也不能据此增加装机数。\n\n**依据（PCIe Base 5.0）**\n- Data Select 只是索引，且各工作条件的返回顺序未规定（p.830 §7.8.1.2/7.8.1.3），索引 8 与\"D0 最大\"没有固定对应。\n- 当索引 ≥ 设备提供的工作条件数时，该寄存器**必须返回全零**（p.830 同节）。两块盘在 8 处全零，最可能是越界＝未上报。\n- 字段解码也不支持\"0 W\"：Type(17:15) 中 000b=PME Aux、110b=Maximum（p.832），全零解码为 PME Aux 而非 Maximum；而实现该能力的设备**必须**上报每个供电轨的 D0 Maximum 与 D0 Sustained（p.832），真实值应是另一条非零条目。\n- 还须先读 0Ch 能力寄存器 bit0 System Allocated：置 1 时其上报数据必须被忽略（p.833 Table 7-90）。\n- NVMe 侧对应量是 Identify CNS 01h 的 PSD0 最大功率，MP=0h 表示未上报（NVMe 2.1 p.353）；PS0 为最高功耗状态（p.556）。\n\n**下一步（一次低干扰、只读、可区分的检查）**：逐盘单独装槽，读数按 BDF＋Identify 序列号绑定到具体盘；Data Select 从 0 递增枚举，逐条解出 PM State(14:13)、Type(17:15)、Power Rail(20:18)、Base Power(7:0)×Data Scale(9:8)，同时读 0Ch bit0。\n- 出现 PM State=D0 且 Type=110b → 按各轨求和登记该值，不是 0。\n- 索引 0 起即全零、或无 Maximum 条目 → 登记\"未上报\"，改用 Identify PSD0、厂商规格或实测，不填 0 W。\n\n**装机数**：同一插槽同时只有一块盘，换装是二选一；两块并记会重复计数，且与功率读数无关。\n\n**仍待确认**：两块盘真实工作条件条数与各轨 D0 最大值；System Allocated 位；换装后读数与单盘身份的绑定。",
+          "seconds": 111.96,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "“Type=110b → 按各轨求和登记”会匹配保留编码并漏掉真正的 D0 Maximum。PCIe 5.0 Table 7-89（PDF p.832）定义 Maximum 为 111b。固定索引不能按 0 W 登记的判断正确。",
+            "otherError": "将未匹配后的 PSD0 作为替代也没有说明如何与各轨、插槽和 PSU 预算核对。",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 70.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 830
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 831
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 832
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 833
+            }
+          ],
+          "tokens": 40554
+        },
+        {
+          "caseId": "SSD-F3-03",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.01,
+          "toolCalls": 7,
+          "review": {
+            "usability": "no_answer",
+            "reason": "时限内未收到最终答复。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 402
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 403
+            }
+          ],
+          "tokens": 18942
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "逐项处置核查与结果表 MCP",
+      "config": "Pi 1.5.2 · magpie/auto/deepseek-v4.1-flash · thinking off · domain · 120 s · 8次取证（含双协议预取）· decision-audit · outcomes + v3 skill",
+      "results": [
+        {
+          "caseId": "SSD-F3-05",
+          "status": "completed",
+          "answer": "## 结论：两条规则都不能用，退役也不能签\n\n**1) 102 判非法——错。** NVMe 2.1 SMART/Health（§5.1.12.1.3，Figure 206，PDF p.231）byte 05 PUSED 明写 \"The value is allowed to exceed 100\"。0–100 与\"101–255 保留\"的限制属于 byte 03 AVSP、byte 04 AVSPT（p.231），属字段串用。\n\n**2) 255 记为精确 255%——错。** 同一段：\"Percentages greater than 254 shall be represented as 255\"，255 是饱和码，含义为 \">254%\"；且 PUSED 是厂商特定估计值，本就不是精确百分比。\n\n**3) 据此故障退役——无依据。** PUSED 不在 Critical Warning(byte 0) 位定义内（ASCBT/TTC/NDR/AMRO/VMBF/PMRRO，p.231），规范并注明值 100 \"may not indicate an NVM subsystem failure\"。两盘在线且无介质错、数据可靠性或厂商阈值证据，当前不能认定故障。请撤回这两条规则：102 盘按正常寿命数据记录，255 盘记为\"寿命估计已超额定、饱和显示\"。\n\n**一次区分性检查（两块盘各做一次）**：按 2.1 布局抓取完整 SMART/Health 日志 byte 0–6（含 byte 06 EGCWS，p.232），并加取 Endurance Group Information(0x09)、Media Unit Status(0x10)，看 CW 位、EGASCBT/EGDR/EGRO、各组 AVSP 是否低于 AVSPT。\n- CW=0 且各组 AVSP≥AVSPT：无规范定义的故障 → 两盘保持在线，仅按客户自定寿命策略排维护，故障工单撤单。\n- 出现 ASCBT/EGASCBT、NDR/EGDR、AMRO/EGRO 或介质错 → 以该日志快照+错误信息日志为证据再提退役。\n\n**仍待确认**：255 盘的厂商阈值口径、是否已只读/降级；PUSED 每电源周期更新一次，数值本身是滞后估计。",
+          "seconds": 39.51,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "用“CW=0 且各组 AVSP≥AVSPT”断言“无规范定义的故障”，进而撤单，可能漏查不体现在当前告警和备用容量中的介质或命令错误。拒绝按 PUSED 单独退役及两项数值判断是正确的。",
+            "otherError": "“PUSED 每电源周期更新一次”有误。Fig. 206 指定在非睡眠时每个通电小时更新一次；无需重新上电等刷新。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 230
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 231
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 232
+            }
+          ],
+          "tokens": 37420
+        },
+        {
+          "caseId": "SSD-F3-01",
+          "status": "completed",
+          "answer": "**结论：现在不能交还缓冲、也不能显示\"已取消\"；这条 I/O 的结局由目标读命令自己的 CQE 决定。**\n\n**理由**\n1. Admin Abort 的 CQE 只说明 Abort 命令完成。其 DW0.IANP=1 明确表示**未执行立即中止**——目标命令在投递 Abort CQE 时尚未被中止（可能立即中止条件不满足，或未找到该命令）（NVMe 2.1 p.195 Fig.144，§5.1.1）。\n2. SQID=5、CID=47 出自 Abort 命令的 CDW10（p.194 Fig.143），只是\"被请求中止的对象\"；Abort 的 Success 不是读命令的状态。读仍可能在执行、数据仍可能写入该缓冲，缓冲须等目标 CQE 到齐才能复用。\n\n**该用哪份记录**：该 I/O CQ 中 SQID=5、CID=47 的**目标 CQE**，看 DW3.Status（CQE 通用布局 p.160 Fig.96/97：DW2.SQID、DW3.CID/Status）。\n\n**下一步（最有区分力）**：让轮询线程抓取并保存这条目标 CQE，再读 Status。\n- Command Abort Requested → 延迟中止已执行，缓冲可交还，显示\"已取消\"。\n- Successful Completion → 读在中止前已完成，数据有效，须按完成交付，不能显示\"已取消\"。\n- 其他状态 → 按失败处理并保留失败证据。\n\n**仍待确认**：目标 CQE 抓取前，\"延迟中止\"与\"命令早已完成/未被找到\"两种解释都不能排除；IANP=1 本身不区分二者，缓冲交还须等这条 CQE 落定。",
+          "seconds": 70.23,
+          "toolCalls": 10,
+          "review": {
+            "usability": "ready",
+            "reason": "明确保留读缓冲，交给轮询线程核对 SQID=5、CID=47 的目标 CQE，并按取消、成功、其他失败分别上报。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 195
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 194
+            }
+          ],
+          "tokens": 54867
+        },
+        {
+          "caseId": "SSD-F3-08",
+          "status": "completed",
+          "answer": "**决定：不放行这次物理拔盘；“两次确认已完成”不成立。**\n\n理由（PCIe 5.0）\n- §6.7.1.5（p.561）：Attention Button 只产生一次用户请求。软件接受后 Power Indicator 闪烁，此时存在 **5 秒中止窗口，其间第二次按下同一按钮是取消本次操作**。现场第二次按压在 +2 秒，落在窗口内，属取消而非确认。\n- Table 6-9 / §6.7.1.1.2（p.560）：**Blinking=电源转换中，不允许拔插**；只有 **Off（Power Off）表示允许拔插**，On（主电在）也不允许。闪烁不能当作可拔证据。\n\n尚不能认定：无软件下线完成记录（Slot Status 的 Command Completed，p.748–749）、无指示灯 Off、无电源断开记录；NVMe 侧也没有控制器进入非工作电源态的记录（Set Features–Power Management FID 02h，p.396；RTD3 主电移除，p.559），而业务此前有活动 I/O。\n\n最有区分力的下一步：读该插槽 Slot Control（Offset 18h）Power Indicator Control、Slot Status（Offset 1Ah）Command Completed 与 Presence Detect State，并核对热插拔软件日志。\n- 指示灯回到 On 且无 Command Completed → 操作已被取消：重做时只按一次按钮，5 秒内不再按，待指示灯 Off 后再拔。\n- 指示灯 Off、Command Completed 置位且 I/O 已静默 → 方可放行。\n- 仍在闪烁 → 等待，不拔。",
+          "seconds": 57.12,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "“软件下线完成记录（Slot Status 的 Command Completed）”查错了对象。该位只表示热插拔控制器能接收下一条命令，不保证动作完成，且可硬连为 0。要求其置位才放行会阻塞实际已下线并获准移除的插槽。",
+            "otherError": "PCIe 5.0 PDF p.749 的 Table 7-27 对该位有明确限制。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 560
+            }
+          ],
+          "tokens": 60914
+        },
+        {
+          "caseId": "SSD-F3-12",
+          "status": "completed",
+          "answer": "**结论：不接受该归因，同时撤回“整段已取齐”的标记。**\n\n**依据（PCIe Base 5.0）**\n- §2.8 注（PDF p.204）：需要多个 Completion 的 Memory Read，只有 Requester 收齐**全部** Completion 才算完成。首个 SC=000b 的 CplD（Completion Status，Table 2-35，p.154）只覆盖它自己那段。\n- §2.3.1.1（p.173）：只有“状态非 Success 的 Completion”才是该请求的最后一个 Completion；Success 不等于收尾。\n- Completion Timeout 是记在 Requester Function 上的 PCIe 错误（p.204；Uncorrectable Error Status bit 14 “Completion Timeout Status”，p.844；掩码 bit 14，p.845）。SSD 发起读主机内存的 Memory Read 不对应任何 NVMe 命令或队列完成，NVMe 2.1 也未把这类 PCIe 超时定为 NVMe 错误。故该超时最多判为 **PCIe 层请求方超时**，不能判给 NVMe。\n\n**尚不能认定**：缺失的 Completion 是主机未补发、链路丢失，还是原抓取没覆盖；SSD 是否把该 PCIe 超时映射进自身日志属厂商实现。\n\n**最区分力的一步**（只读抓取，不重放业务命令）：按 Requester ID/Tag 全路径统计该请求的 Completion 条数，并读 Requester Function 的 Uncorrectable Error Status bit 14 与 Device Control 2 的 Completion Timeout Value（p.758）。\n- 只有第一条且 bit14=1 → PCIe 路径/主机侧问题，转主机或 RC 排查；\n- 其余 Completion 实际在链路上 → 原抓取覆盖不足，超时源于请求方定时偏短或主机应答慢，核对超时值与实际完成时延；\n- bit14=0 而请求方仍报超时 → 属 SSD 内部处理，需厂商资料。\n\n保留现有失败证据，不要按“已取齐”消费该描述数据。",
+          "seconds": 58.23,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "“只有‘状态非 Success 的 Completion’才是该请求的最后一个 Completion”把单向条件说反，可能让采集器连已完整覆盖的成功读也持续等待。仅凭 AER bit14 为 0 就派给 SSD 内部也不成立，该状态位能被清除。",
+            "otherError": "没有说明超时前返回的部分数据允许保留或丢弃；“不对应任何 NVMe 命令”也超出已知信息。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 0,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 35.0,
+            "passed": false
+          },
+          "readPages": [],
+          "tokens": 50103
+        },
+        {
+          "caseId": "SSD-F3-02",
+          "status": "completed",
+          "answer": "**结论：不能按 MR（归还原缓冲）交回。**\n\n**理由**：MR=1 的前置条件是交回的 HMB 与控制器在禁用前最后看到的\"大小、描述符列表地址、描述符列表内容、**HMB 内容**\"完全相同（NVMe 2.1 §5.1.25.2.4，图 447 Dword 11 bit 1，PDF p.430）；§8.2.3（p.613）同样规定只有在\"以相同内容\"重新提供原内存时才置 MR=1。恢复时主机把 HMB 数据页清零，内容已与控制器最后所见不同，前置条件不成立——此时置 MR=1 等于向控制器谎报缓存历史，正是本次要避免的。规范也未承诺 MR 能带来缓存复用收益。\n\n**当前处置**：Set Features FID 0Dh，Dword 11 置 EHM=1、MR=0（内容未定义），Dword 12/13/14/15 填 HSIZE、HMDLLA、HMDLUA、HMDLEC。清零必须在 enable 完成前结束；enable 成功后主机不得再写描述符列表与 HMB 区域，直至再次禁用（p.429）。上次缓存收益按已丢失计。\n\n**最有区分力的一步**：确认禁用前的 HMB 原始字节能否逐字节还原（恢复流程有无禁用前快照、能否取消清零）。\n- 能：与禁用前快照逐字节一致后，方可置 MR=1，并需核对每个描述符条目的 BSIZE 逐项相同（图 453，p.432）。\n- 不能：按 MR=0 重新分配并启用，放弃该收益。\n\n**仍待确认**：控制器当前认知的分配状态——用 Get Features FID 0Dh（图 454/455，p.432）读回 EHM=0 及 HSIZE/HMDLLA/HMDLUA/HMDLEC，与拟提交值比对，不一致则 MR 更不可用。现有记录只证明\"每项地址相同\"，未证明每项长度（BSIZE）相同。",
+          "seconds": 51.95,
+          "toolCalls": 8,
+          "review": {
+            "usability": "ready",
+            "reason": "按四项原样条件拒绝这次 MR=1，用 EHM=1、MR=0 配置新资源，对已清零的现场可以直接执行。",
+            "otherError": "Get Features 返回当前分配属性，不能单独证明禁用前的内容或分配历史。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 429
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 430
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 431
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 432
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 433
+            }
+          ],
+          "tokens": 37100
+        },
+        {
+          "caseId": "SSD-F3-04",
+          "status": "completed",
+          "answer": "**不能签。** 这份导出只能证明“Saved 读数等于 Default”，不能证明维护脚本把该值持久写入。\n\n**理由（NVM Express Base 2.1）**\n- p.222 §5.1.11.1：SEL=010b(Saved) 返回该 FID 最近一次“**Save=1 且无错误完成**”的 Set Features 所保存的值。若 Y 曾被保存，Saved 应返回 Y；现场返回 X≠Y。\n- p.221 Figure 192：控制器不支持保存该 FID、或当前没有任何保存值时，**必须按 001b(Default) 应答**。Saved=Default=X 正是“无保存值”的规范表现，而非“已持久化”的证据。\n- 证明持久化所需的 Set Features(Save=1) 与成功 CQE 现场均未留存（p.222 所指的唯一来源）。即便另作解释认为“脚本保存了 X”，保存的也不是 Y。\n\n**尚不能认定**：该 FID 是否可保存（SVBL/CHANG，p.223 Figure 195，CQE Dword 0 bit0/bit2）、SSFS（p.342 Identify Controller Optional NVM Command Support bit 4）、FID 是否为 Host Identifier 81h（p.424：2.1 起该 Feature 无保存值，Saved 恒等于 Default）。\n\n**下一步（只读，不改值、不复位）**：对同一 FID 发 Get Features，SEL=011b，读 CQE Dword 0 的 SVBL；同时读 Identify Controller 的 SSFS。\n- SVBL=0 或 SSFS=0（含 011b 被中止）：该 Feature 不可保存/不支持非零 Select，Saved 读数必然等于 Default，Y 仅为当前运行值 → 拒签该证明，验收单改记“当前值 Y，非持久化”。\n- SVBL=1 且 SSFS=1：支持保存却无保存值，说明没有成功完成的 Save=1 Set Features → 拒签，向脚本方索取带 Save=1 的命令与成功 CQE 记录；取不到即按“未持久化”结案。\n\n**边界**：Get 类读数无法区分“保存值恰等于默认值”与“无保存值”，但两者都不支持“Y 已持久化”，不影响本次处置；再往下区分需主机侧命令/完成记录，或另行授权的改值+掉电复测（现场不允许）。",
+          "seconds": 45.82,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "虽在末段承认保存值可能恰为 X，实际结案分支却写“SVBL=1 且 SSFS=1：支持保存却无保存值，说明没有成功完成的 Save=1 Set Features”。能力位不能排除脚本成功保存 X，取不到历史记录应保留未知，不能按“未持久化”结案。",
+            "otherError": "以当前的最后保存值反推任意一次历史保存也缺少中间变更信息。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 0.5,
+              "C3": 0.5
+            },
+            "rejectHits": [1],
+            "score": 50.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 222
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 223
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 220
+            }
+          ],
+          "tokens": 32530
+        },
+        {
+          "caseId": "SSD-F3-06",
+          "status": "completed",
+          "answer": "**结论一（拒签“判盘故障”）：FID 06h 读成 Invalid Field in Command 是规范强制行为，不是故障证据。**\nNVMe 2.1 §5.1.25.1.4（PDF p.398）：易失写缓存不存在时，Get/Set Features 指定 FID 06h 须以 Invalid Field in Command 中止；同盘 Identify Controller 的 VWC.VWCP=0（Figure 312，PDF p.344）表示控制器无易失写缓存，两者自洽。验收程序据该读数判盘的规则应撤销。\n\n**结论二（可签，但只到这一层）：**可签“该盘不提供易失写缓存，不存在缓存侧掉电易失窗口”。供应商那句“全部数据已具备掉电保护”**不能签**：p.398 Note 允许控制器在缓存能保证掉电时写入非易失介质时按非易失处理（此时 VWCP 仍报 0），而 VWCP=0 只是设备申报的属性，不是已验证行为；本轮无掉电试验、无写请求完成记录、无外部平台持久性证据，它也不覆盖未完成写与主机/平台缓存。\n\n**最有区分力的下一步（一次受控掉电试验）**：写负载进行中、确认仍有未完成写时切断电源，重启后按写入集合校验；捕获点为每条写的完成记录与断电时刻的配对。\n- 已确认完成的写全部保留 → 只能签“设备已完成的数据具掉电持久性”，仍不可签“全部数据”。\n- 已确认完成的写有丢失 → 拒签掉电保护，按盘故障处理。\n- 仅未完成写丢失 → 结论限于“已完成写”。\n- 断电时已无未完成写 → 试验未触发目标状态，加大负载重做。\n\n尚不能认定：该盘是“无缓存”还是“缓存受掉电保护”（Note 允许二者都报 0），只能由上述试验区分，不影响当前处置。",
+          "seconds": 78.31,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "区分了 FID 06h 的规定返回和整机掉电承诺，但“已确认完成的写有丢失 → ……按盘故障处理”未先定位平台断电、写完成和被校验数据的边界。一次端到端异常不能据此给盘定责。",
+            "otherError": "“只能由上述试验区分”无缓存和掉电保护缓存并不成立，两种设计均可在该试验中保全已完成写。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 343
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 344
+            }
+          ],
+          "tokens": 50387
+        },
+        {
+          "caseId": "SSD-F3-07",
+          "status": "completed",
+          "answer": "**当前决定：两笔数据都不能登记，这批 VPD 采集值作废，须重采后登记。**\n\n**依据（PCIe 5.0 §7.9.19，p.980；VPD Data 寄存器见 p.981）**：读 VPD 的规定序列是 ①单次写 VPD Address 寄存器（F=0＋目标地址），②硬件把 4 字节搬入 VPD Data 后置 F=1，③软件监视到 F=1 后才可读 VPD Data；同页写明\"在 F 变为 1 之前写 VPD Address 或 VPD Data 行为未定义\"。现场另一线程在 F 仍为 0 时改写了 VPD Address，采集器随后未等到本地址的 F=1 就直接取 Data —— 该 Data 与目标地址的对应关系未定义，不能作为\"上一槽序列号\"的证据。\n\n**越权判断**：F=0 的地址写只是读请求，未改写 VPD 内容，无越权写；但需确认另一线程那次写也带 F=0（若含 F=1 即等于发起 VPD 写请求，结果不可预测，需另案追）。\n\n**最有区分力的下一步**：对两个槽按协议串行重读——每个地址单次写 F=0，轮询到 F=1 才读 Data，并记录地址与 F=1 时刻。\n- 本盘重读值 = 已登记字符串 → 数据本身对，错在槽位映射/派发环节，改登记并修管线；\n- 本盘重读值 ≠ 已登记字符串，而上一槽重读值 = 已登记字符串 → 采集取到另一地址数据，撤回登记、重采并加互斥；\n- 两者都不等 → 已登记值来源不在本次 VPD，按绑定记录查采集器缓存与映射。\n\n仍待确认：另一线程写地址时 F 的取值；本盘与上一槽的槽位→地址对应表来源。NVMe 2.1 相关片段（Identify Controller VWCI，p.329）与本传输无关。",
+          "seconds": 48.58,
+          "toolCalls": 3,
+          "review": {
+            "usability": "misleading",
+            "reason": "旧样本作废、按本地址 F=1 后重采的办法正确。但“两者都不等 → 已登记值来源不在本次 VPD”排除了正在进行的未定义传输产生旧值或混合字节的可能；重读值只决定新登记，不能倒推旧采样来源。依此会误把调查限于缓存与映射。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 980
+            }
+          ],
+          "tokens": 24239
+        },
+        {
+          "caseId": "SSD-F3-11",
+          "status": "completed",
+          "answer": "**决定：现在不能切测试流，业务继续留在原默认 VC。**\n\n**依据（PCIe Base 5.0）**：§7.9.1.8 \"VC Resource Status\" 的 RO bit 1 \"VC Negotiation Pending\" 写明：\"Before using a Virtual Channel, software must check whether the VC Negotiation Pending bits for that Virtual Channel are Clear in both components on the Link.\"（PDF p.898）。SSD 端同一 VC 仍为 1，说明该 VC 协商未完成；Root Port 侧为 0 只代表 Root Port 组件，不代表对端，不满足\"两端都 Clear\"。该位仅在 DL_Active 且 VC Enable=1 时有定义（p.898），你们两项前提都成立，所以 SSD 侧的 1 是有效读数，不是保留值（仅 VC0 可硬连为 0）；两端 VC Enable=1 也满足 VC Resource Control note 2（p.897）。\"未观察到两端同一时刻清零\"意味着现有记录连这一检查本身都不成立。\n\n**下一步（一次区分）**：在同一观察窗口内同时读两端 VC Resource Status 的 VC Negotiation Pending，并同窗读两端 VC Resource Capability 中该 VC 的 VC ID。\n- 两端同窗均为 0：协商完成，再切测试流，业务仍在 VC0。\n- SSD 端仍为 1：查 SSD 侧该 VC 的 VC Enable 与 VC ID 映射是否与 Root Port 一致，不切流。\n- 错时读数：不能认定同时清零，继续按同窗轮询。\n\n**待确认**：SSD 是否已退出 FC_INIT2；两端 VC ID 映射是否一致。NVMe 候选片段（硬件错误事件、SR-IOV 次级控制器）与本决策无关。",
+          "seconds": 22.53,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒切、保持 VC0 及检查两端 Pending 正确，但“读两端 VC Resource Capability 中该 VC 的 VC ID”会查错寄存器。VC ID 在 VC Resource Control[26:24]（PCIe 5.0 pp.896–897），不是 Capability 字段。",
+            "otherError": "§7.9.1.8 要核实同一 VC 双端已清零，并未规定配置空间读取必须同一瞬间完成。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [],
+          "tokens": 14428
+        },
+        {
+          "caseId": "SSD-F3-09",
+          "status": "completed",
+          "answer": "**结论：这一拍不能清 DPC Trigger Status。**\n\n**依据（已核对）**\n- PCIe 5.0 p.958 §7.9.15.4 DPC Status Register，bit 5 DPC RP Busy：“If software Clears the DPC Trigger Status bit while this bit is Set, the behavior is undefined.”\n- PCIe 5.0 p.526 §6.2.10：“When the DPC Trigger Status bit is Set and the DPC RP Busy bit is Set, software must leave the Root Port in DPC until the DPC RP Busy bit reads 0b.”\n\n你的 DPC RP Busy=1，属未定义行为，脚本必须先轮询到 0 再清。DLL Link Active 已读 0，满足 p.526 另一前提（LTSSM 已到 Disabled 并保持到状态位被清）。清后等 LTSSM→Detect 重训练、DL_Active 再为 1（用 DLL State Changed 中断或 DL_Active ERR_COR）。\n\n**全 F 不能当“拔出”证据**：链路在 Disabled，请求本就送不到盘；平台在保护期合成 UR 读为全 F。物理存在只能以枚举/config space 的有效 VID/DID 判定。\n\n**最有区分力的下一步**：按合规顺序恢复后（RP Busy=0 → 清状态 → DL_Active=1），重读该功能 config space 的 VID/DID，并读 Root Port AER UE Status 的 Unsupported Request / Completion Timeout 位。\n- VID/DID 有效 → 盘一直在，全 F 是保护期伪像；后续走恢复后受控复测，盘侧应见 PCIe Link Status Change(04h)/Link Not Active(05h) 事件（NVMe p.263）。\n- 枚举缺失 → 才转查掉电/热插拔/链路；AER 无 UR/CRS 也只能说明合成不经过 PCIe 完成路径，不能反证拔出。\n\n**仍待确认**：DPC Trigger Reason 实值、独立的存在记录、平台全 F 合成条件、恢复后枚举结果。",
+          "seconds": 26.84,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "“bit 5 DPC RP Busy”定位错误，PCIe 5.0 PDF p.958 定义的是 bit 4。轮询 bit 5 可能误以为端口空闲，在实际仍 Busy 时清 Trigger Status，结果未定义。",
+            "otherError": "“VID/DID 有效 → 盘一直在”也不能证明故障期间一直是同一块盘。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 958
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 526
+            }
+          ],
+          "tokens": 17074
+        },
+        {
+          "caseId": "SSD-F3-10",
+          "status": "completed",
+          "answer": "**结论：不能这样核预算——把两块盘登记为 0 W 并据此增加装机数不成立。**\n\n**依据**\n1. PCIe 5.0 §7.8.1.2（p.830）：Power Budgeting Data Select 只是\"从 0 起选第 N 个 DWORD\"的索引，无固定语义；超出设备实现的记录数所读内容无定义，全零不等于 0 W。\n2. Table 7-89（p.831）：全零 Data 解码为 PM State=00b(D0)、Type=000b(PME Aux)、Power Rail=000b(12V)、Data Scale=1.0x、Base Power=0，只说明某条 PME Aux/12V 条件为 0；而 D0 Maximum 是 Type=111b（p.832），且 D0 Maximum/D0 Sustained 每电源轨必须提供（p.832 强制段）。\n3. Table 7-90（p.833）：System Allocated=1 时\"该设备上报的 Power Budgeting Data 必须被软件忽略\"；§6.8.1（p.573）说明固件已分配预算时置此位。\n4. 换装成两种 SSD 后，同一索引 8 指向不同记录，不能跨设备沿用同一取值。\n\n**下一步（一次区分）**：对每块盘读 Capability 寄存器 0Ch 的 bit0，并从 Data Select=0 起逐条枚举解码 PM State/Type/Power Rail。\n- bit0=1 → 忽略设备数据，按平台已分配预算计数，不重复登记。\n- 枚举到 PM State=D0 且 Type=Maximum(111b) 的记录 → 按 Base Power×Data Scale 逐轨相加（含 Thermal 差异项）登记；index 8 越界即\"无该记录\"，禁止填 0。\n- 交叉核对 Identify CNS 01h 的 PSD 最大功率 MP：≠0 则用其值；=0 属\"未上报\"（NVMe 2.1 Figure 313，p.353），同样不得记 0。\n\n**仍待确认**：无实测，PCIe 数值为设备申报值；两块盘真实 D0 功耗与槽位/PSU 余量未知，装机数应由平台预算与厂商规格决定。",
+          "seconds": 53.63,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "“超出设备实现的记录数所读内容无定义”与 §7.8.1.3 的越界必全零相反；“逐轨相加（含 Thermal 差异项）”又会将热负载当作电源轨重复计入。以这两条核算会错误识别记录或错配装机预算。",
+            "otherError": "NVMe 某电源状态的 MP 也不能无条件替换 PCIe D0 各供电轨的最大需求。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 831
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 832
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 833
+            }
+          ],
+          "tokens": 47256
+        },
+        {
+          "caseId": "SSD-F3-03",
+          "status": "completed",
+          "answer": "**当前决定**：两件事都先不做。① 不要把\"早的那段\"按重复事故剔除；② 不要用控制器时间差当本次停顿的时长——停顿用采集机单调时钟测，控制器差值只能当下界。\n\n**依据（NVM Express Base 2.1）**\n- p.402 §5.1.25.1.7 注释：Timestamp 可保存时，复位/上电后恢复的是\"保存的值\"，因此\"时间戳可能看起来向前倒退\"。→ 维护后时间戳早于前一条，是复位后按保存值重起算（新纪元），不是重复事故；按时间戳去重会抹掉复位本身这一证据。\n- p.403 图396：Synch=1 只说明控制器\"可能在厂商特定区间（如非工作电源态）停止计数\"，与倒退成因无关，却使控制器时间差 < 真实间隔；跨复位取差更无效（基准已换）。\n\n**尚不能认定**：TSTMPO 是 001b（以主机 Set Features 值初始化，即保存值已恢复）还是 000b（被 CLR 清零；此时 TSTMP 为\"距最近一次 CLR 的毫秒数\"，非纪元时间）；\"早的那段\"是复位后同一段还是另一次事故。\n\n**一次区分性检查（各结果对应动作）**\n1. 先读已捕获那次 Get Features 数据缓冲的 TSTMPO（无需新命令）。\n2. TSTMPO=001b → 倒退＝复位重基准：不剔除该段，按采集机单调时钟＋命令序列号重排，跨段时长用单调时钟。\n3. TSTMPO=000b → 控制器未跨复位保持时间戳：日志值不是纪元时间，全部时长改用采集机单调时钟，并另找复位证据。\n4. 同时发 Get Features，Select=000b（当前）与 Select=010b（保存）；若 010b 返回默认值，说明无保存值、并未恢复（p.221/222 退化规则）。\n5. 之后 Set Features 按主机 UTC 校时，复核取值递增并与采集机对齐，再考虑用控制器差值辅助。",
+          "seconds": 46.32,
+          "toolCalls": 5,
+          "review": {
+            "usability": "misleading",
+            "reason": "“控制器差值只能当下界”和“SYNC=1……使控制器时间差 < 真实间隔”超出观测。跨复位时没有共同时间基准，SYNC=1 也只表示可能暂停；据此给停顿报下界或认定确已暂停会形成错误事故时间线。",
+            "otherError": "TSTMPO=001b 不能单独证明本次回退来自恢复，Saved=Default 也不能证明没有保存值。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 0.5,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 65.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 402
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 403
+            }
+          ],
+          "tokens": 22475
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}
