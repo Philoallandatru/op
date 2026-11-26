@@ -106,7 +106,7 @@ describe('agent evaluation workbench', () => {
     state.scope = 'ssd-example';
     mount();
     fireEvent.click(screen.getByRole('button', { name: 'Open SSD example' }));
-    await screen.findByText('现场验收记录与同题耗时 · 第十六轮 16 道独立新题');
+    await screen.findByText('现场验收记录与同题耗时 · 第十六轮 16 道合成题 · 模型盲评');
     const table = within(screen.getByRole('table', { name: 'Run metrics' }));
     const baseline = within(
       table.getByRole('row', { name: /第九轮 · 核对边界与验收记录/ }),

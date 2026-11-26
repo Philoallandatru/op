@@ -62,6 +62,6 @@ python -X utf8 -m unittest discover -s examples/ssd-evaluation -p test_evidence_
 
 `--answer-style concise-acceptance` 同样以一个会话完成取证和签发，复用验收三项，并将各项事实放在首次使用的位置。预取对 IDLP 和 Completion 合并定位到对应规范段落。配合 `skills/concise-fieldproof/ssd-field-decisions/SKILL.md`，验收记录保留同次失败 CQE 的状态字段和工单要求的数据校验。在现有记录足以覆盖工单时可以按实测范围签发。
 
-`--answer-style field-acceptance --skill examples/ssd-evaluation/skills/concise-witnesses/ssd-field-decisions/SKILL.md` 继续使用同一个取证和签发会话。预取匹配 Flush 覆盖时序和作用域、DNR 状态含义，以及 IDLP 换算和测量起点。答卷区分已有证据的留存记录和待验项目的重新评估门槛，配对原始提交与完成，并核对日志是否来自同次事件。
+`--answer-style field-acceptance --skill examples/ssd-evaluation/skills/scoped-field-acceptance/ssd-field-decisions/SKILL.md` 继续使用同一个取证和签发会话。预取匹配 Flush 覆盖时序和作用域、DNR 状态含义，以及 IDLP 换算和测量起点。答卷区分已有证据的留存记录和待验项目的重新评估门槛，配对原始提交与完成，并核对日志是否来自同次事件。门铃槽位工单优先预取布局与配置；涉及通知行为时保留第 702 页的比较规则。[门铃回归](studies/doorbell-scope/README.md)
 
 复核输入将搜索结果拆成带页号的完整摘录，优先装入字段读取，并保留实际返回的预取结果。输出把关键条件逐项列在处置下方。只有同期证据或可核实的区间覆盖支持历史结论。

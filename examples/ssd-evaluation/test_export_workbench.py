@@ -66,6 +66,24 @@ class WorkbenchExportTest(unittest.TestCase):
         rows = report["rounds"][0]["results"]
         self.assertEqual([row["status"] for row in rows], ["pending", "pending"])
 
+    def test_local_bank_exports_reviewed_attempts_without_the_source_reference(self):
+        bank = Path(__file__).resolve().parent / "scenarios/field-engineering-v16.jsonl"
+        case = dict(load_lines(bank)[0], id="LOCAL-1", origin="field", source_ref="PRIVATE-REFERENCE")
+        self.rows("local-bank.jsonl", [case])
+        plan = blind(case)
+        self.rows("local-plan.jsonl", [plan])
+        self.run_record(plan, "Use the original record.")
+        self.rows("reviews.jsonl", [dict(self.review, id=case["id"], question=plan["question"],
+                                       answer="Use the original record.", criteria={"C1": 1, "C2": 1, "C3": 1})])
+        manifest = self.root / "manifest.json"
+        manifest.write_text(json.dumps({"title": "Local study", "caseBank": "local-bank.jsonl",
+                                        "rounds": [dict(self.config, plan="local-plan.jsonl")]}), encoding="utf-8")
+        report = build(manifest)
+        self.assertNotIn(case["source_ref"], json.dumps(report))
+        result = report["rounds"][0]["results"][0]
+        self.assertEqual((result["caseId"], result["seconds"], result["review"]["usability"]),
+                         ("LOCAL-1", 12, "ready"))
+
     def test_bundled_report_matches_reviewed_archive(self):
         kit = Path(__file__).resolve().parent
         manifest = kit / "studies/field-usable-v16/workbench-manifest.json"
@@ -77,6 +95,12 @@ class WorkbenchExportTest(unittest.TestCase):
             previous = kit / f"reports/{round_name}.json"
             self.assertEqual(json.loads(previous.read_text(encoding="utf-8")),
                              build(kit / f"studies/{round_name}/workbench-manifest.json"))
+
+    def test_doorbell_report_matches_reviewed_replays(self):
+        kit = Path(__file__).resolve().parent
+        report = kit / "reports/doorbell-scope-regression.json"
+        manifest = kit / "studies/doorbell-scope/workbench-manifest.json"
+        self.assertEqual(json.loads(report.read_text(encoding="utf-8")), build(manifest))
 
     def test_archived_scores_and_different_planned_denominators(self):
         self.run_record(self.plan[0], self.review["answer"])

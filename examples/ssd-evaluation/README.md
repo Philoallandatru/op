@@ -31,6 +31,8 @@
 
 第十五轮增加通过项留存记录与待验项复验门槛，并在原预取预算内提供 Flush、DNR 和 IDLP 条款。第十六轮配对门铃配置的原始提交与完成，要求错误日志关联同次事件。[第十五轮](studies/field-usable-v15/README.md) · [第十六轮](studies/field-usable-v16/README.md)
 
+门铃专项回归覆盖槽位恢复签发、通知无需额外写入、历史通知遥测不足三种场景。报告可直接导入，模型用同一盲题册跨机器重放。真实工单另有本地题库和工程师签发记录评审口径。[门铃回归](studies/doorbell-scope/README.md) · [现场工单盲测](field-work-order-review.md)
+
 各轮也可通过 **导入报告** 打开。[八题试跑](reports/pilot.json) · [六题改进实验](reports/iteration-study.json) · [两道迁移题](reports/iteration-transfer.json) · [第二轮](reports/field-usable-v2.json) · [第三轮](reports/field-usable-v3.json) · [第四轮](reports/field-usable-v4.json) · [第五轮](reports/field-usable-v5.json) · [第六轮](reports/field-usable-v6.json) · [第七轮](reports/field-usable-v7.json) · [第八轮](reports/field-usable-v8.json) · [第九轮](reports/field-usable-v9.json) · [第十轮](reports/field-usable-v10.json) · [第十一轮](reports/field-usable-v11.json) · [第十二轮](reports/field-usable-v12.json) · [第十三轮](reports/field-usable-v13.json) · [第十四轮](reports/field-usable-v14.json) · [第十五轮](reports/field-usable-v15.json) · [最新内置示例](../../packages/app/src/components/evaluations/ssd-example-report.json)
 
 从仓库根目录执行下列 PowerShell 命令，可以把全部工程题作为一个尚未作答的轮次导入工作台。生成和浏览这份报告只需要 Python 3.11 或更新版本。

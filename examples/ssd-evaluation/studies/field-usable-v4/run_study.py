@@ -141,6 +141,8 @@ def run(pi, adapter, workers):
         files["pi_trial.py"] = KIT / "pi_trial_v11.py"
     if ROUND in {12, 13, 14} and not matches_text(files["pi_trial.py"], registration["code"]["pi_trial.py"]):
         files["pi_trial.py"] = KIT / "pi_trial_v14.py"
+    if ROUND in {15, 16} and not matches_text(files["field_evidence.py"], registration["code"]["field_evidence.py"]):
+        files["field_evidence.py"] = KIT / "field_evidence_v16.py"
     if ROUND == 6 and not matches_text(files["handoff_review.py"], registration["code"]["handoff_review.py"]):
         files["handoff_review.py"] = KIT / "handoff_review_v6.py"
     if (set(registration["code"]) != set(FILES)
@@ -158,9 +160,15 @@ def run(pi, adapter, workers):
 
     runner = files["pi_trial.py"]
     launcher = [sys.executable, "-X", "utf8", str(runner)]
-    if ROUND == 6 and files["handoff_review.py"].stem == "handoff_review_v6":
+    snapshots = {"handoff_review": "handoff_review_v6", "field_evidence": "field_evidence_v16"}
+    imports = {name: snapshot for name, snapshot in snapshots.items()
+               if f"{name}.py" in files and files[f"{name}.py"].stem == snapshot}
+    if imports:
         launcher = [sys.executable, "-X", "utf8", "-c",
-                    "import runpy,sys; from pathlib import Path; sys.argv.pop(0); sys.path.insert(0, str(Path(sys.argv[0]).parent)); sys.modules['handoff_review']=__import__('handoff_review_v6'); runpy.run_path(sys.argv[0], run_name='__main__')", str(runner)]
+                    "import json,runpy,sys; from pathlib import Path; sys.argv.pop(0); "
+                    "imports=json.loads(sys.argv.pop(0)); sys.path.insert(0, str(Path(sys.argv[0]).parent)); "
+                    "sys.modules.update({name:__import__(snapshot) for name,snapshot in imports.items()}); "
+                    "runpy.run_path(sys.argv[0], run_name='__main__')", json.dumps(imports), str(runner)]
 
     def job(item):
         arm, case_id = item

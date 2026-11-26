@@ -36,3 +36,17 @@ class AcceptanceReviewTest(unittest.TestCase):
         self.assertIn("idle for 10 seconds", pages[352])
         self.assertIn("command is expected to fail", pages[162])
         self.assertIn("completed by the controller prior to the submission", pages[485])
+
+    def test_slot_acceptance_keeps_configuration_pages_when_eventidx_is_a_witness(self):
+        question = ("控制器重启后沿用原物理页。本次工单要签最高合法 SQ Tail/CQ Head 的实际快速路径恢复，能验收吗？\n\n"
+                    "现场观测\n- 新 Doorbell Buffer Config 的有效 CQE 成功，同次轨迹有 PRP1 Shadow 和 PRP2 EventIdx 槽写。")
+        with PageRetriever(ROOT) as index:
+            passages = field_passages(index, "nvme", question)
+        self.assertEqual({entry["pdf_page"] for entry in passages}, {445, 446})
+
+    def test_notification_acceptance_keeps_the_eventidx_rule_even_when_slots_are_verified(self):
+        question = ("最高合法 SQ Tail 槽位已核，Shadow 从 4 推到 7，未写控制器门铃可以签通知符合吗？\n\n"
+                    "现场观测\n- 同次 EventIdx=9。")
+        with PageRetriever(ROOT) as index:
+            passages = field_passages(index, "nvme", question)
+        self.assertIn(702, {entry["pdf_page"] for entry in passages})

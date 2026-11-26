@@ -5,7 +5,7 @@ from pathlib import Path
 from statistics import median
 
 from benchmark import LABELS
-from scenario_eval import blind, keyed, load_lines, score, select
+from scenario_eval import blind, keyed, load_lines, score, select, validate_design
 
 
 def read_json(path):
@@ -169,7 +169,12 @@ def build(manifest_path):
     rounds = keyed(manifest["rounds"], "manifest rounds")
     if not rounds:
         raise ValueError("At least one round is required")
-    bank = keyed(select(argparse.Namespace(suite="all", split=None, id=None)), "cases")
+    if "caseBank" in manifest:
+        bank = keyed(load_lines(directory / manifest["caseBank"]), "cases")
+        for item in bank.values():
+            validate_design(item)
+    else:
+        bank = keyed(select(argparse.Namespace(suite="all", split=None, id=None)), "cases")
     cases = {}
     output = []
     contexts = set()
