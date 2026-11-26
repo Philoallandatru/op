@@ -1,0 +1,4 @@
+{
+  "raters": ["codex/gpt-6.2-sol", "codex/gpt-6.1-terra"],
+  "adjudicator": "codex/gpt-6.2-astra"
+}

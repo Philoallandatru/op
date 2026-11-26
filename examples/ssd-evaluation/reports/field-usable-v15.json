@@ -1,0 +1,2436 @@
+{
+  "schemaVersion": 1,
+  "title": "可执行的现场记录与同题耗时 · 第十五轮 16 道独立新题",
+  "cases": [
+    {
+      "family": "nvme-more-status-error-entry-scoped",
+      "split": "challenge",
+      "question": "这条失败记录的 CQE 有 More=1，但值班只查看了 SMART 错误计数。工单只验是否已找到该次失败的追加状态，能签吗？",
+      "observations": [
+        "按当前有效相位、SQID=5、CID=0x53 匹配了原始失败 CQE，实际 SCT/SC 已保留，More=1。",
+        "只有同控制器 SMART 的 Error Information Log Entry 总计数增加；未读取 Error Information Log Page 条目。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签已有追加状态。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "More=1 指向 Error Information Log 的命令额外状态，SMART 总数不足。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "核对当前原始 CQE 与同控制器相关条目、匹配 SQID/CID 和事件。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "用 SMART 计数断定该命令的追加状态或根因。"
+      ],
+      "id": "SSD-F15-16",
+      "referenceAnswer": "还不能签已找到追加状态。用本次失败的 SQID/CID、实际状态和时序取同控制器的 Error Information Log Page，保留与该命令相符的条目及追加状态。SMART 总数只证明观察到计数变化。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 162,
+          "section": "Status Field",
+          "anchor": "there is more status information for this command"
+        }
+      ]
+    },
+    {
+      "family": "pcie-same-transaction-id-split-ordered-misread-export-sort",
+      "split": "challenge",
+      "question": "协议验收要求同个 Read 的两个 Completion 在链路按地址升序。导出表按 Completion Address 排序后看起来正常，可以签吗？",
+      "observations": [
+        "两条原始 Completion 属于同一 Requester、Tag 和 Read 事务。当前导出表显示 Lower Address 0x10 在 0x30 之前，仪器确认导出表按地址排序。",
+        "原始链路包号 802 的 Lower Address=0x30，包号 803 的 Lower Address=0x10；同一地址窗口无回绕。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签已经证实的同事务逆序。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "同 Transaction ID 多 Completion 必须升序，地址排序报表掩盖时序。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "归档原始链路包号和 Transaction ID、实际地址，升序才过。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "按导出地址列表签字，或说可互相跨越。"
+      ],
+      "id": "SSD-F15-12",
+      "referenceAnswer": "不能签。以原始链路顺序为准，绑定同一 Requester/Tag，包 802 后接 803 实际 0x30→0x10。保留对应的 Read 与每条 Completion 的包号和 Lower Address，同一事务在链路必须保持升序。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 179,
+          "section": "Transaction Ordering",
+          "anchor": "with the same Transaction ID must not pass"
+        }
+      ]
+    },
+    {
+      "family": "nvme-smart-dur-adjacent-rounded-interval-no-exact-delta",
+      "split": "challenge",
+      "question": "SMART DUR 从 2 变成 3。可以用这两个样本验收“主机恰好读了 1000 个 512 B 单元”吗？",
+      "observations": [
+        "同一控制器、同 scope 的两个有效非零样本。工单只验精确主机读取量，忽略元数据。",
+        "上层 I/O 的实际传输长度记录尚未采集。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签仅凭 DUR 差确定精确读量。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "两端累计值分别按千单元向上取整。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "列明取同范围同区间实际传输长度并排除元数据，合计等于目标。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "用 3−2 直接换算精确 1000 个单元。"
+      ],
+      "id": "SSD-F15-13",
+      "referenceAnswer": "不能签精确差值。读数 2、3 各是分别向上取整到千单元的累计量。取同对象、同时间区间的原始主机传输记录，按计入 DUR 的命令汇总实际数据长度，不含元数据，合计 1000 个 512 B 单元才过。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 232,
+          "section": "SMART / Health Information",
+          "anchor": "is reported in thousands"
+        }
+      ]
+    },
+    {
+      "family": "nvme-flush-broadcast-rejected-by-fb-encoding",
+      "split": "challenge",
+      "question": "计划刷完附着的每个 NSID 再停机。驱动提交广播 NSID 的 Flush 后收到报错，可以签全体通过吗？",
+      "observations": [
+        "VWC 已启用，控制器 Identify VWC.FB=10b。已完成的待覆盖写位于 NSID=4 与 9。",
+        "本次 FFFFFFFFh Flush 有唯一匹配有效 CQE，实际为 Generic SCT=0、SC=0Bh（Invalid Namespace or Format）。未对两个 NSID 单独 Flush。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签广播失败。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "把 FB=10b、广播 NSID 与实际匹配的 Invalid Namespace or Format 对应。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给出按两 NSID 分别核对写完成/Flush SQE/成功 CQE的验收标准。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        }
+      ],
+      "reject": [
+        "把实际广播失败当成整体 Flush 成功或重复同一广播命令认定会通过。"
+      ],
+      "id": "SSD-F15-10",
+      "referenceAnswer": "不能签。FB=10b 对广播 Flush 返回 Invalid Namespace or Format。保留原失败 SQE/CQE，分别按 NSID 4、9 提交 Flush，归档各自的待覆盖写成功完成先于对应 Flush 提交、两个 Flush CQE 都成功。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 485,
+          "section": "Flush command",
+          "anchor": "then the controller aborts the command with"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 485,
+          "section": "Flush command",
+          "anchor": "completed by the controller prior to the submission"
+        },
+        {
+          "id": "P3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 163,
+          "section": "Generic Command Status",
+          "anchor": "Invalid Namespace or Format"
+        }
+      ]
+    },
+    {
+      "family": "nvme-dnr-current-zero-approval-renewal-queue",
+      "split": "challenge",
+      "question": "当前错误 DNR=0。值班流程要求重试审批且只准单次，去年的许可已过期，能直接做这一次吗？",
+      "observations": [
+        "本次 Read 与有效的当前 CQE 按队列和 CID 对上，实际 SCT/SC 已记录为非成功，DNR=0。此机的工单、NSID 与旧许可对象相同，但有效期已于上一个班次结束。",
+        "应按当前错误重新确认处置，系统从未授权无限重试。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "不立即执行。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "DNR=0 表示可能成功，不能代替有效许可。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "查当前原始完成记录中的状态和 DNR、核对涵盖这次单次重提的有效许可。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "把 DNR=0 或旧批准当成自动授权或保证成功。"
+      ],
+      "id": "SSD-F15-05",
+      "referenceAnswer": "当前不重提。保存原 Read 和匹配的当前失败 CQE 中的实际 SCT/SC、DNR=0。根据错误及工单核对当前条件与适用等待时间，拿到覆盖此次单次重试的有效许可后，再评估这次重试。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 162,
+          "section": "Status Field",
+          "anchor": "the same command may succeed if retried"
+        }
+      ]
+    },
+    {
+      "family": "flush-independent-sq-with-completion-before-submit",
+      "split": "challenge",
+      "question": "这份工单只验 NSID=21 的测试写进入 Flush 覆盖范围。有不同的提交队列，能签字吗？",
+      "observations": [
+        "易失写缓存已使能。NSID=21 的 Write 在 SQ 3 上，用有效相位、SQID/CID 匹配的成功 CQE 记录在 10:02:11.230，之后另一 SQ 5 才在 10:02:11.310 提交该 NSID 的 Flush，匹配的 CQE 成功。",
+        "时钟源相同，第三条 I/O 属于 NSID=22。工单需要列明应附的原始记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "批准本次范围。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "覆盖证据是同 NSID 的 Write 完成早于 Flush 提交，不取决于是否同 SQ。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "列齐 Write 提交/有效成功 CQE、Flush SQE/有效成功 CQE及顺序记录。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "因不同 SQ 拒签或扩展到 NSID=22。"
+      ],
+      "id": "SSD-F15-01",
+      "referenceAnswer": "签 NSID=21 的测试写覆盖。保存对应 Write 提交及成功 CQE、Flush SQE 与成功 CQE，核对同 NSID、Write 完成在 Flush 提交之前。不同 SQ 在这项判据下可用。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 485,
+          "section": "Flush command",
+          "anchor": "completed by the controller prior to the submission"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 163,
+          "section": "Generic Command Status",
+          "anchor": "The command completed without error"
+        }
+      ]
+    },
+    {
+      "family": "pcie-ido-completion-permission-with-both-matching-and-different-ids",
+      "split": "challenge",
+      "question": "只验交换机这一笔 Completion 超越较早 Posted Request 是否被 IDO 规则允许。可以签吗？",
+      "observations": [
+        "同方向同流量类别的原始入端和出端捕获表明该对确实发生超越。较早 Posted Request 的 Requester ID=04:00.0。",
+        "实际 Completion 的 IDO=1、RO=0、Completer ID=05:00.0、Requester ID=04:00.0。工单不需要判断所有请求的排序。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "批准此对实际超越符合规则。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "核对正确的两个 ID 和 IDO 条件。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "保留原始入出端捕获/顺序及 IDO 与两 ID。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "取 Completion Requester ID 来否决，或把该许可变成强制超越。"
+      ],
+      "id": "SSD-F15-15",
+      "referenceAnswer": "可以签这对记录的超越许可。比较的是 Completion 的 Completer ID 与较早 Posted Request 的 Requester ID，05:00.0 与 04:00.0 不同。保留入出端配对与包序、两个 ID 和 Completion IDO=1。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 179,
+          "section": "Transaction Ordering",
+          "anchor": "of the Completion is different from the Requester"
+        }
+      ]
+    },
+    {
+      "family": "smart-upl-controlled-abnormal-single-increment",
+      "split": "challenge",
+      "question": "只验非正常电源切断要计入 UPL。这一次的计数器结果可以签吗？",
+      "observations": [
+        "同一控制器同次断电轨迹在主电源下降时 CSTS.SHST=01b；管理端没有介质访问。唯一这次断电前 UPL=71、冷启后也是这颗控制器读出的 UPL=72。",
+        "工单不评价实际数据损失。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "批准计数行为。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "解释主电源失去时 SHST=01b 的语义。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "录下同一个控制器、断电现场 SHST/电源和前后计数。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1"
+          ]
+        }
+      ],
+      "reject": [
+        "把测试通过等同于安全断电或有数据损坏。"
+      ],
+      "id": "SSD-F15-04",
+      "referenceAnswer": "该非正常断电计数检查可签。附同控制器的前后 SMART、断电时 SHST 与电源轨迹，判据是本次断电时 SHST 非 10b，且计数 71→72 只增一次。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 233,
+          "section": "SMART / Health Information",
+          "anchor": "Unexpected Power Losses (UPL)"
+        }
+      ]
+    },
+    {
+      "family": "pcie-msix-per-entry-shared-address-different-data-mask",
+      "split": "challenge",
+      "question": "冻结 MSI-X 表项 3 后仍抓到同地址写。工单只验表项 3 被禁止发消息，可以说屏蔽失败吗？",
+      "observations": [
+        "同一 Function 的表项 3、7 目的地址相同，读回数据分别为 0x100、0x107。Function Mask=0，表项 3 在测试窗口一直掩蔽，7 可发送。",
+        "同步注入分别标记了两项的事件，窗口内抓到的唯一匹配地址的消息为该 Function 的 Data=0x107，表项 3 的 PBA 置位。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "不将同地址消息归为表项 3 发出，并限定屏蔽结论。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "用完整地址及数据组合区分两表项。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "核对掩蔽、PBA、注入窗口及相关实际 TLP 无表项 3 组合。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "仅用同地址消息判表项 3 掩蔽失败。"
+      ],
+      "id": "SSD-F15-09",
+      "referenceAnswer": "该条消息由表项 7 的地址/数据配置对应，记录支持表项 3 的掩蔽检查。附两项完整读回和掩蔽/PBA、同步注入与实际 TLP。该工单的通过条件为表项 3 持续掩蔽、触发后 pending，窗口内无其地址和 Data=0x100 的消息。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "Sending Messages",
+          "anchor": "with the appropriate message data"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "Per-vector Masking",
+          "anchor": "prohibited from sending the associated message"
+        }
+      ]
+    },
+    {
+      "family": "pcie-tph-valid-tag-unsigned-fallback-table-owner",
+      "split": "challenge",
+      "question": "工程师准备换短 Steering Tag。目标报文已能写出这个值，但工单要求固件和应用都批准映射。现在能启用吗？",
+      "observations": [
+        "目标 Function 当前笔普通报文 TH=1、ST[7:0]=0x56，符合候选映射 R52。固件签字有效，应用只签过旧 R51 中的 0x38。",
+        "工单要求目标 Function+应用映射的新值获双方批准，并能对应真实请求。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "暂缓启用。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "按题面区分真实 ST、固件 R52 与旧应用 R51 批准。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "查同 Function/应用目的的两份 R52 批件和实际请求的 TH/ST。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "用实际报文或任何一方旧批准代替双方当前批准。"
+      ],
+      "id": "SSD-F15-07",
+      "referenceAnswer": "暂不启用 R52。保留已有的固件 R52 批准和目标请求 TH=1、ST[7:0]=0x56 记录。查询同一目标 Function 和应用用途的 R52 审批，两方批准一致且当前目标请求匹配才发布。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 133,
+          "section": "Steering Tags",
+          "anchor": "Location of ST[7:0] in the Memory Write"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 608,
+          "section": "TPH Requester",
+          "anchor": "enable the Function to initiate Requests with TPH"
+        }
+      ]
+    },
+    {
+      "family": "nvme-fused-data-unchanged-after-expected-compare-failure",
+      "split": "challenge",
+      "question": "本次 Fused 故障注入工单既要首 Compare 因预定不匹配失败并使 Write 中止，也要原数据不变。现场能结案吗？",
+      "observations": [
+        "适用命令集及支持位已核，两个提交和有效 CQE 分别按当前相位及 SQID/CID 对上。首条为计划明确指定的 Compare 不匹配状态，次条 SCT=0、SC=09h。",
+        "同一 NSID=3、LBA=0xB20 的独立读回记录，测试前与 Fused 结束后的校验值均为预期 A6；期间无其他写该 LBA。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "签发本次故障注入。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "首条预期错误、次条 SCT=0/SC=09h 符合规则，数据不变单独验证。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "归档两套命令/CQE 对应关系和两个同一 LBA 的校验值等于 A6。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "以二者非成功拒签预期负测，或略去数据验收。"
+      ],
+      "id": "SSD-F15-06",
+      "referenceAnswer": "通过该注入。保留两条提交和分别匹配的有效 CQE，首条为预期不匹配，次条是伙伴失败中止；附同 NSID/LBA 前后校验都为 A6 的原始读回。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 120,
+          "section": "Fused Operations",
+          "anchor": "second command in the sequence shall be aborted"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 163,
+          "section": "Generic Command Status",
+          "anchor": "Command Aborted due to Failed Fused Command"
+        }
+      ]
+    },
+    {
+      "family": "nvme-feature-readback-current-not-supported-attributes",
+      "split": "challenge",
+      "question": "从 Get Features 的成功返回字判断这个 Feature 支持保存。该证据能签吗？",
+      "observations": [
+        "属于同一控制器的原始 Admin SQE 记录 SEL=000b，匹配的成功 CQE DW0 最低位为 1。",
+        "工单只要 Feature 是否支持保存，不要求执行保存。尚无 SEL=011b 的请求或完成。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签当前最低位推断。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "SEL=011b 的 DW0 才含 SVBL；SEL=000b 的内容是 feature-dependent。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "记录同控制器、FID、SEL=011b 与对应成功 CQE 的 DW0.SVBL=1。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "把当前值 DW0 的最低位当保存能力，或实际改写设置来判断。"
+      ],
+      "id": "SSD-F15-14",
+      "referenceAnswer": "不能根据这份回执签。获取同控制器同 FID 的 Get Features SEL=011b，保留匹配的有效成功 CQE，DW0 的 SVBL 位为 1 才证明支持保存。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 223,
+          "section": "Get Features",
+          "anchor": "capabilities supported for this Feature"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 223,
+          "section": "Get Features",
+          "anchor": "then the feature values are saveable"
+        }
+      ]
+    },
+    {
+      "family": "nvme-idle-ips-0001-watt-timed-warmup",
+      "split": "challenge",
+      "question": "目标功率状态的 IDLP 描述符和空闲表计均值都要 ≤0.075 W。这是完整采样，能签吗？",
+      "observations": [
+        "同一子系统目标功率状态的 IDLP=600、IPS=01b。保持该状态并空闲 10 秒后无间断采样 30 秒，期间没有待处理命令、属性访问或后台操作。",
+        "表计平均 0.071 W，状态时序和表计串在同一测试事件。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "批准这次双门槛。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "正确使用 IPS=01b 换算得到 0.060 W。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "关联同一状态的预空闲 10 秒、采样 30 秒、实测均值和双阈值。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        }
+      ],
+      "reject": [
+        "把 IPS=01b 当 0.01 W 或把实际量测和描述符合并。"
+      ],
+      "id": "SSD-F15-03",
+      "referenceAnswer": "可以签指定状态。归档状态描述符及空闲起点、采样起止和原始表计记录。报告值 600×0.0001 W=0.060 W，且空闲 10 秒后的 30 秒窗口实测均值 0.071 W，均满足 ≤0.075 W。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 352,
+          "section": "Power State Descriptor",
+          "anchor": "typical power consumed by the NVM subsystem"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 352,
+          "section": "Power State Descriptor",
+          "anchor": "01b 0.0001 W"
+        },
+        {
+          "id": "P3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 352,
+          "section": "Power State Descriptor",
+          "anchor": "idle for 10 seconds"
+        }
+      ]
+    },
+    {
+      "family": "nvme-hysteresis-over-threshold-equality-not-yet-recovered",
+      "split": "challenge",
+      "question": "热保护恢复脚本看到温度等于回差门槛就准备签恢复，当前可以签吗？",
+      "observations": [
+        "控制器支持 Composite Temperature 的 over-temperature hysteresis。已触发事件，上阈值 340 K，TMPTHH=4 K。没有其他温度事件。",
+        "当前同次 SMART Composite=336 K、TTC=1，事件与测试同步，脚本准备把这个采样点签为已恢复。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签等于门槛的时点。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "计算 336 K 且使用严格小于。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "核对实际阈值、回差、同一事件温度及 TTC/恢复事件。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "把 336 K 当作已经恢复。"
+      ],
+      "id": "SSD-F15-11",
+      "referenceAnswer": "不能签此时恢复。该事件需要温度降到 340−4=336 K 以下。保存阈值及回差配置、同一事件的 SMART 轨迹与恢复事件记录；出现低于 336 K 且该事件恢复、TTC 清零才过。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 397,
+          "section": "Temperature Threshold Hysteresis",
+          "anchor": "to less than that temperature threshold minus"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 397,
+          "section": "Temperature Threshold Hysteresis",
+          "anchor": "the TTC bit"
+        }
+      ]
+    },
+    {
+      "family": "doorbell-post-reset-same-address-fresh-write-proof",
+      "split": "challenge",
+      "question": "控制器重启后沿用原物理页。本次工单要签最高合法 SQ Tail/CQ Head 的实际快速路径恢复，能验收吗？",
+      "observations": [
+        "发生 Controller Level Reset 后，按当前 MPS 和队列分配重新检查了两页边界、页对齐和所有权。新 Doorbell Buffer Config 的匹配有效 Admin CQE 为 SCT=0、SC=0。",
+        "本代次最高合法 SQ 与 CQ 均为 QID=9。同次两类事件的轨迹分别记录了主机写 PRP1 的对应 Shadow 槽、控制器写 PRP2 的对应 EventIdx 槽，实测地址和条目均与该代次配置及工单值匹配。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "签当前实测范围。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "规则是设置不跨重启保留，本次使用新的成功配置和轨迹。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "归档新 Admin SQE/CQE 和 QID=9 的两类实际槽位、值和各写入方。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "用旧记录解释本轮，或因物理地址沿用直接拒签。"
+      ],
+      "id": "SSD-F15-08",
+      "referenceAnswer": "可验收本代次最高合法 SQ Tail/CQ Head 的快速路径。归档同代次配置和成功 Admin CQE、两页布局、QID=9 两种事件各自的地址和值及方向。过线为新代配置成功和对应 SQ/CQ 的两页同次访问都匹配。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 445,
+          "section": "Doorbell Buffer Config",
+          "anchor": "are not retained across a Controller Level Reset"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 446,
+          "section": "Doorbell Buffer Config",
+          "anchor": "addresses are invalid, then a status code"
+        }
+      ]
+    },
+    {
+      "family": "msix-pending-serviced-while-masked-no-later-send",
+      "split": "challenge",
+      "question": "表项 2 的中断在保持掩蔽时被服务，验收只测解掩后不会误发这条已完成事件。能签吗？",
+      "observations": [
+        "MSI-X Enable=1，Function Mask=0，表项 2 从事件注入到处理完成一直 Vector Mask=1。PBA 位随事件置位，事件被服务后清零，期间无该表项消息。",
+        "解掩后工单规定的观察窗口内无新事件。同步分析仪按 Function 和目标表项地址/数据捕获，未发出该表项的消息。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "签本次已处理事件范围。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "待处理中断在掩蔽时已服务应清 PBA，避免晚发。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "把服务、掩蔽/PBA、真实解掩和同项消息观察窗口串联。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "要求解掩后必须发送这条已被服务的事件。"
+      ],
+      "id": "SSD-F15-02",
+      "referenceAnswer": "通过该事件的防误发验证。附同次表项掩蔽/PBA 状态、事件服务、解掩时刻及目标消息 TLP 观察窗口。要看到已服务事件的 PBA 在掩蔽期清零，解掩后无该条旧事件对应的消息。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "Per-vector Masking",
+          "anchor": "to avoid sending a spurious interrupt message"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "Per-vector Masking",
+          "anchor": "prohibited from sending the associated message"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第九轮 · 核对边界与验收记录",
+      "config": "Codex Sol · 单次核验签发 · 120 秒 · 8 次取证含预取",
+      "results": [
+        {
+          "caseId": "SSD-F15-16",
+          "status": "completed",
+          "answer": "**处置** 暂不签发，尚未找到本次失败的追加状态\n\n**判定条件**\n- 按有效相位、SQID=5、CID=0x53 匹配的原始失败 CQE 中，More=1 表示该命令有追加状态，可用 Get Log Page 读取 Error Information 日志 01h。More=0 才表示该命令没有追加状态。（NVMe PDF p.160、162、229）\n- SMART 的 NEILE 是控制器生命周期内 Error Information 日志条目的累计数。现场只看到计数增加，尚无条目可归属到本次失败。（NVMe PDF p.233）\n- 01h 日志为控制器全局日志，也可记录 Error 状态类型的异步事件。非命令专属条目的 SQID 和 CID 均为 FFFFh，ECNT=0 表示无效条目。（NVMe PDF p.229）\n- 01h 按错误发生时间从新到旧返回，满时应淘汰最旧条目，电源循环或控制器级复位时应清空。事后未找到条目，不能据此否定原始 More=1。（NVMe PDF p.162、229）\n\n**必要核验** 对同一控制器成功执行 Get Log Page（LID=01h），按 Identify Controller 的 ELPE 所示容量查找 ECNT 非零、SQID=5、CID=0x53 且 STS 中的 SCT/SC 与原始 CQE 一致的条目，并用同期记录或覆盖故障区间的记录确认归属。若现场条目已不可得，可用覆盖该次失败的同控制器 01h 存档完成同样核验。取得并保存该次失败的追加状态后签发。（NVMe PDF p.162、229）",
+          "seconds": 26.73,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "拒签正确；说明了 More 与日志的关系，并给出同控制器条目及存档的匹配核验方法。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.257,
+            "draft": 0,
+            "review": 26.464,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 230
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 229
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 233
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 248
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 249
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 162
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-12",
+          "status": "completed",
+          "answer": "**处置** 不予签发\n\n**判定条件**\n- 同一 Memory Read 的多个 Completion 必须按地址递增返回数据。对返回数据的 Memory Read Completion，Lower Address 是首个有效数据字节地址的低 7 位。原始链路包 802 的 0x30 先于包 803 的 0x10，现场确认同一地址窗口无回绕。若两包均返回数据，则链路顺序违规，导出表的地址排序不能证明链路合规。PCIe PDF 第 154、170 页。\n- 不同 Transaction ID 的 Completion 可以互相越过，同一 Transaction ID 的 Completion 不得互相越过。Transaction ID 由 Requester ID 与 Tag 共同确定，现场两包属于同一 Requester、Tag 和 Read，因此不同事务的许可不适用。PCIe PDF 第 154、179 页。\n- 若 Read Completion 的状态不是 Successful Completion，则它必须无数据、使用 Cpl 或 CplLk 编码，并且是该请求的最后一条 Completion。若包 803 满足这些条件，其 0x10 不代表第二段返回数据的地址，不能据此判定数据倒序。若包 802 为非成功完成，则同一请求后续出现包 803 违反终结规则。PCIe PDF 第 173 页。\n\n**必要核验** 从同一原始链路记录核对包 802、803 的 Completion Status、TLP 编码和是否携带数据，并确认非成功完成之后没有同请求的 Completion。若两包均成功返回数据，本次记录不合格，须以复测的原始链路顺序证明同一 Read 的两段数据按地址递增后方可签发。若包 803 为合法的无数据终结完成，本次记录仍无法证明工单要求的两段数据按地址递增，须用两条成功返回数据的 Completion 重新验收。",
+          "seconds": 20.9,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "拒签并以原始链路顺序验收；附加核验 Completion 状态和数据不改变当前拒签决定。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.457,
+            "draft": 0,
+            "review": 20.437,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 179
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 170
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 171
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 173
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-13",
+          "status": "completed",
+          "answer": "**处置** 拒绝按 DUR 样本验收\n\n**判定条件**\n- NVMe 2.1 PDF 文件第 232 页规定，DUR 以 512 B 为单位统计主机读取量，排除元数据，并以千为单位向上取整。起点 DUR=2 对应 1001–2000 个单元，终点 DUR=3 对应 2001–3000 个单元。\n- 同一控制器、同一 scope 的两个有效非零样本只把区间增量限定在 1–1999 个单元。恰好 1000 个单元是其中一种可能（NVMe 2.1 PDF 文件第 232 页）。\n\n**必要核验** 取得覆盖两次采样之间完整区间、且对应同一控制器和同一 scope 的主机 I/O 实际读取长度记录。排除元数据后，只有合计恰好为 512000 B 才可验收。",
+          "seconds": 10.17,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，并给出两端取整范围及同对象、同区间的实际读取量验收条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.25,
+            "draft": 0,
+            "review": 9.91,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-10",
+          "status": "completed",
+          "answer": "**处置** 拒绝签署全体通过\n\n**判定条件**\n- VWC.FB=10b 且 NSID=FFFFFFFFh 时，控制器须以 Invalid Namespace or Format 中止 Flush。本次唯一匹配的有效 CQE 为 Generic SCT=0、SC=0Bh，确认广播命令已中止，无法据此签认 NSID 4、9 的待覆盖写入已持久化。（NVMe PDF p.344、p.485）\n- 广播覆盖处理该命令的控制器所附着的全部命名空间，须同时满足 FB=11b、NSID=FFFFFFFFh，并取得成功完成。本次控制器的 FB=10b，须走逐 NSID 路径。（NVMe PDF p.344、p.485）\n- VWC 启用时，成功的 Flush 须把指定命名空间中控制器在该 Flush 提交前已完成命令的数据和元数据提交至非易失性介质。控制器可以额外刷写其他命名空间，但该行为无法作为其他 NSID 的覆盖证据。（NVMe PDF p.485）\n- 若命名空间所在 Endurance Group 启用 FDP，且该命名空间的 VWCNP=1，则该命名空间无 VWC。VWC 不存在或未启用时，Flush 无效果，未在执行 Sanitize 时须成功，正在执行 Sanitize 时可以成功。现场未证实 NSID 4 或 9 满足该例外。（NVMe PDF p.485）\n\n**必要核验** 核对附着 NSID 清单。对每个附着 NSID 单独提交 Flush，至少包括 4 和 9，并确认各自的待覆盖写入均在对应 Flush 提交前由控制器完成。逐条核对关联 I/O CQ 中匹配的有效 CQE，全部成功后才签署并停机。（NVMe PDF p.485）",
+          "seconds": 17.84,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，并给出逐 NSID 核对写完成时序和 Flush 成功 CQE 的验收条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.423,
+            "draft": 0,
+            "review": 17.408,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 485
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 486
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 344
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-05",
+          "status": "completed",
+          "answer": "**处置** 暂不放行，须重新审批\n\n**判定条件**\n- 本次 Read 的有效 CQE 已按队列和 CID 匹配，SCT/SC 表示非成功。DNR=0 仅表示同一命令重试可能成功。若 DNR=1，同一命令重提给该 NVM 子系统内任一控制器均预期失败。NVMe PDF p.162。\n- 本机、工单和 NSID 与旧许可一致，但许可已于上一班次结束。须针对当前 SCT/SC 重新确认处置并取得有效审批，获批后最多重试一次。\n- DNR=0 且 Host Behavior Support 的 ACRE=1 时，CRD=00b 表示无需等待。CRD=01b、10b、11b 分别选用 Identify Controller 的 CRDT1、CRDT2、CRDT3，单位为 100 ms。主机应至少等待所指时长，规范允许提前重试而不视为错误。DNR=1 或 ACRE=0 时，CRD 为保留字段。NVMe PDF pp.162、328。\n\n**必要核验** 按当前 CQE 的实际 SCT/SC 确认处置并取得本次单次审批。执行前核对适用于该 CQE 的 ACRE，若 CRD 有效则读取该 CQE 的 CRD，并按需核对所选 CRDT 和等待时间。重试后按队列和 CID 核对新 CQE 的 SCT/SC，单次额度用完即停止。",
+          "seconds": 18.18,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "当前不重试，正确区分 DNR 与授权，并要求依据匹配的当前 CQE 重新确认处置及取得单次审批。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.414,
+            "draft": 0,
+            "review": 17.761,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 328
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 162
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-01",
+          "status": "completed",
+          "answer": "**处置** 签发，仅验收 NSID=21 的测试 Write 已纳入 Flush 覆盖范围。\n\n**判定条件**\n- 易失写缓存已使能。NVMe §7.2 规定，Flush 须将指定命名空间中控制器在 Flush 提交前已完成的命令所关联的数据和元数据提交到非易失介质。该规则按命名空间和完成先后划定范围，允许跨 SQ（NVMe PDF p.485）。\n- 同一时钟源记录到 SQ 3 的 NSID=21 Write 于 10:02:11.230 收到相位有效、SQID/CID 匹配且 STATUS=0h 的 CQE，早于 SQ 5 于 10:02:11.310 提交同一 NSID 的 Flush。Flush 的匹配 CQE 也成功（NVMe PDF pp.160–161、485）。\n- 控制器可以额外刷新任何命名空间的数据或元数据。NSID=22 的第三条 I/O 无强制覆盖保证，现场事实也未证明它被额外刷新（NVMe PDF p.485）。\n\n**必要核验** 随工单附同一时钟源的原始队列追踪，包含 SQ 3 的 Write 和 SQ 5 的 Flush 的提交记录（操作码、NSID、SQID、CID、提交时间），以及各自的原始 CQE（观测时间、相位位、SQID、CID、状态）。同时附测试时段的易失写缓存启用记录。",
+          "seconds": 19.18,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "批准范围正确；同 NSID 的写完成早于 Flush 提交，跨 SQ 不影响覆盖，所需原始记录齐全。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.41,
+            "draft": 0,
+            "review": 18.764,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 485
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 344
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 161
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-15",
+          "status": "completed",
+          "answer": "**处置** 可签，本次超越符合 IDO 规则\n\n**判定条件**\n- 同方向、同流量类别的原始入端和出端捕获证实该 Completion 超越了较早的 Posted Request。D2a 默认禁止这类超越，除非 D2b 适用（PCIe PDF p.179）。\n- D2b 的 IDO 路径要求 Completion 的 IDO=1，且其 Completer ID 不同于较早 Posted Request 的 Requester ID。本笔 IDO=1，05:00.0 ≠ 04:00.0，两项均满足。Completion 自身的 Requester ID 不参与此比较（PCIe PDF p.179）。\n- D2b 也分别允许 RO=1 的 Completion 或 I/O Write、Configuration Write 的 Completion 超越。本笔 RO=0，已凭 IDO 路径满足放行条件（PCIe PDF p.179）。",
+          "seconds": 10.86,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确批准该对记录，使用 Completion 的 Completer ID 与较早 Posted Request 的 Requester ID 比较；原始捕获及相关字段均已明确。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.22,
+            "draft": 0,
+            "review": 10.629,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-04",
+          "status": "completed",
+          "answer": "**处置** 签发，本次 UPL 计数合规\n\n**判定条件**\n- 主电源丢失时，当且仅当 CSTS.SHST≠10b 或满足下述带外介质访问条件，UPL 才须递增。同一控制器在本次主电源下降时报告 CSTS.SHST=01b，已满足第一项。NVMe 2.1 PDF p.233\n- 另一条路径要求介质因带外处理的介质访问 Admin 命令而不处于关机状态，且该命令的 Ignore Shutdown=1，处理时 CSTS.SHST 为 01b 或 10b。本次管理端无介质访问，第一项已独立触发计数。NVMe 2.1 PDF p.233\n- 同一控制器在这唯一一次断电前的 UPL 为 71，冷启后为 72，实测增加 1，符合本次断电的计数要求。NVMe 2.1 PDF p.233",
+          "seconds": 10.33,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "批准正确；SHST=01b 表明控制器尚未报告可断电，同控制器的现场状态和 71→72 计数均已记录。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.202,
+            "draft": 0,
+            "review": 10.118,
+            "other": 0.006
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-09",
+          "status": "completed",
+          "answer": "**处置** 通过表项 3 屏蔽验收，无屏蔽失败证据\n\n**判定条件**\n- 屏蔽期间 Function 不得发送表项关联的消息，原本应发送时必须置对应 Pending 位。表项 3 在测试窗口持续屏蔽，其事件注入后 PBA 对应位置位，窗口内未捕获其 Address/Data 对。（PCIe PDF p.500）\n- MSI-X 向量由 Address/Data 对标识。同一 Function 的表项 3、7 虽然同址，Data 分别为 0x100、0x107。Function Mask=0 且表项 7 可发送，窗口内唯一同址消息的 Data=0x107，对应表项 7。（PCIe PDF p.500）\n- 若多个表项使用相同 Address/Data 对，须屏蔽所有这些表项才能保证 Function 不发送该对。置 Function Mask 会使全部表项均按屏蔽处理，无论各表项 Mask 位取值。（PCIe PDF p.500）\n- 若软件解除某向量的屏蔽时其 Pending 位已置位，Function 必须调度关联消息，并在消息发出后立即清除该位。清除 Function Mask 可能使多条待发消息进入调度。（PCIe PDF p.500）",
+          "seconds": 11.65,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分同地址、不同数据的两项，并依据持续掩蔽、注入、PBA 和窗口内消息完成表项 3 的验收。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.246,
+            "draft": 0,
+            "review": 11.394,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-07",
+          "status": "completed",
+          "answer": "**处置** 暂不签发，禁止启用 R52\n\n**判定条件**\n- PCIe 规定 ST[7:0] 承载短 Steering Tag，全零表示无偏好。目标 Function 本次报文 TH=1、ST[7:0]=0x56，证明该请求携带了 R52 的候选值。（PCIe PDF p.133）\n- PCIe 规定 Steering Tag 是系统特定值，请求与 ST 表项的关联由设备决定。工单要求目标 Function 与该应用的 R52/0x56 映射同时获固件和应用批准，并能关联到真实请求。固件签字有效，应用只批准了 R51/0x38。（PCIe PDF p.607）\n- No ST Mode 必须使用全零。Interrupt Vector Mode 按有效 MSI/MSI-X 向量和 ST Table 范围选值，表小于启用向量范围时可对部分事务省略 TPH、用零或按实现从表中选值。Device Specific Mode 可从表外选值。任何选值路径启用 R52 都须满足同一工单门槛。（PCIe PDF pp.607–608）\n\n**必要核验** 取得应用对目标 Function 与该应用的 R52/0x56 映射的明确批准，确认固件签字覆盖同一映射且仍有效，并核对该应用的真实请求记录与目标 Function 的 TH=1、ST[7:0]=0x56 抓包对应。三项均满足后签发。",
+          "seconds": 22.57,
+          "toolCalls": 6,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓启用，区分候选报文、固件批准和旧应用批准，并要求核对同一映射的双方批准及真实请求。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.374,
+            "draft": 0,
+            "review": 22.19,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 133
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 134
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 132
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-06",
+          "status": "completed",
+          "answer": "**处置** 暂缓结案，待核对提交记录\n\n**判定条件**\n- 适用命令集及 Fused 支持位已核。两条命令须按序作为一个原子单元执行，控制器须表现为其间无其他操作。首条失败时操作在报错处结束，次条必须中止（NVMe PDF p.120）。\n- 控制器须分别发布两条 CQE。现场已按当前相位及 SQID/CID 匹配两条有效 CQE，首条 Compare 报预定的不匹配，次条 Write 的 SCT=0、SC=09h 表示因配对命令失败而中止。SQID/CID 适用于 PCIe 共享 CQ，NVMe-oF 的 CQE.SQID 为保留字段（NVMe PDF pp.121、160–163）。\n- 两条命令须以 FUSE=01b、10b 在同一 SQ 相邻提交，跨队尾时次条占首槽。基于内存的传输须一次更新 SQ Tail doorbell 覆盖两条，基于消息的传输须按序提交胶囊。若相邻项缺少受支持的配对命令，则为 Missing Fused Command（SC=0Ah）路径（NVMe PDF pp.120–121、163）。\n- 同一 NSID=3、LBA=0xB20 在测试前和 Fused 完成后独立读回均为预期校验值 A6，期间无其他写入，满足该 LBA 的数据保全验收。\n\n**必要核验** 查本次同一对 SQID/CID 的提交记录，确认 FUSE 首次序、同一 SQ 的相邻槽位（含回绕），以及适用传输的一次 SQ Tail doorbell 更新或胶囊按序提交。现有 CQE 匹配记录未给出这些提交细节，核实后即可结案（NVMe PDF pp.120–121）。",
+          "seconds": 26.6,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "原答逐条对应了提交与有效 CQE，正确解释了 Compare 预期不匹配及 Write 因伙伴失败报 09h，并核实同一 NSID/LBA 前后独立读回均为 A6，故 C2、C3 均满分。它把额外的提交槽位和传输记录核查列为结案前提，导致本应通过的注入被暂缓。",
+            "otherError": "将提交合规细节另设为本工单的放行门槛，改变了当前结案决定。",
+            "credits": {
+              "C1": 0,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 60.0,
+            "passed": false
+          },
+          "phaseSeconds": {
+            "retrieval": 0.37,
+            "draft": 0,
+            "review": 26.223,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 163
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 164
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-14",
+          "status": "completed",
+          "answer": "**处置** 拒签现有证据\n\n**判定条件**\n- 原始 Admin SQE 的 SEL=000b 请求该 FID 的当前运行属性值。匹配 CQE 虽成功且 DW0[0]=1，但在此 SEL 下 DW0 可包含 Feature 专属信息，Figure 195 的 Saveable 定义不适用。NVMe PDF p.222–223。\n- 同一控制器的 Identify Controller.ONCS.SSFS=1 时支持能力查询。SSFS=0 时仅支持当前值和默认值，即使当前值可跨电源周期或复位持久化，也不能据此认定支持保存。NVMe PDF p.181、221。\n- SEL=011b 请求指定 FID 的 Supported Capabilities。匹配的成功 Admin CQE 中，DW0[0] 为 Saveable，1 表示可保存，0 表示不可保存。现场尚无该请求或完成记录。NVMe PDF p.221、223。\n- SEL=010b 在支持保存且已有保存值时返回最后保存值。若该 FID 不支持保存或当前没有保存值，控制器按 SEL=001b 返回默认值，因此仅凭 SEL=010b 成功也不能判定支持保存。NVMe PDF p.221–222。\n\n**必要核验** 核对同一控制器的 Identify Controller.ONCS.SSFS。若为 1，对同一 FID 发出 SEL=011b 的 Get Features 并核对匹配的成功 Admin CQE，按 DW0[0] 签发能力结论。若为 0，按该控制器仅支持当前值和默认值签发不支持保存的结论。无需执行 Set Features。",
+          "seconds": 22.64,
+          "toolCalls": 6,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签当前值最低位推断，并给出同控制器、同 FID 的能力查询及成功回执判定。SSFS 核验和为 0 时的处置未见会改变判断的错误。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.452,
+            "draft": 0,
+            "review": 22.183,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 221
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 417
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 418
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 222
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 223
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-03",
+          "status": "completed",
+          "answer": "**处置** 暂缓签发\n\n**判定条件**\n- NVMe 2.1 PDF p.352 规定 IDLP 乘以 IPS 对应的倍率得出瓦数，IDLP 为 0h 表示未报告。本次 IPS=01b，倍率为 0.0001 W，IDLP=600 对应 0.060 W，满足 ≤0.075 W。\n- NVMe 2.1 PDF pp.352、557 将 IDLP 定义为同一 NVM 子系统在目标功率状态下先空闲 10 秒、再连续测量 30 秒的典型功耗。同一测试事件的状态时序和表计记录支持该时序，均值 0.071 W 满足 ≤0.075 W。\n- NVMe 2.1 PDF pp.352、557 的空闲条件包括无待处理命令、属性访问、后台进程、清理操作（Sanitize）和设备自检。现场记录支持前三项，尚未明确覆盖清理操作和设备自检。\n\n**必要核验** 核对同一子系统、同一测试事件的同期记录，确认前置 10 秒及随后 30 秒全程均无清理操作和设备自检。若现有后台操作记录明确覆盖两项且覆盖完整区间，即可签发。若无法补证，重新记录完整空闲区间并确认 30 秒表计均值 ≤0.075 W 后签发。",
+          "seconds": 18.21,
+          "toolCalls": 3,
+          "review": {
+            "usability": "misleading",
+            "reason": "IPS 换算所得 0.060 W 与同一状态预空闲 10 秒后连续采样 30 秒的均值 0.071 W 分别达标。题面已确认完整空闲采样，原答却把清理和自检须单独补证设为签发条件，实际暂缓了应签工单。",
+            "otherError": "额外证据要求导致错误暂缓，无法补证时还会触发不必要的重测。",
+            "credits": {
+              "C1": 0,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 60.0,
+            "passed": false
+          },
+          "phaseSeconds": {
+            "retrieval": 0.375,
+            "draft": 0,
+            "review": 17.832,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 352
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 557
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 556
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-11",
+          "status": "completed",
+          "answer": "**处置** 拒签当前采样点\n\n**判定条件**\n- Composite Temperature 从低于 340 K 升至大于或等于 340 K 时触发过温回差事件，TTC 置 1，并可能触发初始异步事件。现场已同步确认该事件触发。（NVMe 2.1 PDF p.397）\n- 已触发的过温回差事件须在温度降至严格低于 340 K − 4 K = 336 K 时才结束。当前同次 SMART 采样为 336 K、TTC=1，未达到结束门槛。（NVMe 2.1 PDF p.397）\n- 事件结束时必须触发 Temperature Threshold Hysteresis Recovery 事件、将 TTC 清为 0，并停止累计 Warning Composite Temperature Time。现场无其他温度事件，且 TMPTHH=4 K，只有 TMPTHH=0 才适用的无回差路径不适用。（NVMe 2.1 PDF pp.396–398）\n\n**必要核验** 待同一控制器后续同次 SMART 采样显示 Composite Temperature 低于 336 K 且 TTC=0，并核对同一事件对应的 Temperature Threshold Hysteresis Recovery 记录后，签发该后续恢复点。",
+          "seconds": 18.23,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签等于门槛的采样点，并给出严格低于门槛及对应恢复证据的验收条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.399,
+            "draft": 0,
+            "review": 17.822,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 397
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 398
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 396
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-08",
+          "status": "completed",
+          "answer": "**处置** 暂缓验收实际快速路径恢复\n\n**判定条件**\n- Controller Level Reset 不保留 Doorbell Buffer Config 设置。复用原物理页后，本代次重发配置的匹配有效 Admin CQE 为 SCT=0、SC=0，满足重配成功门槛。（NVMe PDF p.445–446）\n- 现场已按当前 MPS 和队列分配复核正文容量公式、Figure 486 全范围及两页各自的页对齐和写入方。QID=9 的 SQ Tail 和 CQ Head 分别位于每页的 18×stride 和 19×stride，条目末字节为起点加 3。同次轨迹已证实主机写 PRP1 对应 Shadow 槽、控制器写 PRP2 对应 EventIdx 槽，地址及条目值均匹配。（NVMe PDF p.445–446）\n- 配置完成后，主机更新对应 Shadow 条目。若按队列回绕比较，旧值小于等于当次 EventIdx 且新值大于它，主机还须将对应控制器门铃更新为 Shadow 新值。未跨越时可仅更新 Shadow。控制器可随时更新 EventIdx，现有槽写入轨迹不足以判定两次事件各自适用的分支。（NVMe PDF p.702）\n\n**必要核验** 分别补齐本代次 QID=9 SQ Tail 和 CQ Head 的同次记录，核对 Shadow 旧值、新值、主机判定时采用的对应 EventIdx 及各自队列深度，按回绕重建比较。跨越时须确认对应控制器门铃已写入同一新值。未跨越时，以覆盖该事件的门铃轨迹确认仅更新 Shadow。两项各自符合适用分支后放行。（NVMe PDF p.702）",
+          "seconds": 14.23,
+          "toolCalls": 2,
+          "review": {
+            "usability": "misleading",
+            "reason": "原答正确采用复位后的成功配置，也核对了 QID=9 两类事件的槽位、值和写入方，但未明确将新 Admin SQE 与匹配 CQE 一并归档。本次实测已达到签收条件，原答却要求暂缓。暂缓原因是新增门铃核验，与沿用物理页无关。",
+            "otherError": "将 EventIdx 回绕比较和控制器门铃轨迹列为放行前提，导致已满足工单范围的两类事件被错误扣留。",
+            "credits": {
+              "C1": 0,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 45.0,
+            "passed": false
+          },
+          "phaseSeconds": {
+            "retrieval": 0.157,
+            "draft": 0,
+            "review": 14.063,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-02",
+          "status": "completed",
+          "answer": "**处置** 签发，限表项 2 已服务事件的解掩验收\n\n**判定条件**\n- 同一 Function 的 Function Mask=0，由表项 2 的 Vector Mask 决定掩蔽状态。该位从注入到服务完成始终为 1，Function 不得发送对应消息，并须在原本应发送时置位 Pending。同期记录显示 PBA 置位且无对应消息。（PCIe PDF 文件页 500、785）\n- 表项仍掩蔽、Pending 已置位且对应底层事件已服务时，Function 必须清除 Pending，以免解掩后误发。现场记录显示事件在掩蔽期间服务完成，PBA 随后清零。（PCIe PDF 文件页 500）\n- 若仍在掩蔽时发生后续中断事件，Function 必须重新置位 Pending。若解掩时 Pending 为 1，Function 必须调度发送，并在消息发出后立即清零。（PCIe PDF 文件页 500）\n- MSI-X 通过表项掩蔽位解掩，配置为 MSI-X 时禁止访问 INTMC。解掩后，工单规定的观察窗口内无新事件，同步分析仪按该 Function 和目标表项地址及数据捕获，未见对应消息，满足本次验收。（NVMe PDF 文件页 78；PCIe PDF 文件页 500、785）",
+          "seconds": 15.19,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "签发范围正确，串联了掩蔽期间服务、PBA 清零及解掩后的目标消息观察。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.424,
+            "draft": 0,
+            "review": 14.761,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 501
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "第十五轮 · 保留原始记录与复验门槛",
+      "config": "同模型、语料及预算 · 留存原始记录 · 标明复验门槛 · 同预算预取",
+      "results": [
+        {
+          "caseId": "SSD-F15-16",
+          "status": "completed",
+          "answer": "**处置** 暂缓签发\n\n**判定条件**\n- 已按当前有效相位、SQID=5、CID=0x53 锁定原始失败 CQE，并留存实际 SCT/SC。共享 CQ 按 SQID 与 CID 关联命令（NVMe PDF p.160）。\n- More=1 表示该命令的追加错误信息可从控制器全局 Error Information Log Page（01h）获取。现场尚未读取条目，SMART 累计计数增加无法定位本次失败。日志按最新错误优先返回，满后旧条目可能被淘汰（NVMe PDF p.229）。\n\n**现场验收**\n- **同一控制器上本次失败的追加状态**。记录为01h 原始日志条目及其与已留存 CQE 的关联记录。通过条件为核对 SQID、CID 和 SCT/SC，确认条目归属本次提交并留存追加状态后签发。",
+          "seconds": 10.03,
+          "toolCalls": 2,
+          "review": {
+            "usability": "revise",
+            "reason": "暂缓正确。More=1 指向同控制器 01h 日志中的追加状态，SMART 总数无法定位该命令。原答要求确认条目归属，但 SQID、CID 和状态均可能重复，只说明日志按新旧排序，未说明如何用事件时序或等价证据区分本次失败。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.257,
+            "draft": 0,
+            "review": 9.762,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-12",
+          "status": "completed",
+          "answer": "**处置** 本次链路顺序验收不通过，拒绝签发。\n\n**判定条件**\n- PCIe 5.0 PDF 第 170 页 §2.3.1.1：“Multiple Memory Read Completions for a single Read Request must return data in increasing address order.” 第 179 页 D5b 禁止同一 Transaction ID 的 Completion 相互越过。\n- 同一 Requester ID、Tag 和 Read 事务的原始链路包依次为 802（Lower Address 0x30）、803（0x10），同一地址窗口内无回绕，实测降序。导出表经地址排序，无法证明链路先后。\n\n**现场验收**\n- **复验同一 Read 的两个 Completion**。记录为留存本次原始抓包及导出排序设置，补存复验原始链路抓包。通过条件为按 Requester ID、Tag 及 Read 事务关联，确认地址窗口后，按链路捕获顺序核实起始地址递增，满足后重新评估签发。",
+          "seconds": 13.85,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "原答依据同事务原始包号和地址拒签，并说明地址排序掩盖链路时序；留存证据和升序通过条件明确。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.426,
+            "draft": 0,
+            "review": 13.412,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-13",
+          "status": "completed",
+          "answer": "**处置** 暂缓验收，两个 DUR 样本不足以证明主机恰好读取 1000 个 512 B 单元。\n\n**判定条件**\n- NVMe Base 2.1 PDF 第 232 页规定，DUR 不含元数据，以 512 B 为单位、按千向上取整。同一控制器、同一统计范围的两个有效样本 2 和 3 分别对应累计 1001–2000 和 2001–3000 个单元，差值可能为 1–1999 个单元。\n\n**现场验收**\n- **两次采样之间同一统计范围内的主机读取量**。记录为留存两次 SMART 原始样本及采样边界，补采覆盖该区间的上层 I/O 实际传输长度记录。通过条件为记录完整且可归属到该区间，剔除元数据后读取量合计恰为 512000 B。",
+          "seconds": 10.6,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，并给出同范围、同区间的实际读取量核验及通过条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.244,
+            "draft": 0,
+            "review": 10.347,
+            "other": 0.008
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-10",
+          "status": "completed",
+          "answer": "**处置** 暂缓签发全体通过及停机，逐个对该控制器的附着 NSID 提交 Flush。\n\n**判定条件**\n- NVMe 2.1 PDF 第 485 页规定，NSID=FFFFFFFFh 时，VWC.FB=11b 适用于该控制器的全部附着命名空间，10b 则以 Invalid Namespace or Format 中止。现场 FB=10b，本次唯一匹配有效 CQE 为 Generic SCT=0、SC=0Bh。\n- VWC 已启用，成功 Flush 将指定命名空间中在其提交前已完成命令所关联的数据和元数据提交至非易失介质。待覆盖写已在 NSID 4、9 完成，两者均未单独 Flush。\n\n**现场验收**\n- **该控制器的每个附着 NSID**。记录为附着 NSID 清单、同 NSID 待覆盖写完成记录、逐 NSID Flush 提交与匹配有效 CQE。通过条件为每个附着 NSID 的 Flush 均成功，待覆盖写均早于同 NSID 的 Flush 提交。",
+          "seconds": 9.67,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，关联了 FB=10b、广播 NSID 与实际错误；要求逐附着 NSID 核对写完成、Flush 提交及成功 CQE，覆盖 NSID 4 和 9。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.161,
+            "draft": 0,
+            "review": 9.5,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 485
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-05",
+          "status": "completed",
+          "answer": "**处置** 暂缓重提本次 Read，补证后重新评估单次重试。\n\n**判定条件**\n- NVMe Base 2.1 PDF 第 162 页规定，DNR=0 表示同一命令重试可能成功。值班流程另要求有效审批，且最多重试一次。\n- 旧许可与本机、本工单及 NSID 匹配，但已于上个班次结束时失效。须依据本次实际错误重新确认处置并取得新许可。\n\n**现场验收**\n- **本次 Read 与当前 CQE**。记录为原提交及有效 CQE，留存实际 SCT/SC 和 DNR。通过条件为队列与 CID 匹配、SCT/SC 为非成功、DNR=0，均已核实。\n- **当前错误处置与重试审批**。记录为按实际 SCT/SC 形成的处置结论及新审批记录。通过条件为处置结论支持重试，审批在拟提交时有效，覆盖本机、本工单及 NSID，且单次额度尚未使用。",
+          "seconds": 9.64,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓重试，正确说明 DNR=0 的含义，并要求按当前错误确认处置及取得覆盖本次单次重试的有效审批。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.158,
+            "draft": 0,
+            "review": 9.475,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 162
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-01",
+          "status": "completed",
+          "answer": "**处置** 签发。跨提交队列的测试写已纳入 Flush 覆盖。\n\n**判定条件**\n- NVMe Base 2.1 PDF 第 485 页规定，易失写缓存使能时，Flush 将指定命名空间内在其提交前已完成的命令所关联的数据和元数据提交到非易失介质，无同队列要求。\n- 本次易失写缓存已使能，验收限于 NSID=21。控制器可额外刷写其他命名空间，NSID=22 的 I/O 不在本工单验收范围。\n\n**现场验收**\n- **NSID=21 测试写与 Flush**。记录为附 SQ 3 Write 原始提交及 10:02:11.230 的成功 CQE、SQ 5 Flush 于 10:02:11.310 的原始提交及匹配的成功 CQE。通过条件为两次提交同 NSID，Write CQE 相位有效且 SQID/CID 匹配，同源时间戳显示写完成早于 Flush 提交，Flush CQE 匹配且成功。",
+          "seconds": 9.55,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "同源时间戳证明 NSID=21 的 Write 在 Flush 提交前已完成，跨 SQ 可签。原答列齐两条命令的原始提交和成功 CQE。题面已确认 Flush 的匹配 CQE 成功，原答也要求留存该记录，无须再单列一次相位检查。签收范围未扩展到 NSID=22。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.17,
+            "draft": 0,
+            "review": 9.37,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 485
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-15",
+          "status": "completed",
+          "answer": "**处置** 签发。该交换机的这一笔超越符合 IDO 排序规则。\n\n**判定条件**\n- PCIe 5.0 v1.0 PDF 第 179 页 §2.4.1 D2a/D2b 规定，Completion 仅在 D2b 适用时可超越 Posted Request。IDO=1 时，须比较 Completion 的 Completer ID 与较早 Posted Request 的 Requester ID，两者不同即允许超越。本笔为 05:00.0 与 04:00.0，满足条件。Completion 自身的 Requester ID 为 04:00.0，RO=0，均不影响该判定。\n\n**现场验收**\n- **该交换机的同一对 TLP**。记录为随工单留存同方向、同流量类别的原始入端和出端捕获，含 TLP 头及包序。通过条件为入端 Posted Request 在先，出端 Completion 在先，头字段满足上述 IDO 条件。",
+          "seconds": 9.36,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确批准该对超越，比较了规定的两个 ID，并要求留存入出端顺序和头字段。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.218,
+            "draft": 0,
+            "review": 9.135,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-04",
+          "status": "completed",
+          "answer": "**处置** 签发，本次非正常主电源切断已计入 UPL。\n\n**判定条件**\n- NVMe 2.1 PDF 第 233 页图 206 规定，主电源丢失当且仅当满足任一条件才递增 UPL：CSTS.SHST≠10b，或在 CSTS.SHST 为 01b 或 10b 时，经带外机制处理了 Ignore Shutdown=1 的介质访问 Admin 命令，导致介质退出关机状态。\n\n**现场验收**\n- **同一控制器的本次主电源切断**。记录为留存断电轨迹及管理端记录。主电源下降时 CSTS.SHST=01b，管理端无介质访问。通过条件为主电源丢失时满足第一项递增条件。\n- **该控制器的 SMART / Health 日志 UPL**。记录为留存唯一一次断电前及冷启后的原始日志，读值分别为 71 和 72。通过条件为计数恰增 1。",
+          "seconds": 9.79,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确批准计数检查；SHST=01b 满足非 10b 的递增条件，并记录同一控制器的现场轨迹及 71→72 计数。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.195,
+            "draft": 0,
+            "review": 9.582,
+            "other": 0.008
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F15-09",
+          "status": "completed",
+          "answer": "**处置** 签发表项 3 屏蔽验收通过，捕获的同址写归属表项 7。\n\n**判定条件**\n- PCIe 5.0 PDF 第 500 页 §§6.1.4.4–6.1.4.5：MSI-X 消息使用所选表项的地址及完整 32 位数据。有效掩蔽期间禁止发送对应消息，本应发送时须置对应 Pending 位。Function Mask 置位时覆盖全部表项；同一地址和数据对若由多项共享，须全部掩蔽才保证该对不发出。\n\n**现场验收**\n- **同一 Function 的表项 3**。记录为留存表项读回、窗口掩蔽记录、同步注入标记、抓包及 PBA 快照。通过条件为Function Mask=0，3 全窗掩蔽，7 可发送。两项同址，数据分别为 0x100、0x107。两项事件均已注入，该 Function 唯一同址写的数据为 0x107，表项 3 的 PBA 置位。",
+          "seconds": 12.22,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "按同一 Function 的完整地址和数据区分两项；注入、掩蔽、PBA 和唯一匹配消息的记录支持表项 3 的验收。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.156,
+            "draft": 0,
+            "review": 12.059,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 501
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-07",
+          "status": "completed",
+          "answer": "**处置** 暂缓启用 R52 的 0x56\n\n**判定条件**\n- 目标 Function 本次普通请求的 TH=1、ST[7:0]=0x56，与候选 R52 一致。PCIe 5.0 PDF 第 608 页规定，设备专用模式下请求的 Steering Tag 由设备决定，可不取自架构 ST 表。\n- 工单要求固件和应用批准同一目标 Function 与应用的新映射。R52 的固件签字有效，应用签字仅覆盖旧 R51 的 0x38。\n\n**现场验收**\n- **目标 Function 与应用的 R52 映射**。记录为留存本次原始请求和有效固件签字，补齐应用签字。通过条件为应用签字明确覆盖该 Function、应用及 R52 的 0x56，原始请求可关联至该映射，即可复核签发。",
+          "seconds": 9.78,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓启用，并要求保留实际请求和固件批准、补齐覆盖同一 Function 与应用的 R52 批准。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.155,
+            "draft": 0,
+            "review": 9.615,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-06",
+          "status": "completed",
+          "answer": "**处置** 签发结案，留存现有记录。\n\n**判定条件**\n- NVMe 2.1 PDF p.120–121 要求 Fused 首命令失败时中止次命令，并分别生成 CQE。p.163 定义 SCT=0、SC=09h 为因另一条 Fused 命令失败而中止。\n- 适用命令集及支持位已核，两条有效 CQE 均按当前相位及 SQID/CID 与本次提交匹配（PDF p.160）。\n\n**现场验收**\n- **本次 Compare 与 Write**。记录为两条原始提交及对应 CQE。通过条件为Compare 返回预定不匹配状态，Write 返回上述中止码，均已满足。\n- **NSID=3、LBA=0xB20**。记录为本次测试前及 Fused 结束后的独立读回记录。通过条件为前后校验值均为预期 A6，期间无其他写入该 LBA，已满足。",
+          "seconds": 14.9,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确通过预期负测，并分别核对命令与 CQE 的对应关系及同一位置前后读回值。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.359,
+            "draft": 0,
+            "review": 14.534,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-14",
+          "status": "completed",
+          "answer": "**处置** 暂缓签发可保存结论\n\n**判定条件**\n- NVMe 2.1 PDF 第 221 页图 192 定义 SEL=000b 为 Current。现场匹配的成功 CQE 虽然 DW0 bit 0=1，此次读取的仍是当前值，不能据此判定可保存。\n- NVMe 2.1 PDF 第 223 页图 195 将 SEL=011b（Supported Capabilities）的 CQE DW0 bit 0 定义为 Saveable（SVBL）。现场尚无该查询的提交与完成记录。\n\n**现场验收**\n- **同一控制器、同一 FID 的 Get Features 能力查询**。记录为SEL=011b 的原始 Admin SQE 及按 SQID/CID 匹配的有效 CQE。通过条件为CQE 成功且 DW0 bit 0=1 即签发可保存，bit 0=0 判定不可保存。无需执行保存。",
+          "seconds": 15.91,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分当前值与能力查询，并给出同控制器、同 FID 的查询和匹配完成项的验收条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.436,
+            "draft": 0,
+            "review": 15.465,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 223
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-03",
+          "status": "completed",
+          "answer": "**处置** 签发\n\n**判定条件**\n- NVMe 2.1 PDF 第 352 页规定，IDLP 表示子系统在该功率状态下先空闲 10 秒、再连续计量 30 秒的典型功耗。空闲期间无待处理命令、属性访问、后台进程、清理操作或设备自检。现场同一测试事件的状态时序与完整采样符合该窗口。\n\n**现场验收**\n- **目标功率状态的 IDLP**。记录为该子系统的原始功率状态描述符。通过条件为IPS=01b 对应 0.0001 W/单位，IDLP=600，折合 0.060 W ≤ 0.075 W。\n- **同一功率状态的空闲表计均值**。记录为同一测试事件的状态时序及原始表计串。通过条件为完整采样均值 0.071 W ≤ 0.075 W。",
+          "seconds": 9.02,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确换算 IDLP 为 0.060 W，并关联同一状态的预空闲、完整采样及两个独立门槛。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.158,
+            "draft": 0,
+            "review": 8.855,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 352
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-11",
+          "status": "completed",
+          "answer": "**处置** 暂缓签发热保护恢复\n\n**判定条件**\n- NVMe 2.1 §5.1.25.1.3.1（PDF 第 397 页）规定，超温回差事件须从达到或超过上阈值降至严格低于上阈值减 TMPTHH 才结束。该控制器支持复合温度超温回差，本次事件已触发，恢复门槛为 340−4=336 K。\n- 同次 SMART 采样为 336 K、TTC=1，且无其他温度事件，当前事件仍在持续。按同页规定，事件结束时须触发 Temperature Threshold Hysteresis Recovery 事件，并将 TTC 清为 0。\n\n**现场验收**\n- **同一控制器本次复合温度超温事件**。记录为同步的 SMART / Health 原始日志及异步事件完成记录。通过条件为后续复合温度低于恢复门槛，TTC=0，并捕获对应恢复事件。",
+          "seconds": 14.26,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "拒签门槛等值点，计算和严格小于条件正确；题面已给出阈值与回差，验收也核对同一事件的温度、TTC 和恢复事件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.399,
+            "draft": 0,
+            "review": 13.851,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 398
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-08",
+          "status": "completed",
+          "answer": "**处置** 签发。本次控制器重启后，沿用原物理页的 QID=9 SQ Tail 与 CQ Head 快速路径恢复通过验收。\n\n**判定条件**\n- NVMe 2.1 PDF 第445–446页规定配置在 Controller Level Reset 后不保留。本次已重新配置，两缓冲区各占一个按当前 CC.MPS 对齐的物理页，满足 (4 << CAP.DSTRD) × (max(NSQA, NCQA)+1) ≤ 2^(12+CC.MPS)；两页实际槽位另按图486核对。\n\n**现场验收**\n- **本代次两页及配置结果**。记录为当前 MPS、队列分配、边界与所有权复核记录及本次 Admin CQE。通过条件为布局与归属复核通过，CQE 相位有效且 SQID/CID 匹配，SCT=0、SC=0。\n- **最高合法 SQ Tail 与 CQ Head**。记录为同次两类事件的原始写入轨迹。通过条件为两类事件均实测到主机写 PRP1 Shadow、控制器写 PRP2 EventIdx，地址及条目值与本代次配置及工单值一致。",
+          "seconds": 12.8,
+          "toolCalls": 2,
+          "review": {
+            "usability": "revise",
+            "reason": "签发范围限于本代次 QID=9 的 SQ Tail 和 CQ Head，依据是重启后的新配置成功及两类实际写入轨迹。原答明确要求留存 CQE、布局和各槽位的地址、值、写入方，但归档清单漏了载有本次 PRP1/PRP2 的 Admin SQE，故 C3 只得部分分。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.159,
+            "draft": 0,
+            "review": 12.637,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F15-02",
+          "status": "completed",
+          "answer": "**处置** 签发。表项 2 已完成事件的解掩防误发验收通过。\n\n**判定条件**\n- PCIe 5.0 PDF 第 500 页 §6.1.4.5：掩蔽时禁止发送关联消息，应发时须置 Pending；掩蔽期间若关联事件均已服务，须清 Pending。若仍掩蔽时再有事件，须重新置位；解掩时若 Pending 仍置位，须安排发报并在发出后立即清位。\n\n**现场验收**\n- **同一 Function 的表项 2**。记录为本次 MSI-X 控制位、事件注入与服务完成、PBA 及同步分析仪原始记录。通过条件为Enable=1、Function Mask=0，注入至服务完成期间 Vector Mask=1；PBA 随事件置位、服务后清零，期间无对应消息。实际解掩后规定窗口内无新事件，按 Function、完整目标地址及 32 位数据匹配的消息为零。",
+          "seconds": 17.72,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "原答限定已服务事件的验收范围，正确串联掩蔽、PBA 清零、实际解掩和同项消息观察。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.293,
+            "draft": 0,
+            "review": 17.418,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 501
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "conditionMetric": {
+    "criterionId": "C2",
+    "label": "处置条件完整 / 计划"
+  },
+  "acceptanceMetric": {
+    "criterionId": "C3",
+    "label": "验收可执行 / 计划"
+  },
+  "latencyMetric": {
+    "label": "交卷耗时中位数",
+    "stages": {
+      "retrieval": "检索",
+      "draft": "独立起草",
+      "review": "签发",
+      "other": "其他"
+    }
+  },
+  "pairedLatencyLimit": 2.5,
+  "iterationHistory": [
+    {
+      "id": "field-usable-v2",
+      "title": "第二轮 · 有边界的规范摘录",
+      "method": "引入现场决策 skill，把摘录限定到具体对象、条款与直接处置。",
+      "progress": "开始用原样可用和误导评估现场答复。",
+      "next": "逐码拆分结果及其处置。",
+      "baseline": {
+        "planned": 12,
+        "completed": 12,
+        "ready": 0,
+        "misleading": 12
+      },
+      "candidate": {
+        "planned": 12,
+        "completed": 11,
+        "ready": 1,
+        "misleading": 8
+      },
+      "timedPairs": 11,
+      "medianDelta": -11.74
+    },
+    {
+      "id": "field-usable-v3",
+      "title": "第三轮 · 逐码处置",
+      "method": "MCP 提取规范结果表、续行和条件句，skill 核对每种返回值。",
+      "progress": "可用答卷增加，误导仍多。",
+      "next": "检查命中条款却处置错误的原因。",
+      "baseline": {
+        "planned": 12,
+        "completed": 10,
+        "ready": 1,
+        "misleading": 9
+      },
+      "candidate": {
+        "planned": 12,
+        "completed": 12,
+        "ready": 2,
+        "misleading": 10
+      },
+      "timedPairs": 10,
+      "medianDelta": 1.27
+    },
+    {
+      "id": "field-usable-v4",
+      "title": "第四轮 · 相邻证据核验",
+      "method": "增加字面字段和相邻页读证，限制字段位置与动作范围。",
+      "progress": "同题盲测主指标未改善。",
+      "next": "删掉改变当前处置的推测和无关后续路径。",
+      "baseline": {
+        "planned": 12,
+        "completed": 12,
+        "ready": 0,
+        "misleading": 12
+      },
+      "candidate": {
+        "planned": 12,
+        "completed": 12,
+        "ready": 0,
+        "misleading": 12
+      },
+      "timedPairs": 12,
+      "medianDelta": -2.565
+    },
+    {
+      "id": "field-usable-v5",
+      "title": "第五轮 · 收束到当前处置",
+      "method": "首答只给当前动作、直接依据和必要观测。",
+      "progress": "误导下降，仍有使用事后读数解释历史的答卷。",
+      "next": "核对初值、状态转换和同期记录。",
+      "baseline": {
+        "planned": 8,
+        "completed": 7,
+        "ready": 0,
+        "misleading": 7
+      },
+      "candidate": {
+        "planned": 8,
+        "completed": 8,
+        "ready": 3,
+        "misleading": 3
+      },
+      "timedPairs": 7,
+      "medianDelta": -4.14
+    },
+    {
+      "id": "field-usable-v6",
+      "title": "第六轮 · 时序复核",
+      "method": "分别提取触发条件与状态证据，在签发前复核时间窗口。",
+      "progress": "当批误导降到零，部分原样可用的答卷丢失条件。",
+      "next": "逐条复查并保留阈值与例外。",
+      "baseline": {
+        "planned": 16,
+        "completed": 15,
+        "ready": 9,
+        "misleading": 3
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 10,
+        "misleading": 0
+      },
+      "timedPairs": 15,
+      "medianDelta": 6.5
+    },
+    {
+      "id": "field-usable-v7",
+      "title": "第七轮 · 保留处置条件",
+      "method": "补足原文相邻字段，按门槛、作用域与例外交付。",
+      "progress": "16/16 原样可用，双阶段作答中位耗时上升。",
+      "next": "拆解检索、独立起草和签发。",
+      "baseline": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 10,
+        "misleading": 0
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 16,
+        "misleading": 0
+      },
+      "timedPairs": 16,
+      "medianDelta": 18.66
+    },
+    {
+      "id": "field-usable-v8",
+      "title": "第八轮 · 一次取证与签发",
+      "method": "合并定位与读页，跳过独立草稿，由原签发模型自行核对。",
+      "progress": "交卷中位数降至 24.695 秒，仍有门铃容量误导与验收遗漏。",
+      "next": "核对实际字节槽位、两条 CQE 和 Steering Tag 位段。",
+      "baseline": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 9,
+        "misleading": 2
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 13,
+        "misleading": 1
+      },
+      "timedPairs": 16,
+      "medianDelta": -35.185
+    },
+    {
+      "id": "field-usable-v9",
+      "title": "第九轮 · 核对布局和记录",
+      "method": "算门铃每个条目的最后一字节，并预取 CQE 与 Steering Tag 字段。",
+      "progress": "处置条件全齐，四份答卷仍需要完善实测。",
+      "next": "为每项验收明确对象、记录和标准。",
+      "baseline": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 10,
+        "misleading": 0
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 12,
+        "misleading": 0
+      },
+      "timedPairs": 16,
+      "medianDelta": -3.78
+    },
+    {
+      "id": "field-usable-v10",
+      "title": "第十轮 · 明确现场验收",
+      "method": "将记录与通过条件写进答卷，新增 MSI-X 改址发包条款预取。",
+      "progress": "可用率提高，一项把应用批准与平台映射当成可互换证据。",
+      "next": "将批准及实测作为独立的签发前提。",
+      "baseline": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 12,
+        "misleading": 0
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 15,
+        "misleading": 1
+      },
+      "timedPairs": 16,
+      "medianDelta": 2.44
+    },
+    {
+      "id": "field-usable-v11",
+      "title": "第十一轮 · 批准与实测独立核对",
+      "method": "按题面核对指定责任人、对象及版本，单列实际验收结果。",
+      "progress": "12/12 原样可用，逐题配对增加 5.42 秒。",
+      "next": "压缩签发中重复的处置和依据，同时保留现场核验。",
+      "baseline": {
+        "planned": 12,
+        "completed": 11,
+        "ready": 8,
+        "misleading": 1
+      },
+      "candidate": {
+        "planned": 12,
+        "completed": 12,
+        "ready": 12,
+        "misleading": 0
+      },
+      "timedPairs": 11,
+      "medianDelta": 5.42
+    },
+    {
+      "id": "field-usable-v12",
+      "title": "第十二轮 · 精简签发",
+      "method": "处置、规则和验收各写一次，保留批准、复核对象和通过标准；精准预取 IDLP 与 Completion 合并原文。",
+      "progress": "同题快 3.65 秒，原样可用从 12/16 降到 11/16。",
+      "next": "保留门铃 Admin CQE、发包比对、原始状态记录，并限制前缀核验的适用范围。",
+      "baseline": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 12,
+        "misleading": 1
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 11,
+        "misleading": 1
+      },
+      "timedPairs": 16,
+      "medianDelta": -3.65
+    },
+    {
+      "id": "field-usable-v13",
+      "title": "第十三轮 · 保留验收证据的精简签发",
+      "method": "在精简输出中明确物理页与完成项、真实发包、原始错误记录及低 8 位签发范围。",
+      "progress": "同题快 3.64 秒，原样可用 13/16，仍有一项错误字节定位。",
+      "next": "直接使用已解码字段，单独核对失败原码和合同规定的数据校验。",
+      "baseline": {
+        "planned": 16,
+        "completed": 15,
+        "ready": 12,
+        "misleading": 2
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 13,
+        "misleading": 1
+      },
+      "timedPairs": 15,
+      "medianDelta": -3.64
+    },
+    {
+      "id": "field-usable-v14",
+      "title": "第十四轮 · 复核现场证据后精简签发",
+      "method": "采用已解码的协议字段，明确保留原始失败码与独立的数据校验。",
+      "progress": "同题快 1.85 秒。剔除一题有歧义的量测题后，误导 0/15，原样可用 13/15，低于基线 14/15。",
+      "next": "给通过项保留原始记录，给待验项补齐重新评估的门槛。",
+      "baseline": {
+        "planned": 16,
+        "completed": 15,
+        "ready": 14,
+        "misleading": 0
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 13,
+        "misleading": 1
+      },
+      "timedPairs": 15,
+      "medianDelta": -1.85
+    },
+    {
+      "id": "field-usable-v15",
+      "title": "第十五轮 · 留存记录与复验条件",
+      "method": "通过项明确留存哪些原始记录，拒签项标明复验门槛，同一预取补充 Flush、DNR 和 IDLP 原文。",
+      "progress": "原样可用 14/16，误导 0/16，同题快 6.89 秒。还差一份达到预设可用率。",
+      "next": "把重配的原始 Admin SQE 与有效 CQE 配对存档；用同次事件关联错误日志。",
+      "baseline": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 13,
+        "misleading": 3
+      },
+      "candidate": {
+        "planned": 16,
+        "completed": 16,
+        "ready": 14,
+        "misleading": 0
+      },
+      "timedPairs": 16,
+      "medianDelta": -6.89
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

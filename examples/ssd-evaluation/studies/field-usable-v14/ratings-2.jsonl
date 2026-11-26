@@ -1,0 +1,32 @@
+{"sheet": "0391758dba", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签精确 512000 字节，DUW=1 对应 1-1000 单位，需完整主机 I/O 记录排除元数据后核验。", "other_error": ""}
+{"sheet": "0dc06c252a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "使用当前有效 CQE 的 DNR=1 拒绝同条件重试，正确区分上一代 DNR=0。", "other_error": ""}
+{"sheet": "1331db2b20", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓整体通过并保留 A 证据；明确 B 不能用 R40 旧落点替代，要求同次 R41 实测 CPU7，并与 A 记录交叉核对。", "other_error": ""}
+{"sheet": "304e4bfeb4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒收 Data 不符，并说明 MSI-X 使用表项完整 Message Data；验收含表项、地址和完整数据门槛。", "other_error": ""}
+{"sheet": "380f804414", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确阻止放行，并按完成时点晚于 Flush 提交说明不覆盖；后续同 NSID Flush 与成功 CQE 的核验路径完整。", "other_error": ""}
+{"sheet": "3827165767", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确按等于上阈值置位 TTC，并对应 Sensor 2 与同次 SMART 样本。", "other_error": ""}
+{"sheet": "38f3f34138", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确阻止放行；明确 Flush 只覆盖提交前已完成的 Write，当前 Write 完成晚于 Flush；验收要求补发 Flush 并核对 Write 完成、Flush 提交与成功 CQE。", "other_error": ""}
+{"sheet": "458c5c4990", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签并保留当前失败状态与相位匹配，必要核验完整。", "other_error": ""}
+{"sheet": "45c3712696", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确限定验收本次控制器；区分 SHST≠10b 与 Ignore Shutdown 介质访问例外；核对前后 UPL=42 与状态/管理记录。", "other_error": ""}
+{"sheet": "48ba6c6f1e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "答案明确拒签同条件重试，以当前有效 CQE 的 DNR=1 为准，并区分旧 DNR=0；要求核实原始 SCT/SC、DNR，并等待相关条件改变后才考虑重提。", "other_error": ""}
+{"sheet": "4ace924d80", "usability": "no_answer", "criteria": {}, "reject_hits": [], "reason": "未在本次运行中交卷。", "other_error": ""}
+{"sheet": "4d02fe2e4b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "VF 03 本次 TH/ST 已核对，VF 02 已区分，可按原样签发。", "other_error": ""}
+{"sheet": "621f997756", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "Length=2 DW 对应两份 32 位操作数，实际内存访问仅 0x8FFC-0x8FFF，自然对齐且未跨 4 KiB，分析器误报已解释。", "other_error": ""}
+{"sheet": "6294257da5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "DUW=1 仅表示 1–1000 个 512 字节单元，不能签精确 512000 字节，且指出需完整主机 I/O 账本。", "other_error": ""}
+{"sheet": "6e4659370a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分 2 DW 操作数长度与单个 32 位内存访问，地址范围未跨页。", "other_error": ""}
+{"sheet": "729d57746f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "通过结论与上阈值含等号及同次传感器证据完整。", "other_error": ""}
+{"sheet": "94ed783d12", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签；区分主机 Shadow Doorbell 写 PRP1 与控制器 EventIdx 写 PRP2；要求按事务记录逐项复验指定 QID 的落点及配置成功记录。", "other_error": ""}
+{"sheet": "94f0c9377e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确判定旧相位成功无效，识别 P=1/SQID=0/CID=0x13 对应失败状态，并给出修正后重提及成功门槛。", "other_error": ""}
+{"sheet": "9aa91b7360", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "地址按 64 位操作数要求 8 字节自然对齐，Length=4 DW 对应两个 64 位操作数，结论与核验一致。", "other_error": ""}
+{"sheet": "9cec7fede8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "NSID=7 三条 Write 已在 Flush 提交前完成，Flush CQE 成功；NSID=8 明确排除，覆盖范围与 Flush 语义一致。", "other_error": ""}
+{"sheet": "b05249f2bc", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签全链路验证，并区分主机 Shadow Doorbell 与控制器 EventIdx 的 PRP 归属及复测要求。", "other_error": ""}
+{"sheet": "b87f6555f2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "两条 CQE 成功不等于数据验收通过，因回读哈希 H7 不等于预期 H9 而拒签。", "other_error": ""}
+{"sheet": "bb12a777cd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓联合签署，A 已有证据保留，B 缺 R41 同次实际落点证据，未把 R40 记录或 ST 当作替代。", "other_error": ""}
+{"sheet": "c2065bca2b", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "覆盖判断正确，但未明确归档三条 Write 成功 CQE、Flush SQE 与匹配成功 CQE 及时间/NSID 核对。", "other_error": ""}
+{"sheet": "c8528c0738", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论与参考一致：两条 CQE 成功但目标 LBA 回读哈希 H7 不等于 H9，不放行。", "other_error": ""}
+{"sheet": "cf26d49307", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 0}, "reject_hits": [], "reason": "IDLP 0.15 W 与实测 0.170 W 均低于 0.20 W，且观测已关联状态与采样窗口；原答无证据地断定 30 s 窗口起算不合规并拒签。", "other_error": "误判合规采样窗口，导致错误拒签"}
+{"sheet": "d25ea9cf0e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "批准 VF 03 本次范围，按 Requester 区分 VF 02，验收同次 TH=1 与 ST=0x26。", "other_error": ""}
+{"sheet": "d455440cd7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "MSI-X 不允许修改表项 Data 低位，实际 Data 0x000000A6 不符读回 0x000000A4，拒签正确。", "other_error": ""}
+{"sheet": "d6d6ea9b45", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "64-bit CAS 要求 8 字节自然对齐，0x1818 满足；Length=4 DW 对应两个 64 位操作数，可签。", "other_error": ""}
+{"sheet": "d7bc103073", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "签发结论与屏蔽/解屏蔽/PBA/实际TLP核验完整。", "other_error": ""}
+{"sheet": "dfc7045c71", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "按给定轨迹签发本次指定表项的屏蔽与解屏蔽发送，条件、顺序与验收证据完整。", "other_error": ""}
+{"sheet": "e55ed451d5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确限定通过本次控制器断电的 UPL 未增验收，并区分 SHST 条件与 Ignore Shutdown 例外。", "other_error": ""}

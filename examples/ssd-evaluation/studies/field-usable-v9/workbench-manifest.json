@@ -1,0 +1,21 @@
+{
+  "title": "门铃边界与验收核对 · 第九轮 16 道留出题",
+  "conditionMetric": {"criterionId": "C2", "label": "处置条件完整 / 计划"},
+  "latencyMetric": {"label": "交卷耗时中位数", "stages": {"retrieval": "检索", "draft": "独立起草", "review": "签发", "other": "其他"}},
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第八轮 · 取证后直接签发",
+      "config": "Codex Sol 单次取证与签发 · 120 秒 · 8 次取证含预取 · 双规范同一语料",
+      "plan": "questions.jsonl",
+      "reviews": "baseline-reviewed.jsonl"
+    },
+    {
+      "id": "candidate",
+      "label": "第九轮 · 核对边界与验收记录",
+      "config": "相同模型、语料与预算 · 预取门铃/Fused/Steering Tag 核验条款 · 按字节检查门铃布局 · 单次签发",
+      "plan": "questions.jsonl",
+      "reviews": "candidate-reviewed.jsonl"
+    }
+  ]
+}

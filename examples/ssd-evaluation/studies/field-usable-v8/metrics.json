@@ -1,0 +1,216 @@
+{
+  "all": {
+    "baseline": {
+      "planned": 16,
+      "completed": 16,
+      "ready": 9,
+      "misleading": 2,
+      "revise": 5,
+      "no_answer": 0,
+      "passed": 13,
+      "median_seconds": 62.625,
+      "conditions_complete": 13,
+      "timed_completed": 16,
+      "median_phase_seconds": {
+        "retrieval": 0.417,
+        "draft": 48.798,
+        "review": 13.82,
+        "other": 0.018
+      }
+    },
+    "candidate": {
+      "planned": 16,
+      "completed": 16,
+      "ready": 13,
+      "misleading": 1,
+      "revise": 2,
+      "no_answer": 0,
+      "passed": 15,
+      "median_seconds": 24.695,
+      "conditions_complete": 15,
+      "timed_completed": 16,
+      "median_phase_seconds": {
+        "retrieval": 0.456,
+        "draft": 0.0,
+        "review": 23.41,
+        "other": 0.009
+      }
+    },
+    "newly_ready": [
+      "SSD-F8-09",
+      "SSD-F8-01",
+      "SSD-F8-07",
+      "SSD-F8-14",
+      "SSD-F8-06",
+      "SSD-F8-11"
+    ],
+    "lost_ready": [
+      "SSD-F8-02",
+      "SSD-F8-15"
+    ],
+    "both_completed": {
+      "count": 16,
+      "baseline_misleading": 2,
+      "candidate_misleading": 1,
+      "timed": 16,
+      "candidate_faster": 16,
+      "median_paired_seconds_saved": 35.185
+    }
+  },
+  "branches": {
+    "baseline": {
+      "planned": 7,
+      "completed": 7,
+      "ready": 6,
+      "misleading": 1,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 6,
+      "median_seconds": 58.87,
+      "conditions_complete": 6,
+      "timed_completed": 7,
+      "median_phase_seconds": {
+        "retrieval": 0.42,
+        "draft": 43.563,
+        "review": 13.817,
+        "other": 0.016
+      }
+    },
+    "candidate": {
+      "planned": 7,
+      "completed": 7,
+      "ready": 7,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 7,
+      "median_seconds": 28.13,
+      "conditions_complete": 7,
+      "timed_completed": 7,
+      "median_phase_seconds": {
+        "retrieval": 0.444,
+        "draft": 0,
+        "review": 27.446,
+        "other": 0.009
+      }
+    },
+    "newly_ready": [
+      "SSD-F8-14"
+    ],
+    "lost_ready": [],
+    "both_completed": {
+      "count": 7,
+      "baseline_misleading": 1,
+      "candidate_misleading": 0,
+      "timed": 7,
+      "candidate_faster": 7,
+      "median_paired_seconds_saved": 30.68
+    }
+  },
+  "gate": {
+    "baseline": {
+      "planned": 5,
+      "completed": 5,
+      "ready": 3,
+      "misleading": 1,
+      "revise": 1,
+      "no_answer": 0,
+      "passed": 5,
+      "median_seconds": 62.31,
+      "conditions_complete": 5,
+      "timed_completed": 5,
+      "median_phase_seconds": {
+        "retrieval": 0.457,
+        "draft": 48.874,
+        "review": 14.766,
+        "other": 0.018
+      }
+    },
+    "candidate": {
+      "planned": 5,
+      "completed": 5,
+      "ready": 3,
+      "misleading": 0,
+      "revise": 2,
+      "no_answer": 0,
+      "passed": 5,
+      "median_seconds": 17.15,
+      "conditions_complete": 5,
+      "timed_completed": 5,
+      "median_phase_seconds": {
+        "retrieval": 0.461,
+        "draft": 0,
+        "review": 16.787,
+        "other": 0.009
+      }
+    },
+    "newly_ready": [
+      "SSD-F8-09",
+      "SSD-F8-07"
+    ],
+    "lost_ready": [
+      "SSD-F8-02",
+      "SSD-F8-15"
+    ],
+    "both_completed": {
+      "count": 5,
+      "baseline_misleading": 1,
+      "candidate_misleading": 0,
+      "timed": 5,
+      "candidate_faster": 5,
+      "median_paired_seconds_saved": 45.7
+    }
+  },
+  "history": {
+    "baseline": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 0,
+      "misleading": 0,
+      "revise": 4,
+      "no_answer": 0,
+      "passed": 2,
+      "median_seconds": 76.92,
+      "conditions_complete": 2,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.411,
+        "draft": 61.005,
+        "review": 14.119,
+        "other": 0.021
+      }
+    },
+    "candidate": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 3,
+      "misleading": 1,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 3,
+      "median_seconds": 23.955,
+      "conditions_complete": 3,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.468,
+        "draft": 0.0,
+        "review": 22.808,
+        "other": 0.008
+      }
+    },
+    "newly_ready": [
+      "SSD-F8-01",
+      "SSD-F8-06",
+      "SSD-F8-11"
+    ],
+    "lost_ready": [],
+    "both_completed": {
+      "count": 4,
+      "baseline_misleading": 0,
+      "candidate_misleading": 1,
+      "timed": 4,
+      "candidate_faster": 4,
+      "median_paired_seconds_saved": 52.135
+    }
+  }
+}

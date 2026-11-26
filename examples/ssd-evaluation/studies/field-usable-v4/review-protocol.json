@@ -1,0 +1,6 @@
+{
+  "raters": ["codex/gpt-6.2-sol", "codex/gpt-6.1-terra"],
+  "adjudicator": "codex/gpt-6.2-astra",
+  "amendment": "The registered Gemini judge timed out on a one-line synthetic connectivity check. The second independent judge was replaced before reviewing any study answer. The scoring rules and treatment mask are unchanged.",
+  "run_observation": "The Windows MCP adapter reported a shared cache rename error for one candidate session. Its audit shows four successful live evidence calls after prefetch. The first answer stays in the paired comparison."
+}

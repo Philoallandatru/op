@@ -1,0 +1,32 @@
+{"sheet": "031190a322", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝补签且正确把10b绑定到分区B，A保持未知。", "other_error": ""}
+{"sheet": "0eecb71d01", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前写入，说明 CLR 不清除 Write Locked Until Power Cycle，依据给定记录仍锁。", "other_error": ""}
+{"sheet": "19989b3087", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "确认新条目和初值/首轮值正确，但未明确多写时最后更新 CDQP。", "other_error": ""}
+{"sheet": "2160a32f8c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝用恢复后映射补签，说明重放后上下文失效及两次成功恢复门槛，保留空档样本。", "other_error": ""}
+{"sheet": "2ca3fa366e", "usability": "no_answer", "criteria": {}, "reject_hits": [], "reason": "未在本次运行中交卷。", "other_error": ""}
+{"sheet": "385e199d14", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签历史结论，并指出随域上电复位初始化为0及需同域历史证据。", "other_error": ""}
+{"sheet": "3f533a4fff", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 FLR 后 TP=0 证明旧请求成功，解释超时终止与 FLR 清位路径，并指出需复位前 Completion。", "other_error": ""}
+{"sheet": "417eeeb3db", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝跨 Set 推断，并限定 Set 2 变更与 Set 5 单独核查。", "other_error": ""}
+{"sheet": "516b88d29a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝写入，说明 CLR 不清除写锁，需 power cycle。", "other_error": ""}
+{"sheet": "53aed4ec28", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "答应回绝将通知时刻作为条件起点，并指出开启时已真条件也会发送；保留了精确起点未知且需此前历史观测的边界。", "other_error": ""}
+{"sheet": "63708caa09", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论、初值/首轮值与多写最后更新标签均正确，且仅限条目发布判断。", "other_error": ""}
+{"sheet": "70932d5c70", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝据事后清零回溯判定历史违规，并说明 NOPPME 条件性许可边界。", "other_error": ""}
+{"sheet": "827874a015", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前写入，联合核对 EN 与 NRDY，并给出放行条件且不擅自启用 PMR。", "other_error": ""}
+{"sheet": "855f52f8b6", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "已有记录覆盖FRS至请求且无后续DRS/FRS事件，应能直接判定该CRS违规；原答错误称记录不足并要求额外核验。", "other_error": ""}
+{"sheet": "8a7ac2e8c1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝旧轮一致，区分重建后本轮与事故前未知。", "other_error": ""}
+{"sheet": "95622326bd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝登记中断时间为新发PME时间，指出写前PME Status已置位且0->1使能会触发中断，并给出需同期带时间戳/Requester ID对应的PME Message抓包核验。", "other_error": ""}
+{"sheet": "9bb9e37901", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝通知时刻作为起点，并指出开启时已存在条件也会通知，保留最晚已真时点与缺失历史证据。", "other_error": ""}
+{"sheet": "b316fab2a9", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝用恢复映射补签空档样本，并给出两次连续无重放恢复门槛与独立证据要求。", "other_error": ""}
+{"sheet": "b71ce0f5d3", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论、身份丢弃和后续归属均与规范一致。", "other_error": ""}
+{"sheet": "c04a405268", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝回填，指出Valid=0未定义并区分后续有效报告值与旧事件实测。", "other_error": ""}
+{"sheet": "c250b9cae1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝历史无复位结论，并说明供电复位初始化NSSRO=0。", "other_error": ""}
+{"sheet": "cb6d90bc78", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝回填，指出 Valid=0 时 FLR Time 未定义，并区分后来有效报告值与旧事件实测。", "other_error": ""}
+{"sheet": "cfec4e4e16", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝登记中断时刻为新发 PME 时间，并说明既有 PME Status 与使能边沿触发。", "other_error": ""}
+{"sheet": "d2623446d3", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝将 Ack 记为读数据返回；正确限定其链路层确认范围；将读完成绑定匹配 Tag 的 CplD。", "other_error": ""}
+{"sheet": "d2a4637eae", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论与范围判断正确，Set 2 与 Set 5 已明确区分。", "other_error": ""}
+{"sheet": "d2fb8982a6", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论正确拒绝当前写入，联合判断 EN=1 与 NRDY=0，并给出不自行修改 EN 的放行条件。", "other_error": ""}
+{"sheet": "d8dcf2b6af", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝将后续错误归给 A，区分首条身份与被丢弃的后续身份，并将 A 限定为已记录首条报告者。", "other_error": ""}
+{"sheet": "d935d44e71", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签当前清零判定历史违规，并要求峰值时同一控制器配置记录。", "other_error": ""}
+{"sheet": "e01a4d9f1c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 Ack 作为读数据返回，并要求匹配的 CplD/上层接收记录。", "other_error": ""}
+{"sheet": "e887510101", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝补签 A，将后续 10b 绑定到 B，并说明每次 BPID 写触发 01b、成功后置 10b。", "other_error": ""}
+{"sheet": "f452f29b8d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 FLR 后 TP=0 作为旧请求成功证据，并指出需复位前完成记录。", "other_error": ""}
+{"sheet": "f9da2dc76d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝签旧轮一致，并指出 DL_Inactive 清有效位与新交换意义，区分本轮现值与不可追溯的旧值。", "other_error": ""}

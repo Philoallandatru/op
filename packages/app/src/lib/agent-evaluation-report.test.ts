@@ -106,6 +106,45 @@ describe('parseEvaluationReport', () => {
       expect(() => parseEvaluationReport(JSON.stringify(broken))).toThrow();
   });
 
+  it('accepts a condition metric only when the criterion belongs to the rubric', () => {
+    const data = example();
+    const conditionMetric = { criterionId: 'approval', label: 'Complete conditions / planned' };
+    const parse = (criterionId: string) =>
+      parseEvaluationReport(
+        JSON.stringify({ ...data, conditionMetric: { ...conditionMetric, criterionId } }),
+      );
+    expect(parse('approval').conditionMetric).toEqual(conditionMetric);
+    expect(() => parse('unknown')).toThrow('Missing condition metric criterion.');
+  });
+
+  it('requires the declared acceptance criterion in every case', () => {
+    const data = example();
+    const parse = (criterionId: string) =>
+      parseEvaluationReport(
+        JSON.stringify({ ...data, acceptanceMetric: { criterionId, label: 'Ready to verify' } }),
+      );
+    expect(parse('approval').acceptanceMetric?.criterionId).toBe('approval');
+    expect(() => parse('unknown')).toThrow('Missing acceptance metric criterion.');
+  });
+
+  it('validates recorded phase seconds against wall time', () => {
+    const data = example();
+    const round = data.rounds[0];
+    const row = round.results[0];
+    const phaseSeconds = { retrieval: 0.23, draft: 0, review: 8.222, other: 0.014 };
+    const parse = (timing: object, seconds: number | null) =>
+      parseEvaluationReport(
+        JSON.stringify({
+          ...data,
+          rounds: [{ ...round, results: [{ ...row, phaseSeconds: timing, seconds }] }],
+        }),
+      );
+    expect(parse(phaseSeconds, 8.47).rounds[0]?.results[0]?.phaseSeconds).toEqual(phaseSeconds);
+    expect(() => parse(phaseSeconds, 8.5)).toThrow('Inconsistent evaluation result.');
+    expect(() => parse(phaseSeconds, null)).toThrow('Inconsistent evaluation result.');
+    expect(() => parse({ ...phaseSeconds, other: undefined }, 8.45)).toThrow();
+  });
+
   it('validates grades against the rubric and actual answer', () => {
     const data = example();
     const round = data.rounds[0];

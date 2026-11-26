@@ -1,0 +1,280 @@
+{
+  "baseline": {
+    "median": {
+      "seconds": 29.21,
+      "retrieval_proxy_seconds": 0.438,
+      "draft_proxy_seconds": 21.607,
+      "review_proxy_seconds": 7.405,
+      "live_evidence_calls": 2.0
+    },
+    "cases": [
+      {
+        "caseId": "SSD-F7-01",
+        "seconds": 29.25,
+        "retrieval_proxy_seconds": 0.419,
+        "draft_proxy_seconds": 21.159,
+        "review_proxy_seconds": 7.456,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-02",
+        "seconds": 24.5,
+        "retrieval_proxy_seconds": 0.435,
+        "draft_proxy_seconds": 16.371,
+        "review_proxy_seconds": 7.505,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-03",
+        "seconds": 29.17,
+        "retrieval_proxy_seconds": 0.387,
+        "draft_proxy_seconds": 22.055,
+        "review_proxy_seconds": 6.537,
+        "live_evidence_calls": 3
+      },
+      {
+        "caseId": "SSD-F7-04",
+        "seconds": 28.95,
+        "retrieval_proxy_seconds": 0.319,
+        "draft_proxy_seconds": 18.866,
+        "review_proxy_seconds": 9.585,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-05",
+        "seconds": 25.69,
+        "retrieval_proxy_seconds": 0.436,
+        "draft_proxy_seconds": 17.592,
+        "review_proxy_seconds": 7.485,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-06",
+        "seconds": 18.53,
+        "retrieval_proxy_seconds": 0.374,
+        "draft_proxy_seconds": 10.697,
+        "review_proxy_seconds": 7.229,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-07",
+        "seconds": 38.38,
+        "retrieval_proxy_seconds": 0.501,
+        "draft_proxy_seconds": 30.61,
+        "review_proxy_seconds": 7.061,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-08",
+        "seconds": 50.72,
+        "retrieval_proxy_seconds": 0.377,
+        "draft_proxy_seconds": 42.854,
+        "review_proxy_seconds": 7.219,
+        "live_evidence_calls": 5
+      },
+      {
+        "caseId": "SSD-F7-09",
+        "seconds": 27.55,
+        "retrieval_proxy_seconds": 0.512,
+        "draft_proxy_seconds": 19.394,
+        "review_proxy_seconds": 7.414,
+        "live_evidence_calls": 4
+      },
+      {
+        "caseId": "SSD-F7-10",
+        "seconds": 45.67,
+        "retrieval_proxy_seconds": 0.676,
+        "draft_proxy_seconds": 37.955,
+        "review_proxy_seconds": 6.873,
+        "live_evidence_calls": 7
+      },
+      {
+        "caseId": "SSD-F7-11",
+        "seconds": 18.12,
+        "retrieval_proxy_seconds": 0.274,
+        "draft_proxy_seconds": 10.107,
+        "review_proxy_seconds": 7.488,
+        "live_evidence_calls": 0
+      },
+      {
+        "caseId": "SSD-F7-12",
+        "seconds": 30.94,
+        "retrieval_proxy_seconds": 0.493,
+        "draft_proxy_seconds": 22.54,
+        "review_proxy_seconds": 7.69,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-13",
+        "seconds": 45.33,
+        "retrieval_proxy_seconds": 0.497,
+        "draft_proxy_seconds": 37.839,
+        "review_proxy_seconds": 6.791,
+        "live_evidence_calls": 4
+      },
+      {
+        "caseId": "SSD-F7-14",
+        "seconds": 45.84,
+        "retrieval_proxy_seconds": 0.638,
+        "draft_proxy_seconds": 38.08,
+        "review_proxy_seconds": 6.82,
+        "live_evidence_calls": 4
+      },
+      {
+        "caseId": "SSD-F7-15",
+        "seconds": 31.32,
+        "retrieval_proxy_seconds": 0.445,
+        "draft_proxy_seconds": 23.216,
+        "review_proxy_seconds": 7.397,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-16",
+        "seconds": 28.33,
+        "retrieval_proxy_seconds": 0.44,
+        "draft_proxy_seconds": 20.148,
+        "review_proxy_seconds": 7.499,
+        "live_evidence_calls": 2
+      }
+    ]
+  },
+  "candidate": {
+    "median": {
+      "seconds": 49.35,
+      "retrieval_proxy_seconds": 0.413,
+      "draft_proxy_seconds": 34.663,
+      "review_proxy_seconds": 13.558,
+      "live_evidence_calls": 3.5
+    },
+    "cases": [
+      {
+        "caseId": "SSD-F7-01",
+        "seconds": 56.08,
+        "retrieval_proxy_seconds": 0.383,
+        "draft_proxy_seconds": 41.251,
+        "review_proxy_seconds": 14.231,
+        "live_evidence_calls": 3
+      },
+      {
+        "caseId": "SSD-F7-02",
+        "seconds": 45.94,
+        "retrieval_proxy_seconds": 0.389,
+        "draft_proxy_seconds": 33.832,
+        "review_proxy_seconds": 11.583,
+        "live_evidence_calls": 3
+      },
+      {
+        "caseId": "SSD-F7-03",
+        "seconds": 40.92,
+        "retrieval_proxy_seconds": 0.405,
+        "draft_proxy_seconds": 27.162,
+        "review_proxy_seconds": 13.093,
+        "live_evidence_calls": 3
+      },
+      {
+        "caseId": "SSD-F7-04",
+        "seconds": 46.85,
+        "retrieval_proxy_seconds": 0.392,
+        "draft_proxy_seconds": 33.416,
+        "review_proxy_seconds": 12.764,
+        "live_evidence_calls": 4
+      },
+      {
+        "caseId": "SSD-F7-05",
+        "seconds": 44.71,
+        "retrieval_proxy_seconds": 0.391,
+        "draft_proxy_seconds": 28.946,
+        "review_proxy_seconds": 15.219,
+        "live_evidence_calls": 3
+      },
+      {
+        "caseId": "SSD-F7-06",
+        "seconds": 34.29,
+        "retrieval_proxy_seconds": 0.303,
+        "draft_proxy_seconds": 21.986,
+        "review_proxy_seconds": 11.777,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-07",
+        "seconds": 56.51,
+        "retrieval_proxy_seconds": 0.441,
+        "draft_proxy_seconds": 41.22,
+        "review_proxy_seconds": 14.706,
+        "live_evidence_calls": 5
+      },
+      {
+        "caseId": "SSD-F7-08",
+        "seconds": 69.02,
+        "retrieval_proxy_seconds": 0.448,
+        "draft_proxy_seconds": 57.324,
+        "review_proxy_seconds": 11.052,
+        "live_evidence_calls": 7
+      },
+      {
+        "caseId": "SSD-F7-09",
+        "seconds": 48.87,
+        "retrieval_proxy_seconds": 0.539,
+        "draft_proxy_seconds": 33.921,
+        "review_proxy_seconds": 14.222,
+        "live_evidence_calls": 4
+      },
+      {
+        "caseId": "SSD-F7-10",
+        "seconds": 69.16,
+        "retrieval_proxy_seconds": 0.622,
+        "draft_proxy_seconds": 56.474,
+        "review_proxy_seconds": 11.859,
+        "live_evidence_calls": 6
+      },
+      {
+        "caseId": "SSD-F7-11",
+        "seconds": 40.22,
+        "retrieval_proxy_seconds": 0.382,
+        "draft_proxy_seconds": 26.291,
+        "review_proxy_seconds": 13.395,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-12",
+        "seconds": 52.88,
+        "retrieval_proxy_seconds": 0.317,
+        "draft_proxy_seconds": 38.401,
+        "review_proxy_seconds": 14.038,
+        "live_evidence_calls": 4
+      },
+      {
+        "caseId": "SSD-F7-13",
+        "seconds": 49.83,
+        "retrieval_proxy_seconds": 0.426,
+        "draft_proxy_seconds": 35.404,
+        "review_proxy_seconds": 13.721,
+        "live_evidence_calls": 3
+      },
+      {
+        "caseId": "SSD-F7-14",
+        "seconds": 61.55,
+        "retrieval_proxy_seconds": 0.557,
+        "draft_proxy_seconds": 49.197,
+        "review_proxy_seconds": 11.588,
+        "live_evidence_calls": 6
+      },
+      {
+        "caseId": "SSD-F7-15",
+        "seconds": 43.18,
+        "retrieval_proxy_seconds": 0.422,
+        "draft_proxy_seconds": 28.346,
+        "review_proxy_seconds": 14.24,
+        "live_evidence_calls": 2
+      },
+      {
+        "caseId": "SSD-F7-16",
+        "seconds": 54.77,
+        "retrieval_proxy_seconds": 0.462,
+        "draft_proxy_seconds": 39.848,
+        "review_proxy_seconds": 14.278,
+        "live_evidence_calls": 5
+      }
+    ]
+  }
+}

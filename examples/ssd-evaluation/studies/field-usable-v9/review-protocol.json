@@ -1,0 +1,11 @@
+{
+  "raters": ["codex/gpt-6.1-terra", "opencode-go/beam-free"],
+  "adjudicator": "codex/gpt-6.2-astra",
+  "condition_endpoint": "C2 full credit, divided by planned questions",
+  "readiness_endpoint": "Ready, divided by planned questions",
+  "misleading_endpoint": "Misleading, divided by completed answers and reported on both-completed pairs",
+  "latency_endpoint": "End-to-end median of delivered answers and median same-question delta",
+  "latency_tolerance_seconds": 2.5,
+  "historical_direct_signoff_median_seconds": 24.695,
+  "slices": {"doorbell": 6, "fused": 4, "steering": 4, "transfer": 2}
+}

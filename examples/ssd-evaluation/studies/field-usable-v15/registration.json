@@ -1,0 +1,105 @@
+{
+  "questions_sha256": "6c10b5b4cf3af3830bbbab1d19e9a4d0e3c08447dc4989a663e6a5c9794aed73",
+  "bank_sha256": "88081288c790541d97c5a4e565485af8886b954e225273e671e4e68930f99427",
+  "code": {
+    "pi_trial.py": "8094e7f015de788de4a97585fcb284f9d0e33871838dbc7b9ce3d75f2c1937e6",
+    "retrieval_trial.py": "ac3b32a7449ecc630e620a935811be1699553c8674e609f026c439786c32c555",
+    "evidence_mcp.py": "5092e2beb7ed8cbdd70877a47ee97ff4dc9a44b55e1166daa92425524a81297b",
+    "evidence_timeline_mcp.py": "71585852aec96d058af990431541fadc239232f9c9211cd9366846b9d099b082",
+    "handoff_review.py": "7991c2ade247dc6004de1cc297cab01e80a6e14feabfd6d48350747d36d71403",
+    "evidence_conditions_mcp.py": "916e122efd5e3ed89078e21c1ac9de6f0810b7a8e82a83e0ff5bf89fd8565437",
+    "condition_review.py": "436399b971b1d376bf90321dd4a85dd928be9a93bd8e5ec6eb6c66ddc93cc219",
+    "evidence_fast_conditions_mcp.py": "9ceb4af9a9a9d8b2b31af710fea6cda01f7c8e6ebba6d9b3ab4d1741be68bf17",
+    "trial_timing.py": "d5146538aa46fd5745c7281cdaf78aa390a0a9ad375ae1e3b0808266b121cd95",
+    "decision_checks.py": "e865292362e3ffc126236d6d3c88475e8ad88f11eec8050873200d79ff5e5e11",
+    "evidence_verification_mcp.py": "83772d3a07677407000ee622f295fe0b07d3490c58105399ad08b0608f926044",
+    "acceptance_review.py": "382c3b3baec597c7cce1d5239cac98464fb46ae7ef6503eafd70cdaaf543a2d1",
+    "studies/field-usable-v4/review_study.py": "3a9d610b04320766c1da53d586d73c9710cf4f36890cdf8fc903940c6b96ba52",
+    "concise_review.py": "9671e022e776de31a4f9b3c7c587c68b34798a11a82462ab44399ee60e06b112",
+    "field_evidence.py": "6df2862f5bc9372351cd357db7fefc7e77056cd905df9cbaf9746bac17aae6e4",
+    "skills/verified-conditions/ssd-field-decisions/SKILL.md": "4ada13cdb484777241e180eac2ca18363158a001c4e7dd6f832eec4efbb7bda6",
+    "skills/concise-records/ssd-field-decisions/SKILL.md": "e216dcb2342ee0c07a50c9680bebc718541e913c1f0d0ecb5a681a118556aa1b"
+  },
+  "source_pdfs": {
+    "nvme": "4e31f826dd7ceaee311f93b74eef5c05ac32afe4ef45436534dfcfd6a40dc746",
+    "pcie": "b863834e2ecd4240d033299f4d782478b870076ff84e9e6826e37ec495c5d004"
+  },
+  "validation": {
+    "scenarios": 16,
+    "criteria": 48,
+    "anchors": {
+      "nvme": 20,
+      "pcie": 8
+    },
+    "verified_pdfs": [
+      "nvme",
+      "pcie"
+    ]
+  },
+  "old_case_count": 234,
+  "old_family_count": 220,
+  "evaluation_slices": {
+    "scope": 4,
+    "operational": 6,
+    "transfer": 6
+  },
+  "order_seed": "ssd-field-usable-v15-paired",
+  "baseline_first_ids": [
+    "SSD-F15-16",
+    "SSD-F15-12",
+    "SSD-F15-13",
+    "SSD-F15-10",
+    "SSD-F15-05",
+    "SSD-F15-01",
+    "SSD-F15-15",
+    "SSD-F15-04"
+  ],
+  "configuration": {
+    "provider": "magpie",
+    "model": "auto/deepseek-v4.1-flash",
+    "mode": "domain",
+    "calls": 8,
+    "timeout": 120
+  },
+  "prefetch": true,
+  "thinking": "off",
+  "arms": {
+    "baseline": "decision",
+    "candidate": "decision"
+  },
+  "styles": {
+    "baseline": "verified-conditions",
+    "candidate": "field-acceptance"
+  },
+  "skills": {
+    "baseline": "verified-conditions",
+    "candidate": "concise-records"
+  },
+  "candidate_review_model": "codex/gpt-6.2-sol",
+  "baseline_review_model": "codex/gpt-6.2-sol",
+  "timing": "Median of completed responses. Retrieval is prefetch plus concurrent Pi evidence waits counted once. Draft is the standalone drafting stage. Sign-off includes generation for the direct path. Both model-stage timings exclude evidence-tool wait.",
+  "grading": {
+    "raters": [
+      "codex/gpt-6.1-terra",
+      "opencode-go/beam-free"
+    ],
+    "adjudicator": "codex/gpt-6.2-astra",
+    "latency_endpoint": "Median candidate minus baseline for completed same-question pairs",
+    "paired_latency_limit_seconds": 2.5,
+    "readiness_endpoint": "Ready per planned, at least 90% and at least the same-batch baseline; report pair gains and losses",
+    "misleading_endpoint": "Observed misleading per completed, with zero as the target",
+    "acceptance_endpoint": "C3 full credit per planned question",
+    "condition_endpoint": "C2 full credit per planned question",
+    "slices": {
+      "scope": 4,
+      "operational": 6,
+      "transfer": 6
+    }
+  },
+  "metrics": [
+    "ready/planned",
+    "misleading/completed",
+    "misleading/planned",
+    "misleading on both-completed pairs"
+  ]
+}

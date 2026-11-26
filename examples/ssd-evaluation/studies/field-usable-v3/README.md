@@ -41,4 +41,4 @@ python -X utf8 "$kit/export_workbench.py" "$round/workbench-manifest.json" --out
 
 第二条命令由已审档案重建前端报告。要对比新的首答，复制清单，添加相对于清单的 `runs` 目录和新的 `reviews` 文件。留出评审由独立评审读取随机编号的首答。保存 `id, completed, criteria, reject_hits, usability, reason, other_error` 后可用 `scenario_eval.py score` 重算判据。用 `export_workbench.py` 生成对照 JSON，再到 **设置 → 智能体 → 智能体评估** 导入。
 
-本目录保存投放题、双评和裁决、配对统计、用于报告的答案及必要取证记录。历史原始运行事件和 PDF 仍由实验机器保管。仓库里的前端样例来自同一份已审档案，可直接对照。[内置报告](../../../../packages/app/src/components/evaluations/ssd-example-report.json)
+本目录保存投放题、双评和裁决、配对统计、用于报告的答案及必要取证记录。历史原始运行事件和 PDF 仍由实验机器保管。工作台可导入同一份已审档案重建的[第三轮报告](../../reports/field-usable-v3.json)。

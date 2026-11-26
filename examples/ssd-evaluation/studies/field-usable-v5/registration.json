@@ -1,0 +1,71 @@
+{
+  "questions_sha256": "060f8d8b01ad6084409fe040a293f55108aa1368e1dc7d3defd466c179541745",
+  "bank_sha256": "94f8f96226894db1c042a729efd2956bdbffc697e7321a1b20e5b9acda512ae5",
+  "code": {
+    "pi_trial.py": "a7ebd30752a318dd6c315f172b0d91f14b907e2568f1adfdf0ccf8d22bcf6530",
+    "retrieval_trial.py": "ac3b32a7449ecc630e620a935811be1699553c8674e609f026c439786c32c555",
+    "evidence_mcp.py": "5092e2beb7ed8cbdd70877a47ee97ff4dc9a44b55e1166daa92425524a81297b",
+    "skills/outcomes/ssd-field-decisions/SKILL.md": "6ea653bf70991fdf8bf5e0ec35ea40738ebed1c17e2e338fbe71606ebae06178",
+    "skills/closure/ssd-field-decisions/SKILL.md": "d510f0a8f9776d81e8ec0325cadb1fb82aada99f8f753596eff0133e917da973"
+  },
+  "source_pdfs": {
+    "nvme": "4e31f826dd7ceaee311f93b74eef5c05ac32afe4ef45436534dfcfd6a40dc746",
+    "pcie": "b863834e2ecd4240d033299f4d782478b870076ff84e9e6826e37ec495c5d004"
+  },
+  "validation": {
+    "scenarios": 8,
+    "criteria": 24,
+    "anchors": {
+      "nvme": 8,
+      "pcie": 8
+    },
+    "verified_pdfs": [
+      "nvme",
+      "pcie"
+    ]
+  },
+  "old_case_count": 86,
+  "old_family_count": 72,
+  "order_seed": "ssd-field-usable-v5-paired",
+  "baseline_first_ids": [
+    "SSD-F5-06",
+    "SSD-F5-08",
+    "SSD-F5-04",
+    "SSD-F5-03"
+  ],
+  "configuration": {
+    "provider": "magpie",
+    "model": "auto/deepseek-v4.1-flash",
+    "mode": "domain",
+    "calls": 8,
+    "timeout": 120
+  },
+  "prefetch": true,
+  "thinking": "off",
+  "arms": {
+    "baseline": "outcomes",
+    "candidate": "decision"
+  },
+  "styles": {
+    "baseline": "decision-audit",
+    "candidate": "scoped"
+  },
+  "skills": {
+    "baseline": "outcomes",
+    "candidate": "closure"
+  },
+  "grading": {
+    "raters": [
+      "codex/gpt-6.2-sol",
+      "codex/gpt-6.1-terra"
+    ],
+    "adjudicator": "codex/gpt-6.2-astra",
+    "mask": "random edit-free sheets, no arm, one answer per case per batch"
+  },
+  "metrics": [
+    "ready/planned",
+    "misleading/completed",
+    "misleading/planned",
+    "misleading on both-completed pairs"
+  ]
+}

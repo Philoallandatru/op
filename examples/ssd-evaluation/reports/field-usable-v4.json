@@ -1,0 +1,1544 @@
+{
+  "schemaVersion": 1,
+  "title": "证据与处置核验 · 第四轮 12 道留出题",
+  "cases": [
+    {
+      "family": "acs-upstream-source-validation",
+      "split": "challenge",
+      "question": "隔离验收仅检查 Switch Downstream Port 的 ACS Source Validation Enable=1，然后就签‘下游方向所有 P2P 请求都会被重定向’。能签吗？",
+      "observations": [
+        "本次留下的是该 Downstream Port 的 ACS Control 快照，没记录 ACS P2P Request Redirect Enable。",
+        "没有读路径验证结果，也没有授权在线改寄存器。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签所声称的 P2P 重定向。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "说明 Source Validation 的方向和检查对象。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "从相关端口取 Redirect 能力及控制或路径证据，避免在线改写。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "把 Source Validation Enable 当 P2P 重定向状态，或据此贸然修改在线隔离寄存器。"
+      ],
+      "id": "SSD-F4-12",
+      "referenceAnswer": "不能。Source Validation 检查上行请求 Requester ID 的 Bus Number 范围，不能证明 P2P Request Redirect 已启用或布局满足要求。只读核查相关端口的 Redirect 能力和控制及实际路径，现有快照仅证明 Source Validation 已设。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 825,
+          "section": "§7.7.8.3",
+          "anchor": "the component validates the Bus Number"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 825,
+          "section": "§7.7.8.3",
+          "anchor": "ID of Upstream Requests against"
+        }
+      ]
+    },
+    {
+      "family": "lockdown-contents-vs-policy",
+      "split": "challenge",
+      "question": "安全审计准备把日志里列出的某个 FID 登记为‘主机 Admin 路径已经封禁’。这份日志够吗？",
+      "observations": [
+        "取自 Command and Feature Lockdown Log，SCP=2h，CNTTS=00b。返回的列表包含 FID。",
+        "无 Lockdown 操作记录，授权只允许读取。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝把当前日志当作已封禁。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "区分可禁止和当前禁止，并指出 SCP=2h 是 FID 范围。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "查询同范围 CNTTS=01b 的当前 Admin 路径列表，不修改策略。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "用 00b 或带外的 10b 当作 Admin 路径已封禁证据。"
+      ],
+      "id": "SSD-F4-05",
+      "referenceAnswer": "不够。00b 是可禁止能力，不能据此登记当前策略。保持 SCP=2h，重新读取 CNTTS=01b 的 Admin 路径当前禁止列表，并核对对应 FID 和适用 UUID。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 285,
+          "section": "§5.1.12.1.20, Figure 265",
+          "anchor": "able to be prohibited"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 285,
+          "section": "§5.1.12.1.20, Figure 265",
+          "anchor": "currently prohibited if received on an Admin submission queue"
+        }
+      ]
+    },
+    {
+      "family": "ari-next-function-traversal",
+      "split": "challenge",
+      "question": "资产扫描把 ARI Capability 中的 Next Function Number 当数量，并把 04h 解释成增减了四个功能。当前应怎么记？",
+      "observations": [
+        "ARI 转发已启用。Function 0 报 04h，Function 4 报 00h，两个读取均有效。",
+        "没有旧拓扑对照，也没有物理槽位变化记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "准确解释 04h 和 00h。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "给本次链表的 0、4 两个编号。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "拒绝把编号当数量或拓扑变更证据。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "按连续四个功能登记，或据静态 Next Function Number 判拔插。"
+      ],
+      "id": "SSD-F4-09",
+      "referenceAnswer": "按本次链表记录 Function 0 和 Function 4。04h 指下一更高 Function 的号码，00h 表示无更高 Function，未给数量或拓扑变更证据。不要把 1–3 当已发现，也不要据此登记拔插。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 871,
+          "section": "§7.8.7.2",
+          "anchor": "the next higher numbered Function"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 871,
+          "section": "§7.8.7.2",
+          "anchor": "Function 0 starts this linked list"
+        }
+      ]
+    },
+    {
+      "family": "flr-link-state-witness",
+      "split": "challenge",
+      "question": "维护员向一个 PCIe Function 发出 FLR，接着看到共享链路掉线。能签‘正常 FLR 链路重训’并跳过调查吗？",
+      "observations": [
+        "抓取确认目标为 F0 的 Initiate FLR 写。F1 也在同一链路上。",
+        "没有对其他复位、供电或链路错误做同步采样。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝把链路掉线视为正常 FLR。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "解释 Function 与 Link 的作用域。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "保留异常并核对可能的独立触发条件，不凭此确定根因。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "要求所有 FLR 都等待链路掉线或用掉线证明目标 FLR 成功。"
+      ],
+      "id": "SSD-F4-07",
+      "referenceAnswer": "不能。FLR 作用于目标 Function，规范要求链路状态不受 FLR 影响。记录异常并核对触发写、同时段链路状态及其他复位/供电事件，再归因或恢复业务。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 555,
+          "section": "§6.6.2",
+          "anchor": "Only the targeted Function is affected"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 555,
+          "section": "§6.6.2",
+          "anchor": "The Link state must not be affected"
+        }
+      ]
+    },
+    {
+      "family": "atomicop-pair-routing",
+      "split": "challenge",
+      "question": "两块盘挂不同 Root Port。两端端口都标 AtomicOp Routing Supported，有人要凭这两位开启跨端口 P2P AtomicOp。可以签吗？",
+      "observations": [
+        "两个 Root Port 都读到 Routing Supported=1。目标盘的计划操作类型和位宽能力已确认。",
+        "没有这对端口的路由支持记录或经过授权的验证结果。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝据单端能力位放行。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "区分端口的 Routing Supported 与 RC 任意端口对，说明不支持路径的 UR。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "缺的证据指向具体端口对，保留现有路径直到确认。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "断言两个 Routing Supported=1 足以签或把路由 UR 直接归责目标盘。"
+      ],
+      "id": "SSD-F4-10",
+      "referenceAnswer": "不能凭这两位启用。RC 不必支持所有都置位的端口对，不支持的端口对会返回 UR。核实平台对这对端口的配对路由支持，或按授权对这一路径验证；保留现有路径。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 604,
+          "section": "§6.15.3.2",
+          "anchor": "An RC is not required to support AtomicOp"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 604,
+          "section": "§6.15.3.2",
+          "anchor": "handled as an Unsupported Request"
+        }
+      ]
+    },
+    {
+      "family": "endurance-group-event-ack",
+      "split": "challenge",
+      "question": "盘组监控的只读巡检要保留 pending 通知给另一流程。怎样取组 3 的告警详情而不确认清除？",
+      "observations": [
+        "组 3 出现在 Endurance Group Event Aggregate。采集器尚未读取组 3 的 Endurance Group Information。",
+        "巡检的授权只包含读取。消费通知的工作由另一流程处理。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "按特定组读取 Endurance Group Information。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "用 RAE=1 保留该次通知。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "交代聚合项移除依赖该组详情读成功且 RAE=0。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2",
+            "P3"
+          ]
+        }
+      ],
+      "reject": [
+        "读取组 3 详情使用 RAE=0，或把只看聚合表解释成已经取得详情。"
+      ],
+      "id": "SSD-F4-04",
+      "referenceAnswer": "对组 3 请求 Endurance Group Information，RAE=1，保留输出。成功以 RAE=0 读取该组信息会移除其聚合项，不能用在这次保留型巡检。聚合项只标识有待处理的组。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 275,
+          "section": "§5.1.12.1.15",
+          "anchor": "included in the Endurance Group Information"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 275,
+          "section": "§5.1.12.1.15",
+          "anchor": "command is completed successfully with"
+        },
+        {
+          "id": "P3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 275,
+          "section": "§5.1.12.1.15",
+          "anchor": "the Retain Asynchronous Event bit cleared"
+        }
+      ]
+    },
+    {
+      "family": "host-command-retry-gate",
+      "split": "challenge",
+      "question": "驱动评审里有人用 CQE 上的非零 CRD 给这次命令套退避延时，然后直接重试。可以放行吗？",
+      "observations": [
+        "同一主机与控制器的已确认 Host Behavior Support 当前 ACRE=0。CQE 的命令身份有记录，但解析得到非零 CRD。",
+        "尚未对照原始 CQE 字节和驱动位段，未批准重新提交该命令。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "阻止仅凭非零 CRD 的退避或重试。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "说明 ACRE=0 的 CRD 清零和 Command Interrupted 禁用。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "先从同次记录核验，再定性，保留重试的独立条件。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "把非零 CRD 反推成主机已启用 ACRE，并马上重发命令。"
+      ],
+      "id": "SSD-F4-06",
+      "referenceAnswer": "拒绝按该 CRD 退避或重试。ACRE=0 时禁用 Command Interrupted 与 command retry delays，控制器应将完成项 CRD 清零。留存 CQE，核对真实 CRD 位段和当时的协商；确认仍非零时再报不一致。是否重试取决于真实完成状态和授权。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 408,
+          "section": "§5.1.25.1.14, Figure 407",
+          "anchor": "If this bit is cleared to 0h"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 408,
+          "section": "§5.1.25.1.14, Figure 407",
+          "anchor": "shall clear the CRD field to 0h"
+        }
+      ]
+    },
+    {
+      "family": "pel-generation-mismatch",
+      "split": "challenge",
+      "question": "跨多次读取的 Persistent Event Log 中没有重启事件。能把这份导出签成‘未发生重启’吗？",
+      "observations": [
+        "采集端建立了 reporting context，先读的 Generation Number 为 21，读完全部分段后同一头字段为 22。",
+        "前后都成功返回。没有其他连续的主机事件记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝据此确认未重启。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "区分可能丢失上下文与已证实重启。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "完整重读、核对首末 generation，保留原数据。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "拼接旧片段和新片段后签字，或把 generation 变化直接当成重启发生。"
+      ],
+      "id": "SSD-F4-03",
+      "referenceAnswer": "拒签。首末 Generation Number 不匹配，报告上下文可能丢失而样本不可靠，不能把缺事件当作未发生。保留原采样，按上下文流程完整重读并复核头部两次 generation，保持有效采集完成后释放上下文。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 254,
+          "section": "§5.1.12.1.14",
+          "anchor": "If the generation numbers do not match"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 254,
+          "section": "§5.1.12.1.14",
+          "anchor": "host software should re-read the log"
+        }
+      ]
+    },
+    {
+      "family": "ecrc-forwarding-provenance",
+      "split": "challenge",
+      "question": "有人建议给 PCIe Switch 加一条规则，转发时重算并替换不匹配的 ECRC，‘修一下’再送给 SSD。可以验收吗？",
+      "observations": [
+        "该 TLP 是经过 Switch 转发的请求，不以 Switch 本身为目标。进入时带 ECRC。",
+        "目标端要能保留端到端完整性判断。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝重算替换原端到端 ECRC。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "区分转发 TLP 与 Switch 本地目标、可选检查与必须原样转发。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "保留同一请求的前后证据，避免归责或把 CRC 修成有效。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "在转发路径上用新 ECRC 掩盖原始校验差异。"
+      ],
+      "id": "SSD-F4-08",
+      "referenceAnswer": "拒绝。Switch 对转发 TLP 必须保留 ECRC 原样，不因自身检查或检查失败而重算替换。保存入端和出端同一 TLP 的抓包及接收端检查结果用于定位，坏 ECRC 本身不定位产生点。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 198,
+          "section": "§2.7.1",
+          "anchor": "Switches must pass TLPs with ECRC unchanged"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 198,
+          "section": "§2.7.1",
+          "anchor": "if the ECRC check fails"
+        }
+      ]
+    },
+    {
+      "family": "kato-rejected-write",
+      "split": "challenge",
+      "question": "维护脚本清零 KATO 后，要把连接移给一个不发 Keep Alive 的客户端。可以移交吗？",
+      "observations": [
+        "该 Fabrics 传输绑定要求开启 Keep Alive Timer。变更前记录非零 KATO。",
+        "同一控制器对本次 Set Features 返回 Keep Alive Timeout Invalid，之后没有别的变更记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "以既定绑定要求和被拒绝变更为由拒绝移交。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "说明 KATO 未因这次失败变更而清零。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给可执行的保留合规 Keep Alive 或只读核查当前值的方案。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "把失败的清零当作成功，切给不发送 Keep Alive 的客户端。"
+      ],
+      "id": "SSD-F4-01",
+      "referenceAnswer": "暂缓移交。该绑定要求 Keep Alive，清零被拒绝并不改变控制器正在使用的 KATO。恢复合规的发送者，若需确认使用值可 Get Features，不能当作定时器已关闭。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 147,
+          "section": "§3.9.1",
+          "anchor": "Keep Alive Timeout value to 0h"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 147,
+          "section": "§3.9.1",
+          "anchor": "value at the controller shall not be changed"
+        }
+      ]
+    },
+    {
+      "family": "tph-unsupported-mode-write",
+      "split": "challenge",
+      "question": "SSD 只支持 No ST Mode，脚本见 TPH Requester Capability 存在就要把 ST Mode Select 写成 Interrupt Vector Mode。可以放行吗？",
+      "observations": [
+        "该 Function 的 No ST Mode Supported=1，Interrupt Vector Mode Supported=0，Device Specific Mode Supported=0。",
+        "本次只要求验收模式选择；没有业务允许修改的其他功能。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝写 Interrupt Vector Mode。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "说明 No ST only 的 000b 与不支持模式边界。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "给保留已支持模式的处置，不附加未授权改动。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "支持结构一存在就写未支持模式，或要求置位模式支持只读位。"
+      ],
+      "id": "SSD-F4-11",
+      "referenceAnswer": "不能。只有 No ST Mode 的功能须把 ST Mode Select 固定为 000b。启用不支持模式行为未定义。改为保留 No ST Mode 或跳过这一测试，复核能力读取，不能用 capability 存在推定其它模式支持。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 948,
+          "section": "§7.9.13.3",
+          "anchor": "only the No ST Mode of operation"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 948,
+          "section": "§7.9.13.3",
+          "anchor": "mode supported by the Function"
+        }
+      ]
+    },
+    {
+      "family": "cse-controller-wide-admission",
+      "split": "challenge",
+      "question": "维护窗口内要向 NSID=4 提交一个维护命令。队列里只剩 NSID=7 的数据命令。可以立即提交吗？",
+      "observations": [
+        "这是一台 NVMe 控制器。该命令在 Commands Supported and Effects 中的 CSE=010b，CSER=0。",
+        "NSID=7 的命令确实仍未完成。计划要求遵守规范的调度建议。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "决定等待现有 NSID=7 命令完成。",
+          "weight": 4,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C2",
+          "text": "010b 覆盖任意命名空间，CSER 无覆盖。",
+          "weight": 3,
+          "critical": true,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        },
+        {
+          "id": "C3",
+          "text": "维护命令完成前保持同样的提交门禁，将其表述为调度建议。",
+          "weight": 3,
+          "critical": false,
+          "evidence": [
+            "P1",
+            "P2"
+          ]
+        }
+      ],
+      "reject": [
+        "按仅同 NSID 排空立即提交，或根据 CSE 单独宣称设备必然拒绝命令。"
+      ],
+      "id": "SSD-F4-02",
+      "referenceAnswer": "推迟。CSE=010b 的建议覆盖任意命名空间，不限 4；等待在途命令完成，随后在维护命令完成前继续暂停影响任意命名空间的新提交。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 237,
+          "section": "§5.1.12.1.6, Figure 210",
+          "anchor": "no other outstanding command that affects any"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 237,
+          "section": "§5.1.12.1.6, Figure 210",
+          "anchor": "any namespace until this command is complete"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第三轮配置 · 逐项处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证（含双协议预取）· outcomes + v3 skill",
+      "results": [
+        {
+          "caseId": "SSD-F4-12",
+          "status": "completed",
+          "answer": "**结论：不能签。** 现有记录只证明该端口 ACS Control 的 bit0（ACS Source Validation Enable）=1，与\"下游方向 P2P 请求被重定向\"没有因果关系。\n\n依据（PCI Express Base 5.0）：\n- §7.7.8.3 ACS Control 寄存器（PDF p.825）中 bit0 Source Validation、bit2 P2P Request Redirect、bit5 P2P Egress Control Enable、bit6 Direct Translated P2P 彼此独立；本次快照未记 bit2/5/6 与 Egress Control Vector。\n- bit0 语义（p.825、p.581）：只校验 Upstream Request 的 Requester ID Bus Number 是否落在 Secondary/Subordinate 孔径内，越界即报 ACS Violation，不产生重定向。\n- 即便 bit2=1：p.826 该位在 Downstream Port 只作用于\"到达本端口、正常路由指向另一 Downstream Port 的 Upstream Request\"，方向是 Upstream 送 RC；p.582 明确 \"Downstream Ports never redirect Requests that are traveling Downstream\"。\n- bit5＋Egress Control Vector（§6.12.3，p.586 表6-10）与 bit6 Direct Translated P2P（AT=Translated 直通，p.583）还能改变结果，\"所有\"更不成立。\n\n**下一步（区分性最强）**：读该端口 ACS Control(06h) 与 Egress Control Vector(08h)，记下 bit2/5/6 及向量，同时抓一条真实 P2P 请求的行进方向。\n- bit2=1 且向量放行 → 只能签\"到达本端口、目标为另一 Downstream Port 的上游 P2P 被上送 RC\"。\n- bit2=0 → 只签\"越界上游请求报 ACS Violation\"，不签重定向。\n\n**仍待确认**：被观测 P2P 请求的实际流向（上游/下游）、对端端口配置、AT 字段；读路径验证结果与授权也尚未具备，故现状不足以改寄存器复测。",
+          "seconds": 27.45,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "C1 正确拒签当前声明。C2 正确说明校验的是上行请求 Requester ID 的总线号是否在 Secondary 至 Subordinate 范围内。C3 允许取路径证据，原答提出只读检查并抓取真实 P2P 请求确认方向，未要求在线改写，故未单列 Redirect 能力不扣分。",
+            "otherError": "原答把“bit2=1 且向量放行”列为可签上行 P2P 已重定向的条件，却把 bit6 和请求 AT 属性留作待确认。在允许已翻译请求直通时，该条件仍可能成立；仅观察请求到达端口的方向也不能证明它随后被上送 RC，可能把直通流量误记为已重定向。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 581
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 826
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 825
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-05",
+          "status": "completed",
+          "answer": "**结论：这份日志不足以登记\"主机 Admin 路径已封禁\"。**\n\n**理由（NVMe 2.1）**\n1. p.285 Figure 265（规范 p.263）：CNTTS=00b 定义为\"Scope 指定、**能够被禁止**\"的 FIDs；\"当前在 Admin 提交队列上被禁止\"是 CNTTS=01b。FID 出现在列表中只说明可禁，不说明已禁。\n2. 同页 SCP=2h = Feature Identifiers（Set Features FID 列表）；返回页 p.286 Figure 266（规范 p.264）SS=2h 亦为 Set Features FIDs。即便被禁，禁的只是该 FID，不是 Admin 路径整体。\n3. 该日志页仅含 CFILA/LNGTH/CFIL，无\"已生效\"或持久性标志，故本记录也证明不了禁令已生效或跨复位保持。\n4. 无 Lockdown 操作记录且授权仅限读取，与\"只列可禁能力\"一致；当前也无权施加禁令。\n\n**下一步（最区分力的一条）**：发 Get Log Page，LID=14h，Log Specific Parameter 置 CNTTS=01b、SCP=2h，并核对返回页 CFILA.CS=01b、SS=2h。\n- FID 在该列表 → 只能登记\"该 Set Features FID 当前在主机 Admin 提交队列上被禁止\"，不可写成\"Admin 路径已封禁\"。\n- FID 不在其中、仅见于 CS=00b 列表 → 登记\"可禁但当前未启用\"，审计项据实记为未实施。\n- CS/SS 与请求不符 → 未取到该视图，重读后再判。\n\n**仍待确认**：禁令的生效时刻与持久性（须另查 Lockdown 施加机制的持久属性，本次记录无此证据）。所给 PCIe 片段与本题无关。",
+          "seconds": 41.52,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝用 00b 登记已封禁，并区分了 FID 范围内的能力与当前策略。同范围读取 CNTTS=01b 且不修改策略，满足 C3；错误发生在用查询结果登记具体对象时。",
+            "otherError": "登记分支仅核对 FID，遗漏适用 UUID。若查询与审计对象的 UUID 上下文不同，命中可能误记为已禁，未命中也可能误记为未实施。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 285
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 287
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 286
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 284
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-09",
+          "status": "completed",
+          "answer": "**当前可作的决定（记录口径）**\n\n依据 PCIe 5.0 §7.8.7.2（p.871）：Next Function Number 在 ARI Capability Register 的 15:8 位，含义是\"设备中下一个更高编号的功能号\"，00h 表示无更高编号功能，Function 0 是链表头；§6.13（p.591）规定软件按该字段做配置探测、逐个走完链表。故：\n\n- Function 0 的 04h = 链上下一个是 **Function 4**；Function 4 的 00h = 链尾。\n- 记为：ARI 设备当前功能列表 = {Function 0, Function 4}，共 2 个功能，编号不连续（4 ≤ 7，非 Extended Function，p.75）。功能 1–3 不存在。\n- 撤销扫描结论：该字段是链指针不是数量，04h 不是\"增减了四个功能\"。端口已开 ARI 转发只说明可访问 >7 编号功能的前提具备（p.75、p.591），不代表还有更多功能。\n\n**尚不能认定**：无旧拓扑对照与槽位变更记录，且该字段为 RO、只反映当前链表，不能认定任何\"增减\"；两次读取有效≠已确认 Function 4 是活的 NVMe 功能。\n\n**最有区分力的一次检查**：按原始双字重读 ARI Capability Register（ARI Ext Cap +04h）于 Function 0、Function 4，并探测 Function 4 配置空间（Vendor/Device ID、Class Code 有效）。\n\n- 双字 bits 15:8 = 04h、bits 1:0 = 00b（非 Function 0 的 MFVC/ACS 必须为 0）→ 按 {0,4} 两功能结案。\n- 低字节为 04h（bits 7:2 为 RsvdP）→ 之前取错字节或读错结构，重取前不下任何数量结论。\n- Function 4 探测无响应 → 链断在 4，属幻影/未就绪，需按 ARI 转发下的 Type 0 探测重新枚举；仍不得写\"四个功能\"。",
+          "seconds": 50.41,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确按 04h 和 00h 记录 0→4，并否定数量变化和拔插推断。附加复核却给出了可能推翻有效链表记录的错误判定。",
+            "otherError": "把双字低字节出现 04h 直接判成取错字节或结构。低字节的保留位置位可与高字节中的有效 Next Function Number 并存，此判据可能误撤销当前记录。单次无响应也不足以归因为幻影或未就绪。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 869
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 870
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 871
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-07",
+          "status": "completed",
+          "answer": "**结论：不能签\"正常 FLR 链路重训\"，该项要按待查项继续，不能跳过调查。**\n\n**依据**：PCIe 5.0 §6.6.2（p.555）原文：\"FLR applies on a per Function basis. Only the targeted Function is affected by the FLR operation. **The Link state must not be affected by an FLR.**\" 规范中 FLR 的正常结果只有 Function 级复位，链路状态不得被改变，不存在\"FLR 引起链路重训\"这一合法结局。F1 与被复位 Function 同链路，链路掉线必然波及 F1，已越出 FLR 的作用域。\n\n**当前只能认定**：抓包证实\"对处于 F0 的目标 Function 写入 Initiate Function Level Reset\"。**不能认定**掉线由该写引起——其他复位、供电、链路错误未同步采样，无因果证据。\n\n**一次区分性检查**（在共享链路上游端口与端点同时采样，起始点＝FLR 写之前）：记录 Link Status 的 Data Link Layer Link Active 翻转时刻与 Link Bandwidth Management Status（§7.5.3.8, p.741–743）、AER Correctable/Uncorrectable Error Status、Device Status 的 Transactions Pending，以及同一时刻的 PERST#、Secondary Bus Reset、上游端口 FLR 写；端点侧同时取 NVMe 硬件错误事件 04h/05h（p.263）。\n\n- **掉线与该写无固定先后，或出现链路错误位／其他复位源证据**：归因他因；按 §6.6.2（p.556）100 ms FLR 完成时限与 FRS Configuration-Ready（§6.23.2, p.638）确认 F0 复位后确已重新可配置再结案，保留失败证据，仍不签\"正常重训\"。\n- **掉线紧随该写、无错误位、无其他复位源**：属违反\"The Link state must not be affected by an FLR\"，按实现缺陷上报，不得以\"正常 FLR 链路重训\"结案。\n\n**仍待确认**：Data Link Layer Link Active 的掉线由哪一侧发起、FLR 是否在 100 ms 内完成并报出 Configuration-Ready。",
+          "seconds": 46.19,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒签并说明 FLR 仅作用于目标 Function，但后续将时序和错误位直接用于定因，可能错报实现缺陷或过早结案。",
+            "otherError": "掉线紧随 FLR 且未采到错误或其他复位，不能证明 FLR 导致掉线。出现链路错误位也不能证明是独立原因，错误可能是掉线的结果。采样未补上供电观测，也不能把 Configuration-Ready 通知当作任何 FLR 的必备结案证据。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 554
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 555
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-10",
+          "status": "completed",
+          "answer": "**不能签。** 那两位只说明\"每个端口各自具备 AtomicOp 转发能力\"，不含端口对信息。\n\n**理由（可核对位置）**\n- PCIe 5.0 p.604 §6.15.3.2：RC 不要求支持所有\"位=1\"端口对之间的 AtomicOp 路由；不支持的端口对，请求按 Unsupported Request(UR) 处理并由\"发送\"端口报告。AtomicOp Routing Supported 位（Device Capabilities 2，PCIe Cap 结构内 offset 24h bit 6，p.754 §7.5.3.15）只是\"该端口支持此可选能力\"。\n- p.601 §6.15：设备到设备 AtomicOp 要求 Requester、Completer 及全部中间路由元件都支持相应能力；发起前须在 Device Control 2 置 AtomicOp Requester Enable（bit 6）且 BME=1（p.759 §7.5.3.16）。\n- NVMe 片段（p.56、p.626）与 AtomicOp/路由授权无关；多端口、跨 RC 属系统级、明确超出 NVMe 范围（p.56），故无背书。\n\n**仍待确认**：两端口是否同一 RC；该端口对是否真被 RC 实现支持；发起方是否有 AtomicOp Requester 能力（其软件发现不在规范范围，p.604 §6.15.3.3）。\n\n**最有效下一步（一次区分）**：在授权验证环境发一条已确认类型/位宽的最小 AtomicOp 到目标地址，读 Completion Status。\n- SC → 该端口对可用；再确认两端口 Device Control 2 bit 7（AtomicOp Egress Blocking）=0、发起方 bit 6=1、BME=1 后方可开启。\n- UR（Egress Blocked 情形可能不置 Unsupported Request Detected，p.603 脚注 127）→ 先读/清 bit 7；仍 UR 即该端口对不支持，关闭此方案，不重试。",
+          "seconds": 59.53,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒签正确。答卷区分了单端口能力与具体端口对的路由支持，也说明了不支持时由发送端口报告 UR。“确认后方可开启”已表达核实前维持现状，C3 给满分。实质错误在后续诊断。",
+            "otherError": "清 bit 7 后仍返回 UR，不能唯一定位为端口对不支持。据此关闭方案会误弃可用路径。清除阻断位还会改变端口转发策略，验证授权未必涵盖这项变更。正文虽写明 Requester Enable 和 BME 是发起前提，操作步骤却把复核放在收到 SC 之后。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 604
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 601
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-04",
+          "status": "completed",
+          "answer": "**决定：可以只读取到组 3 的告警细节而不消费 pending——用一条 Get Log Page 把 RAE 置 1 读 Endurance Group Information（LID 09h）即可。**\n\n**命令要点（NVMe 2.1）**\n- Dword 10：LID=09h；RAE=bit15=1（p.224 Fig 197）；NUMDL=128 dwords（512B，p.246 §5.1.12.1.10）。\n- Dword 11：LSI(bits31:16) 的 ENDGID=3（p.246 Fig 217）；NUMDU=0。\n- 读聚合页 LID 0Fh 不改状态；只有以 RAE=0 **成功**读完 09h 才会清该组事件并移除聚合条目（p.275 §5.1.12.1.15；p.103 §3.2.3.1）。若在另一流程取通知前被 RAE=0 读掉，通知将不再发出（p.197）。\n\n**现场可作的动作**：按上条命令读组 3，把 byte 00 的 EGCW 按 Figure 218（p.247）解码后原样移交另一流程；巡检自身不发起 Asynchronous Event Request。PCIe 的槽事件/MSI-X PBA 片段与本判定无关。\n\n**最区分力的下一步**：读完后再读一次 LID 0Fh。\n- 组 3 条目仍在且 EGCW≠0 → 事件仍 pending，巡检按只读收束并移交。\n- 条目消失或 EGCW=0 → 已被他人以 RAE=0 消费，转为追查消费方，勿再以“确认清除”方式重复读。\n\n**仍待确认**：EGCW bit2:0 含义需按 p.247 原表逐行核对；该页 NSID 适用范围本次未从原文核实；该组聚合页变更通知是否已由 Set Features 打开，需另一流程确认。",
+          "seconds": 53.97,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "09h 和 ENDGID=3 选对了读取对象，故 C1 满分。RAE=1 保留通知，成功以 RAE=0 读取该组详情才移除聚合项，也都交代正确。",
+            "otherError": "NUMDL 从零计数，512 B 应填 127，原值 128 会请求 516 B。复读聚合页本身无害，但 EGCW=0 不能证明通知已被消费，条目消失也不能单凭快照归因于其他流程，会导致错误追查。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 224
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 246
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 102
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 103
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-06",
+          "status": "completed",
+          "answer": "**结论：不能放行，拒签\"非零 CRD → 退避 → 重试\"这条逻辑。**\n\n**前提不成立**：本主机-控制器对已确认 ACRE=0。NVMe 2.1 p.408 Figure 407 规定：ACRE=0 时控制器 shall not use Command Interrupted、shall clear the CRD field to 0h in all CQEs。此刻出现的非零 CRD，要么是驱动解码/取错 CQE，要么是控制器违反该 shall，两种情形都不构成退避依据。\n\n**字段条件**：CRD 是 Status DW3 的 29:28 位，仅在 DNR(bit31)=0 且 ACRE=1 时定义；DNR=1 或 ACRE=0 时该字段 reserved（p.162 Figure 100）；SCT=SC=0 时应为 00b。即便条件齐备，等待也只是\"should not retry\"（提前重试不算错），时长取自 Identify Controller 的 CRDT1/2/3（p.328 Figure 312，单位 100 ms）。\n\n**最区分力的一步**：取该 CQE 原始 16 字节，核对 DW3 bit16 相位标签、DW0 CID、DW1 SQID 是否属本次提交，再按 Figure 100 解 DW3（DW3 定位见 p.161 Figure 98）：bit31 DNR、bit30 More、bit29:28 CRD、bit27:25 SCT、bit24:17 SC。\n\n**分支与动作**：\n- CRD 实为 00b，或所谓\"非零\"实际取自 DNR/M 位 → 驱动位段解码错，改解码，不加退避。\n- CRD 真为 01b/10b/11b、ACRE=0、DNR=0、CID 与相位均匹配 → 控制器违反 Figure 407 的 shall，记为控制器缺陷上报厂商，重试策略按 DNR 与 SC 决定，不按 CRD。\n- DNR=1 → 不重试（重提预计失败）。\n- SCT/SC 非 0 → 属完成报错，按状态码判定。\n\n**仍待确认**：尚无原始 CQE 字节与位段对照，责任方属驱动解码还是控制器尚未判定。",
+          "seconds": 33.55,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝按 CRD 退避或重试，也说明了 ACRE=0 的两项要求，但同次完成项的核验步骤有误，且未保留重提交授权条件。",
+            "otherError": "CID 在 DW3[15:0]，SQID 在 DW2[31:16]。按原答从 DW0 和 DW1 取值会错认完成项，可能误报控制器违规。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 162
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 161
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 163
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-03",
+          "status": "completed",
+          "answer": "**不能签成\"未发生重启\"。** 当前只能判定：这份导出按规范自检不通过，不能作为任何结论的依据。\n\n**理由（页码为已核实的 PDF 页）**\n\n1. NVMe Base 2.1 p.254：前后 Generation Number 不一致时，reporting context 可能已丢失、已读内容可能无效，host software 应重读。本记录 21→22 正是该情形。\n2. p.256：GNUM 仅在\"建立新 reporting context 且日志内容与上次不同\"时递增，故 22 说明读窗口内出现过新上下文+新数据。p.253：上下文保留至 Release(02h)、NVM Subsystem Reset 或 Controller Level Reset——复位即销毁上下文。21→22 与\"期间发生过复位\"相符，尚未被排除。\n3. 即使数据有效，\"无重启事件\"也推不出\"无重启\"：上下文存续期间发生的事件不进入该上下文（p.253）；设备可能不支持 Power-on or Reset Event（SEB bit 04 PRES，p.258）；日志满时厂商可删旧事件（p.253）。\n\n**最区分力的一步**：按 p.254 重读一遍（Action=01h→读 GNUM→读全部→再读 GNUM），同时留取 SEB bit 04、Timestamp、POH、PWRCC（p.256）。\n\n- 两次 GNUM 仍不等：仍有上下文更替/复位，查控制器 Reset 状态与是否存在第二采集者，不得签。\n- 相等且出现 Event Type 04h（带 Reset Information List，p.262）：确有复位，不能签。\n- 相等、PRES=1、无 04h、POH/PWRCC 未变：只能签到\"该可读窗口内无控制器复位记录\"。\n\n**仍待确认**：所问重启的对象是主机还是控制器/子系统；PEL 事件只覆盖控制器/子系统上电或复位，主机重启未必产生 04h，需主机侧启动计数另证。",
+          "seconds": 84.71,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒签，并区分上下文可能丢失与重启已证实。重读方案包含首末 GNUM 核对，但没有保留原采样，也未说明如何处理残留上下文及在采集完成后释放。",
+            "otherError": "把出现 04h 事件直接判为确有复位。该类型也涵盖上电，且日志中的事件可能早于待判定窗口，照此会误记本次复位。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 256
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 258
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 253
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 261
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-08",
+          "status": "completed",
+          "answer": "**决定：不能验收——驳回\"Switch 转发时重算并替换 ECRC\"这条规则。**\n\n依据（PCIe Base 5.0 §2.7.1 ECRC Rules，p.198）：Switch 必须把带 ECRC 的 TLP 原样从入端口传到出端口，转发时 \"must preserve the ECRC (forward it untouched) … regardless of whether the Switch checks the ECRC or if the ECRC check fails\"。Switch 可选检查转发 TLP 的 ECRC，但检出错误只按 Table 6-5 上报，\"do not alter the TLPs' passage\"（p.199）；中间接收者仍须转发 ECRC 检查失败的 TLP（p.200）。唯一允许重算是 MC_Overlay 多播叠加（Table 6-11，p.598；Multicast Capability bit 15，p.938），本例是发往 SSD 的单播请求，不适用。\n\n理由：ECRC 由源设备生成、终极接收者校验，覆盖端到端不变字段（p.198）。若 Switch 在不匹配时重算替换，入端口之前已损坏的 TLP 会被重新\"签名\"，SSD 校验必然通过——恰好废掉你们要保留的目标端端到端判断。\n\n尚不能认定：失配发生在入端口前、Switch 内部还是出链路；SSD 是否使能 ECRC 检查（AER ECRC Check Enable，p.850）。\n\n区分检查：使能并读取 Switch 转发侧 ECRC 检查结果，与 SSD 侧同一条 TLP 的 AER ECRC 状态/头日志对比。\n- Switch 报错 → 失配在入端口前已存在：保持原样转发，改查上游/主机。\n- Switch 通过、SSD 报错 → 问题在 Switch 内部或出链路：原样转发并提 Switch 固件缺陷。\n- 两侧都通过 → 本次失配不是 TLP 层 ECRC 失败，重取 SSD 入端口 Digest/ECRC 实测。\n\n若 SSD 未使能 ECRC Check，目标端本就无法作该端到端判定。边界：ECRC 失败请求在 SSD 侧如何处置超出 PCIe 规范范围（p.200），需另按控制器行为确认。",
+          "seconds": 80.04,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝重算并要求原样转发，也提出关联同一请求，但未保留交换机入端和出端的同一 TLP 抓包就给出归因动作。",
+            "otherError": "仅凭 Switch 检查通过而 SSD 报错就提 Switch 固件缺陷，无法排除出链路或接收端问题，会误报故障归属。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 200
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-01",
+          "status": "completed",
+          "answer": "**决定：按现状不可移交。** 该 Fabrics 绑定要求启用 Keep Alive Timer，清零被拒后控制器仍持非零 KATO，计时器未解除；不发 Keep Alive 的客户端接手只会以超时收场。\n\n理由（NVMe Base 2.1 / PDF 页码）\n- §3.9.1（p.147）：绑定要求启用 KA 时，清零 KATO 应以 **1Ah Keep Alive Timeout Invalid** 中止，且**控制器 KATO 值不变**。本次 Set Features 返回 1Ah，故 KATO 仍是变更前的非零值。\n- §3.9.3.1（p.148）：控制器侧 KATT 内无成功 Keep Alive 完成即到期，判为 Keep Alive Timeout。\n- §3.9.5（p.151）：超时后须记录 **19h Keep Alive Timer Expired**（码定义 p.164）错误日志、停止处理命令、置 CSTS.CFS=1；消息型传输还要终止传输连接并断开关联。\n- PCIe 侧的 \"keep alive\"（p.441）与本问题无关。\n\n**尚不能认定**：本次 1Ah 属清零还是超绑定最大值（同码、同样不改值，不影响本处置）；控制器当前有效 KATO 与剩余时限无记录；传输为消息型还是 RDMA（影响清理细节）。\n\n**一次区分检查**：移交前用 Get Features（FID 0Fh，§5.1.25.1.8，p.403）读回有效 KATO，同时查看 CSTS.CFS 与 Error Information Log。\n- 读回非零、CFS=0、无 19h → 计时器仍武装；只有接手方按 KATT 发 Keep Alive（或用绑定允许的流量型保活）才可移交，否则维持现状。\n- 读回 0h → 与\"值未变\"矛盾，先查清改动来源，暂不移交。\n- CFS=1 或见 19h → 已超时，连接已拆、控制器处于致命状态，移交不可能；保留错误日志证据后再谈恢复。\n- Get Features 报错 → 无法确认，不得据此移交。",
+          "seconds": 41.81,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确暂缓移交，说明 KATO 仍为非零，并给出有效值的只读核查方法，但把致命状态或历史日志误当成当前连接已经超时拆除的证据。",
+            "otherError": "CSTS.CFS=1 可由其他致命故障引起，19h 日志可能来自先前事件。任一单项都不足以认定当前连接已因 Keep Alive 超时拆除，可能导致错误归因或误启恢复。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 148
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 146
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 151
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-11",
+          "status": "completed",
+          "answer": "**结论：不可放行。** 脚本\"见 TPH Requester Capability 结构存在就写 Interrupt Vector Mode(001b)\"的判据本身是缺陷，须改为按各模式 Supported 位分支。\n\n**依据（PCIe Base 5.0 v1.0）**\n- Table 7-195（p.947）：bit1 Interrupt Vector Mode Supported，本次现场观测=0 → 该 Function 不支持 IVM；bit0 No ST Mode Supported 必须为 1。\n- Table 7-196（p.948）：ST Mode Select 2:0 中 001b=IVM、000b=No ST Mode；\"仅支持 No ST Mode 的 Function 必须硬连线为 000b\"，且\"软件使能了 Function 不支持的模式时，Function 操作未定义\"。\n- Table 6-13（p.607）：001b 需以有效 MSI/MSI-X 向量号索引 ST Table 取 Steering Tag；000b 下所有 Steering Tag 必须为 0。\n\n所以这次写入属于\"使能不支持的模式\"，设备行为未定义，且脚本会把失败误判为配置成功。\n\n**最区分力的一步**：写后立即读回 TPH Requester Control（Offset 08h）bits 2:0。\n- 读回 000b：设备按 p.948 硬连线、写入被丢弃 → 改判据为\"仅当对应 Supported=1 才编程该模式\"，本次不判 SSD 不合格，但脚本须返工。\n- 读回 001b：设备违反 p.948 硬连线要求 → 暂缓放行，交厂商确认该 Function实际模式行为。\n\n同时记录 bit8 Extended TPH Requester Supported 与 10:9 ST Table Location，以确认是否真有可编程 ST Table。\n\n**仍待确认**：本次是否已实际下过该写、写后读回值、有无依赖中断/Steering Tag 的其他功能（按你说的不改其他字段）。NVMe 侧 INTMS/Interrupt Coalescing 片段与本决定无关。",
+          "seconds": 22.18,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝脚本按能力结构是否存在来选模式，也说明了 000b 硬连线要求，但把写后读回列为验证步骤，未限定只核查已经发生的写入。",
+            "otherError": "现场写入尚未确认发生，按原步骤执行可能为验收主动下发不受支持的 001b。读回 000b 可核对字段值，但不能单凭读回证明该写入没有产生其他影响。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F4-02",
+          "status": "completed",
+          "answer": "**结论：不能立即提交。** 该命令 CSE=010b（NVMe 2.1 §5.1.12.1.6，PDF p.237）要求提交时“没有其他影响任何命名空间的未完成命令”，完成前也不得再提交影响任何命名空间的命令；CSER=00b 无放宽，须按 CSE 执行（同节，PDF p.238）。NSID=7 数据命令已从 SQ 下发、其 CQE 未 post，即仍在途（p.232 对在途的定义），它正影响命名空间 7 → 前提不成立。CSER=0 并未把限制收窄到 Admin 命令，I/O 命令同样计入。\n\n**尚不能认定**：①该 CSE 是否取自这条命令 opcode 自己的那一份结构——该日志页按每个 Admin opcode、每个 I/O 命令集 opcode 各一份（p.236），同号 opcode 易混；②NSID=7 是否为已分配且对本控制器 active 的命名空间（有效 NSID 限 1..NN，§3.2.1.2，p.97）。若 7 无效或 inactive，控制器本应已以 Invalid Namespace or Format / Invalid Field in Command 中止（p.156），那“仍未完成”的记录要重核，以 CQE 为准。\n\n**一次区分性检查**：在该 I/O 队列对应的 CQ 上按 CID 抓 NSID=7 命令的 CQE（看 phase tag 翻转）。\n- 抓到 CQE（成功或报错）→ 限制解除，立即提交 NSID=4 维护命令；若报错，保留完整 CQE 作失败证据，勿复位。\n- 窗口内仍无 CQE → 维持不提交，申请延长窗口；不要用控制器复位/删队列“清空”在途命令（丢证据，且写命令数据状态不明）。\n\n该维护命令提交后，按 010b 反向条款在其完成前不得再提交任何影响命名空间的命令，故窗口内 I/O 保持停发。",
+          "seconds": 99.12,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确决定等待，并将门禁覆盖到任意命名空间，但把规范的调度建议写成强制要求。用于确认可提交的 CQE 检查也有误。",
+            "otherError": "Phase Tag 在 CQ 回绕时翻转，逐条完成应与当前预期相位比较。共享 CQ 上只按 CID 匹配也可能认错命令，导致提前提交或无谓延长窗口。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 97
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "第四轮配置 · 证据与处置核验",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证（含双协议预取）· decision + v4 skill",
+      "results": [
+        {
+          "caseId": "SSD-F4-12",
+          "status": "completed",
+          "answer": "**不能签。**现有记录支撑不了这句话，且该句在规范上也不成立。\n\n**理由**\n1. **位不对**：ACS Control(Offset 06h) bit0 `ACS Source Validation Enable` 只检查上游请求 Requester ID 的 Bus Number 是否落在 Secondary/Subordinate aperture 内，越界才报 ACS Violation；Completions 永不受其影响（PCIe p.581 §6.12.1.1）。它不做任何重定向。\n2. **所需位没记录**：重定向由同一寄存器 bit2 `ACS P2P Request Redirect Enable` 决定（p.825/826）。本次快照未记该位 → 无法判定重定向是否使能。\n3. **方向也错**：即使 bit2=1，Downstream Port 上只对“到达本端口、正常路由指向另一 Downstream Port 的上游请求”生效，且重定向方向是 Upstream 往 RC；向下游行进的请求从不被重定向（p.826 bit2 描述；p.582）。另：ACS Direct Translated P2P 启用时，AT=Translated 的 P2P 请求直接路由到 peer，不受 Redirect 影响（p.583）；ACS P2P Egress Control Enable 位与 Egress Control Vector 位也参与判定（p.586 §6.12.3）。\n\n**下一步（只读，不动寄存器）**：读该端口 ACS Control 全值，确认 bit2、bit5(`ACS P2P Egress Control Enable`)、bit6(`ACS Direct Translated P2P Enable`)，以及 ACS 扩展能力中的 Egress Control Vector 位。\n- bit2=0 → 无重定向，验收结论不成立；写寄存器须另行授权与变更流程后再验。\n- bit2=1 且 Direct Translated P2P 生效 → Translated 请求不被重定向，签署范围须排除。\n- bit2=1 但 Egress Control 组合使部分向量不重定向 → 只能按向量范围签。\n\n**仍待确认**：重定向后请求是否真到达 RC 并被 RC 放行——现场无读路径验证记录，不能用规范“应然”替代实测。",
+          "seconds": 24.27,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒签正确，也准确说明了 Source Validation 对上行请求 Requester ID 总线号的范围检查。只读步骤覆盖本端口控制位，但未核对相关端口的 Redirect 能力或给出实际路径取证步骤，故 C3 给半分。",
+            "otherError": "把 Egress Control Vector 当作可豁免已启用的 Request Redirect 的依据，并提出按向量范围签署。额外读取向量本身无害，但用它划定重定向范围会造成错误验收。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 825
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 826
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 581
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 582
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-05",
+          "status": "completed",
+          "answer": "**结论：不够，不能登记\"主机 Admin 路径已封禁\"。**\n\n理由（可核对位置）\n- NVMe 2.1 p.285 图265：CNTTS=00b 是\"able to be prohibited\"（**可被禁止的能力清单**）；SCP=2h 是\"List of Feature Identifiers\"。本次抓到的正是能力清单，与是否已执行无关。\n- 只有 CNTTS=01b 才是\"currently prohibited if received on an Admin submission queue\"（p.285；响应侧 CS=01b 见 p.286 图266）。\n- p.516 §8.1.5 a)/b)/c) 明示日志三类内容由 CNTTS 选择；禁令只持续到掉电或后续 Lockdown 命令（p.516）。无 Lockdown 记录只说明未记录，既不能证明已封禁，也不能证明从未封禁。\n\n**下一步（一次只读检查）**：Get Log Page，LID 14h，Log Specific Parameter CNTTS=01b、SCP=2h（同一 FID 范围），核对 CFILA 的 CS=01b/SS=2h 与 CFIL：\n- CFIL 含该 FID、LNGTH>0 → 可登记\"**当前** Admin 提交队列禁止该 FID\"，并注明仅为当前快照（掉电即失效），不作历史结论；\n- LNGTH=0h、CFIL 为空 → 登记\"仅支持封禁，当前未封禁\"，历史状态仍未知，勿写\"从未封禁\"。\n\n若审计口径实指带外 Management Endpoint 路径，则改读 CNTTS=10b、SCP=2h（p.285/286），两者不可互推。待确认：OACS.CFLS 是否置位（p.516）。",
+          "seconds": 85.64,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝用 00b 的 FID 能力清单登记已封禁，并指定只读查询 SCP=2h、CNTTS=01b 的 Admin 当前列表。查询范围还缺适用 UUID，C3 仅部分满足。带外查询明确限于另一审计口径，未触发否决。",
+            "otherError": "答卷明确指示 FID 命中就登记已封禁、列表为空就登记未封禁。两种结论都缺少适用 UUID 的核对，照做可能把其他 UUID 范围的状态记到被审计对象上。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 285
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 286
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 516
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-09",
+          "status": "completed",
+          "answer": "**结论：改记为「指针」，删除「数量」与「增减了四个功能」。**\n\n**一、字段语义**（PCIe 5.0 §7.8.7.2，Table 7-119，PDF p.870–871）：ARI Capability 寄存器偏移 04h，位 15:8 = Next Function Number，含义是「设备中下一个更高编号 Function 的 Function Number」，00h 表示没有更高编号的 Function，Function 0 为链表表头。它是只读静态指针，既不是数量，也没有时间维度。\n\n**二、当前可记的状态**：Function 0 报 04h → 下一跳是 Function 4；Function 4 报 00h → 链表终止。按 §6.13 链表枚举模型（PDF p.591；该能力须由 ARI 设备的每个 Function 各自实现，p.869），本设备当前枚举结果为 Function {0, 4}，编号不连续是 ARI 的正常表现，不是多出/少了功能。\n\n**三、不能认定**：不能写「增减了四个功能」。该字段无增量语义；又无旧拓扑对照与槽位记录，任何「变化」都无证据，历史变化只能记为未知。\n\n**四、下一步（一次检查）**：读 Function 0 的 ARI Capability 16 位原始值（+004h）。\n- 得 0400h：确认指针=4、链表 {0,4}；记录改为「ARI 编号，两个功能」，删除数量/增减表述，并把本次配置空间快照存为日后基线。\n- 得 0004h（保留位 2 置位）或宽度/字节序不符：判为扫描解码错误，按位 15:8 重采后再记。\n- 顺带逐跳探测 Function 4 的 Class Code，确认其确为实际功能而非空读。",
+          "seconds": 48.46,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确记录 Function 0、4，并排除数量和拓扑变化的解释。给定读取已有效，复读 Class Code 属冗余。复核时应单独提取位 15:8，低位合法字段可非零。",
+            "otherError": "将原始值 0400h 作为确认分支会漏掉低位合法字段非零的同一指针值。读到 0004h 也不能仅凭保留位置位归因于扫描解码错误，可能误定位故障。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 870
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 869
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-07",
+          "status": "completed",
+          "answer": "## 结论：不能签「正常 FLR 链路重训」，也不能跳过调查/结案\n\n**依据（可核对位置）**\n- PCIe 5.0 §6.6.2（PDF p.555）：「FLR applies on a per Function basis. Only the targeted Function is affected by the FLR operation. **The Link state must not be affected by an FLR.**」→ FLR 在规范上不得改变链路状态；F1 同链路也受影响，属链路级事件，不可能是 F0 的 FLR 造成的“正常重训”。\n- 抓包字段需更正：PCIe Function 的触发位是 Device Control（Offset 08h）bit 15「Initiate Function Level Reset」（p.728）；候选片段 p.992 的 INITIATE_FLR 属 Conventional PCI Advanced Features（仅限常规 PCI 设备），不是本次写入的字段。\n\n**尚不能认定**：掉线原因。本次无其他复位/供电/链路错误的同步采样，也没有根端口侧记录，无法区分物理/协议错误、上游热复位、电源/ASPM 与偶发事件。\n\n**一次区分检查（只读，不复位/重试）**：读上游 Root Port 的 AER（Uncorrectable Error Status 04h、Correctable Error Status 10h、Root Error Status 1Ch，布局见 p.842/848）、Bridge Control（3Ch）Secondary Bus Reset 位、Link Status（12h）bit 13 Data Link Layer Link Active（p.743），并在 F0/F1 读同一 Link Status 位（链路掉线时 DL 转 DL_Inactive，p.554）。\n- AER 有 Receiver Error/Replay Timer Timeout/Bad TLP 等置位，或 Root Error Status 有 ERR_NONFATAL/ERR_FATAL → 判为链路级错误致掉线，转链路/PHY 排查，FLR 不担责。\n- Secondary Bus Reset=1 且 AER 干净 → 判为上游热复位致掉线，查根端口/驱动复位来源，保留 FLR 记录但不作为根因。\n- 两者皆无且 DL_Active 已恢复 → 保留未知；仅当复现同一 FLR 并同步采到 DL_Active 持续为 0，才支持「F0 实现导致链路重训」。\n\n**仍待确认**：掉线与 FLR 的实际时间先后、根端口侧是否有复位/错误记录。",
+          "seconds": 44.85,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒签正确，也解释了 FLR 只作用于目标 Function，规范要求共享链路状态不受影响。但后续把事后读取的状态位当作本次掉线的因果证据。",
+            "otherError": "AER 置位可能来自历史或伴随错误，不能据此判定它导致本次掉线并排除 FLR 实现异常。Secondary Bus Reset 当前为 1 且 AER 干净，也不能证明该复位导致了所观察到的掉线。链路断开时还可能无法读取下游 F0/F1 配置空间。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 554
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-10",
+          "status": "completed",
+          "answer": "**结论：暂缓，不能仅凭这两个位签署跨端口 P2P AtomicOp。**\n\n**依据（PCIe Base 5.0 v1.0）**\n- p.754《Device Capabilities 2 Register (Offset 24h)》bit 6 AtomicOp Routing Supported：仅说明\"该 Port 支持本可选能力\"。\n- p.603 §6.15.3.2：Root Port 间 P2P 路由 AtomicOp 为 optional and implementation dependent；只有 RC 在两个 Root Port 间支持该能力时才在每个端口置位。\n- p.604 §6.15.3.2 首句：RC **不要求**在所有\"该位为 1\"的端口对之间支持路由；不支持的端口对上的 AtomicOp 请求必须按 UR 处理，并由\"发送\"端口上报。同页后两句还说明本位在端口能把请求转发给主机软件/RCiEP 时也要置 1。\n\n故两位=1 只证明各端口自身具备转发能力，不能证明这一对端口互相支持。\n\n**最有区分力的一步**：经授权做一次跨端口 AtomicOp（类型与位宽按已确认的计划），记录 Completion Status、发起端口 Device Status 的 Unsupported Request Detected 位、出口 Root Port Device Control 2（Offset 28h）bit 7 AtomicOp Egress Blocking。\n- 正常完成 → 该对实际可用，可凭此记录签署（仍属实现依赖）。\n- UR 且 Unsupported Request Detected=1 → 该对不支持，关闭跨端口 AtomicOp，改走 RC/软件路径。\n- UR 但该位未置 1 且 Egress Blocking=1 → 属出口阻断（p.603 脚注 127），按阻断处置，不判为不支持。\n\n**仍待确认**：RC 对该端口对的实现说明与驱动侧要求；目标端点须具备对应位宽的 AtomicOp Completer 能力（p.601：请求方、Completer 及全部中间路由元素均须支持）。原子操作语义另见 NVMe 2.1 p.121 §3.4.3，不影响本路由判定。",
+          "seconds": 23.0,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "明确拒绝凭两位置位放行，说明了端口能力与具体端口对支持的区别，以及不支持时返回 UR 的规则。当前尚未启用新路径，“暂缓”并要求获授权验证这一对端口，已满足确认前保留现有路径的要求。",
+            "otherError": "把 UR 与一次状态位读数当成唯一归因。UR 检测位可能是旧记录，出口阻断使能位也不能证明本次请求因阻断而失败，据此可能误关可用路径或误诊为阻断。另将“由主机软件或 RCiEP 发起”误写为“转发给主机软件/RCiEP”，颠倒了部分置位条件。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 603
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 604
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-04",
+          "status": "completed",
+          "answer": "## 当前决定（可执行）\n允许取组 3 的详情，但必须用\"保留事件\"的读法；**不做** RAE=0 的确认清除读。\n\n**读命令（Admin Get Log Page）**\n- LID = 09h Endurance Group Information（p.246 §5.1.12.1.10）\n- Dword 11 的 Log Specific Identifier 置 ENDGID = 3（Figure 217, p.246；LSI 定义见 Figure 198, p.224）\n- Dword 10 bit 15 RAE = 1（Figure 197, p.224：RAE=1 时命令成功完成后对应异步事件被保留；命令未成功完成也保留）\n\n**理由**：p.275 §5.1.12.1.15 —— 组条目只在该组 Endurance Group Information 的 RAE=0 读成功完成后才从聚合页移除；p.103 §3.2.3.1 —— RAE=0 的成功读会清除该组全部事件。故 RAE=1 可读出 EGCW 等详情（Figure 218, p.247），组 3 仍留在聚合页，由另一流程消费。\n\n**尚不能认定**：EGCW 反映读命令处理时刻的状态，未必是事件发生时刻（p.247），一次读不能认定触发原因；聚合页只列已启用且 pending 的组（p.275），本流程无法确认事件是否已被消费。\n\n**区分检查（只读）**：以 RAE=1 重读聚合页 LID 0Fh。组 3 仍在 → 通知已保留，巡检收尾，详情交消费流程；组 3 已消失 → 说明期间发生过 RAE=0 成功读，停止对该组的读，改为交消费流程核对清除记录。\n\nPCIe 的 slot event／MSI-X PBA 片段属不同协议对象，与本项无关。",
+          "seconds": 30.64,
+          "toolCalls": 8,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确指定组 3 的详情日志和 RAE=1，并说明该组详情读成功且 RAE=0 会移除聚合项。额外的聚合页读取本身采用 RAE=1。",
+            "otherError": "聚合页复读只反映当时的待处理状态。组 3 仍在不能证明原通知一直保留，消失也不能单凭快照断定期间发生了成功的 RAE=0 读，例如期间可能发生控制器复位。按这两个分支收尾会误记原通知状态或误归因清除动作。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 246
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 224
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 247
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 275
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-06",
+          "status": "completed",
+          "answer": "**决定：不放行。** 维持\"不重新提交该命令\"，并禁止把本次 CQE 的 CRD 当作退避延时来源。\n\n**依据（NVMe Base 2.1）**\n- Figure 407（p.408）：ACRE=0h 时 Command Interrupted 与命令重试延时均禁用，控制器 shall clear the CRD field to 0h in all CQEs；Figure 100（p.162）另注 DNR=1 或 ACRE=0h 时该字段 reserved。故 ACRE=0 下非零 CRD 不应存在，其数值无延时语义；重试授权来自状态码而非 CRD（Figure 102，p.165：Command Interrupted 要求 host 重试且控制器清 DNR=0，但 ACRE=0 时控制器不得返回该码）。\n\n**仍待确认**（记录里没有原始字节与状态码）：驱动位段解码错／控制器未按 ACRE=0 清零／已确认的 ACRE=0 与该命令完成时刻不对应（该 Feature 不保存、默认全 0、只保留最后一次成功 Set Features，p.407）。\n\n**一次区分性检查（只读）**：取该 CQE 原始 16 字节，按 Figure 100 复核 bytes 8–15（bit31 DNR、bit30 M、29:28 CRD、27:25 SCT、24:17 SC），并重读同一控制器 Get Features FID 16h，核对其与命令完成的先后。\n- CRD 实为 0 → 驱动解码/偏移错（可能读了 CID 半区）；修正后按 SCT/SC 与 DNR 决定重试。\n- CRD 非 0 且完成时 ACRE=0 → 控制器违反 shall clear CRD；不套退避、不盲重试，带原始 CQE 上报。\n- CRD 非 0 且完成时 ACRE=1 → CRD 有效，延时取 Identify Controller 的 CRDT1/2/3（p.162，且延时非强制，提前重试不算错误）；重试仍需状态码为 Command Interrupted 且 DNR=0。\n\nPCIe Base 5.0 无对应条款，本判定仅据 NVMe 原文。",
+          "seconds": 45.8,
+          "toolCalls": 5,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确阻止按 CRD 退避或重发，也准确说明 ACRE=0 时须清零 CRD、禁用 Command Interrupted。要求核验同一 CQE 可得部分 C3 分，但完成时的 ACRE 和独立重试条件均未核准。",
+            "otherError": "事后重读 Feature 本身无害，但仅凭该读数无法确定完成时的 ACRE，据此归责控制器可能误报。ACRE=1 时若 DNR=1，CRD 仍为保留字段，不能据其取延时。把 Command Interrupted 列为重试必要条件，还会排除其他状态下获准的重试。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 162
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 407
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-03",
+          "status": "completed",
+          "answer": "## 结论：不能签“未发生重启”\n\n**1) 这份导出自身有效性就不成立。** GNUM 21→22 不匹配，NVMe Base 2.1 p.254（5.1.12.1.14）规定：此时 reporting context 可能已丢失、已读内容可能无效、主机软件应重读日志。所以“没看到重启事件”取自一份可能无效的读取，不能当否定证据。\n\n**2) 即便有效，也只覆盖设备侧事件。** PEL 的 Power-on or Reset Event（Event Type 04h）是在 NVM Subsystem Reset 或 Controller Level Reset 完成时记录（p.262）；主机重启若未引起子系统/控制器复位就不产生该事件。日志“跨上电与复位保留”的是设备事件，不是主机启动记录（p.252）。因此“无 04h”最多说明该日志覆盖范围内无设备上电/复位记录。\n\n**3) GNUM 变化的成因未定。** GNUM 在新建 reporting context 且数据与上次不同时递增（p.256）；控制器应在 Release Context / 子系统复位 / CLR 前保留该上下文（p.253）。读期间发生设备复位，与另一读者（多主机/带外）建立新上下文，都能产生同一观测，处置不同。\n\n**最有区分力的下一步**：按 p.254 重读全日志（单条 Get Log Page 一次读全，或建上下文→读 GNUM→读完→再读 GNUM，要求一致），查有无 Event Type 04h，并对比头部 PWRCC、POH、TSTMP（p.256）。\n- GNUM 一致且出现 04h 或 PWRCC 增长 → 按设备复位分支处置，主机是否重启另找主机侧启动记录。\n- GNUM 一致、无 04h、PWRCC 未变 → 只能签“该日志覆盖范围内无设备上电/复位记录”；主机重启须用主机侧证据（启动计数/系统日志）。PCIe Root Error Status 只记 ERR_ 消息（p.514），不能补此缺口。\n- 仍不一致 → 保留未知，先单命令读或释放后重建上下文，不做任何否定签署。\n\n**仍待确认**：所需时间窗是否被 04h 事件覆盖；主机重启与设备复位是否同一事件。",
+          "seconds": 79.63,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒签，也正确说明 GNUM 不一致只表明上下文可能丢失。给出了完整重读和分段读取时复核首末 GNUM 的步骤，但遗漏保留原采样及成功采集后释放上下文。",
+            "otherError": "将“出现 04h 或 PWRCC 增长”直接作为进入设备复位处置的条件。04h 可能是历史事件，计数增长也须有对应时间窗的可靠基线。末尾虽列出时间窗待确认，却未将其作为处置前提，现场可能把其他时段的复位或上电归入本次调查。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 253
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 254
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-08",
+          "status": "completed",
+          "answer": "**不可验收。**\n\n**理由（PCIe 5.0 v1.0）**：p.198 §2.7 规定 Switch 转发 TLP 时「must preserve the ECRC (forward it untouched) as an integral part of the TLP, regardless of whether the Switch checks the ECRC or if the ECRC check fails」；§2.7.1「Switches must pass TLPs with ECRC unchanged from the Ingress Port to the Egress Port」。Switch 对转发 TLP 只被允许「可选自查并按 Table 6-5 上报，不改变转发」（p.199）。唯一例外是 MC_Overlay 改写的 Multicast TLP（p.198 脚注44/45），与本请求 TLP 无关。\n\n**当前处置**：不加该规则，ECRC 原样转发，让 SSD 自己判定。重算替换与 Switch 重算 LCRC 同类——规范指出重算会掩盖错误（p.198）；如此也直接取消了目标端的端到端完整性判断。\n\n**尚不能认定**：不匹配发生在请求器→Switch、Switch 内部还是 Switch→SSD；也未确认由 Switch 侧还是 SSD 侧报出。\n\n**一次只读检查**：读 SSD 的 AER Uncorrectable Error Status（ECRC Error = bit 19，p.844）、AER Header Log/TLP Prefix Log（NVMe 侧见 Event Type 05h 的 PCIe AER Error Status / TLP Prefix Log 字段，NVMe p.265–266），读 Switch 上下行口 AER Correctable Error Status，并读 SSD 与请求器的 Device Control 2（ECRC Generation Enable bit 6、ECRC Check Enable bit 8，p.850）。\n\n- SSD bit 19=1 且该链路无 Receiver Error/Bad TLP（LCRC 干净）→ 损坏在 Switch 之前或内部：查请求器→Switch 段与请求器 ECRC 生成设置。\n- 该链路有 Receiver Error/Bad TLP → Switch→SSD 链路问题，走链路整改。\n- SSD bit 19=0 → 不匹配来自 Switch 侧可选检查（p.199），转发保持不变，改查请求器侧。",
+          "seconds": 55.46,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝替换 ECRC，说明转发时可选检查且须原样传递，但未说明支持检查的 Switch 对以自身为目标的 TLP 必须检查。未保留同一请求的入端和出端证据，后续分支还直接归责，抵消了前文“尚不能认定”的判断。",
+            "otherError": "ECRC 生成与检查使能位位于 AER 的 Advanced Error Capabilities and Control，按答卷读取 Device Control 2 会读错寄存器。Receiver Error、Bad TLP 的有无无法定位同一请求的损坏点，SSD 的 ECRC 状态位为零也不能证明由 Switch 检出。按这些分支整改可能查错设备或链段。",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 0
+            },
+            "rejectHits": [],
+            "score": 55.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 198
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 844
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-01",
+          "status": "completed",
+          "answer": "**结论：不能按“新客户端不发 Keep Alive”移交；而且“清零”这一步根本没生效。**\n\n**1) 记录否证了前提。** 脚本的 Set Features 被控制器以 1Ah（Keep Alive Timeout Invalid）拒绝。NVMe 2.1 p.147 §3.9.1：绑定要求启用 Keep Alive 时，任何把 KATO 清为 0h 的命令须被 abort，且“控制器处 KATO 值不变”。故控制器 KATO 仍是变更前的非零值，Keep Alive Timer 仍处启用（§3.9.2 同页：KATO 非零＋控制器启用即 active），其后也无其他变更记录。\n\n**2) 移交的两种结果。**\n- 新客户端 Admin 队列 Connect 写 KATO=0h → 按同一条款，Connect 被 abort（1Ah），关联建立不起来；Connect 的 KATO 只在“成功完成后”才写入控制器（Fig 545，p.476）。\n- Connect 写非零 KATO → Connect 成功并改写控制器 KATO（p.476），该关联随即受 Keep Alive 约束：命令式（Identify Controller 的 TBKAS=0，p.147 §3.9.3.1）下 KATT 内无 Keep Alive 即超时，按 §3.9.5（p.151）记 19h 错误、停止处理命令、置 CSTS.CFS=1、终止该关联连接并断链；流量式（TBKAS=1，p.149 §3.9.4.1）下每个超时区间仍须有被取走的 Admin/IO 命令。\n\n**3) 最有区分力的只读检查（两项）：** Get Features 的 Keep Alive Timer（FID 0Fh）读回当前 KATO（p.147 明示可用该命令读回）；并读 Identify Controller 的 TBKAS。\n- KATO 非零 → 确认未清零；移交只能由新客户端以非零 KATO 重新 Connect。\n- TBKAS=0 → 不发 Keep Alive 的客户端必超时拆链，不可移交。\n- TBKAS=1 且该客户端每窗口有实际流量 → 可移交（仍按非零 KATO 连接）。\n\n仍待确认：当前 KATO 实际取值、绑定允许的 KATO 上下限。",
+          "seconds": 106.15,
+          "toolCalls": 10,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确指出清零被拒后 KATO 仍非零，Get Features 也可用于核查。但开头拒绝移交，后文又凭 TBKAS 和笼统的流量条件给出放行结论。",
+            "otherError": "仅凭 TBKAS=1 和每窗口有实际流量就放行，未验证流量满足定时器的取命令条件。非零 KATO 也不保证 Connect 成功，超出绑定上限仍会被拒绝。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 80.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 147
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 476
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 475
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-11",
+          "status": "completed",
+          "answer": "**结论：拒绝放行，不得写 01b。**\n\n依据（PCIe Base 5.0，已核原文）：\n- p.947 Table 7-195 TPH Requester Capability Register：bit1 Interrupt Vector Mode Supported=0、bit2 Device Specific Mode Supported=0、bit0 No ST Mode Supported=1（实现该结构的 Function 此位必为 1b）→ 本 Function 仅支持 No ST Mode。\n- p.948 Table 7-196 TPH Requester Control Register：ST Mode Select(2:0) 编码 00b=No ST Mode、01b=Interrupt Vector Mode、10b=Device Specific Mode、11b=reserved；原文\"Functions that support only the No ST Mode of operation must hardwire this field to 000b\"，且\"Function operation is undefined if software enables a mode of operation that does not correspond to a mode supported by the Function.\"\n\n脚本条件不足：\"存在 TPH Requester Capability\"只证明 No ST Mode 可用，不能推出可写 01b；写 01b 属规范定义的未定义操作，影响范围不限于 TPH 一项。\n\n下一步（最小只读、最有区分力）：读该 Function 的 TPH Requester Extended Capability Control Register(Offset 08h) 的 2:0 ST Mode Select。\n- 回读 000b：尚未写入。改脚本按 bit1/bit2 支持位选编码，本例保持 000b；模式选择验收按\"值与支持位一致\"判通过。\n- 回读 01b：已写入越界模式，Function 运行未定义，本次模式选择验收判不通过；需在授权下复位/重新枚举该 Function 后重测，并复读 p.947 能力位确认仍为 0/0/1。\n\n待确认：是否已实际执行过该写入（现场记录未载明）；SSD 是否有非规范兼容路径须由厂商文档佐证，本规范不认。",
+          "seconds": 45.15,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝写 Interrupt Vector Mode，说明仅支持 No ST Mode 时字段须固定为 000b，启用不支持的模式会导致行为未定义。保留 000b 的处置正确，但异常分支把缺乏依据的复位或重新枚举列为必需，超出模式选择验收所需。",
+            "otherError": "硬连线字段在尝试写入后仍可读出 000b，按此断言“尚未写入”可能漏记脚本违规。读出 01b 与硬连线要求矛盾，也不能证明脚本已成功启用该模式；据此归因可能触发不必要的复位或重新枚举。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F4-02",
+          "status": "completed",
+          "answer": "## 结论：暂缓——等 NSID=7 那条未完成命令完成后再提交\n\n**依据**（NVMe Base 2.1 §5.1.12.1.6，Figure 210，PDF p.237）：\n\n- CSE=010b 原文：*“should only be submitted when there is no **other outstanding command that affects any namespace**”*，并且 *“another command should not be submitted that affects any namespace until this command is complete”*。NSID=7 的数据命令仍在执行、影响命名空间，前置条件不成立；目标 NSID=4 不构成豁免——“同一命名空间”是 **001b** 的措辞，010b 覆盖任何命名空间。\n- p.238：CSER=00b *“No relaxed command submission and execution recommendation is defined. The host should use the value in the CSE field…”*，故 010b 生效。\n- 同样，该维护命令提交后、完成前，不要再向任何命名空间提交命令。\n\n## 尚不能认定\n那条 NSID=7 命令的 opcode 是否落在“影响命名空间”范围内（p.237 CSP 的 Namespace Scope 位即该判据）。\n\n## 一次区分性检查（只读、查已有记录）\n读出该命令的 opcode，对照它自己在 05h 日志页的条目（或直接在 CQ 看该命令是否已带完成项）：\n- 属影响命名空间 → 等它完成再提交；\n- 已收到该命令完成 → 立即提交；\n- 属不影响命名空间的类型 → 010b 前置条件满足，可直接提交。\n\n注：CSE 为 should 级建议，违反不会返回命令错误码，但计划要求遵守，故按上述执行。",
+          "seconds": 80.44,
+          "toolCalls": 5,
+          "review": {
+            "usability": "misleading",
+            "reason": "开头要求等待 NSID=7 完成，后文却给出在它仍在途时提前提交的分支，直接削弱当前决定，故 C1 给半分。010b 的跨命名空间范围、CSER=0 无放宽及维护命令完成前的调度建议均正确。",
+            "otherError": "把 CSP 的 Namespace Scope 位当成判断数据命令是否影响命名空间的充分依据，可能错误放行。另称违反建议一定不会返回命令错误码，也超出了 should 措辞能保证的范围。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 80.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 237
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 238
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+from statistics import median
 
 from benchmark import LABELS
 from scenario_eval import blind, keyed, load_lines, score, select
@@ -9,6 +10,31 @@ from scenario_eval import blind, keyed, load_lines, score, select
 
 def read_json(path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def iteration_history(catalog_path, current_id, current):
+    archives = catalog_path.resolve().parents[1] / "reports"
+    history = []
+    for entry in read_json(catalog_path):
+        iteration = entry["id"]
+        source = (current if iteration == current_id else
+                  read_json(archives / f"{iteration}.json"))
+        arms = {arm["id"]: arm["results"] for arm in source["rounds"]}
+        summary = {}
+        for key in ("baseline", "candidate"):
+            results = arms[key]
+            verdicts = [(r["review"] or {}).get("usability") for r in results]
+            summary[key] = {"planned": len(results), "completed": sum(r["status"] == "completed" for r in results),
+                            "ready": verdicts.count("ready"), "misleading": verdicts.count("misleading")}
+        timings = [{r["caseId"]: r["seconds"] for r in arms[key] if r["status"] == "completed" and r["seconds"] is not None}
+                   for key in ("baseline", "candidate")]
+        baseline, candidate = timings
+        deltas = [candidate[key] - baseline[key] for key in baseline.keys() & candidate.keys()]
+        history.append({**entry, **summary, "timedPairs": len(deltas),
+                        "medianDelta": round(median(deltas), 3) if deltas else None})
+        if iteration == current_id:
+            return history
+    raise ValueError(f"Missing history entry for {current_id}")
 
 
 def case_key(case_id, form):
@@ -68,8 +94,21 @@ def indexed_records(records, form_field, planned):
 
 
 def read_pages(events):
-    pages = dict.fromkeys((entry["protocol"], entry["pdf_page"]) for entry in events
-                         if entry.get("tool") == "read_spec_page" and entry.get("status") == "ok")
+    pages = {}
+    for entry in events:
+        if entry.get("status") != "ok":
+            continue
+        if entry["tool"] == "read_spec_page":
+            pages[entry["protocol"], entry["pdf_page"]] = None
+        if entry["tool"] in {"read_spec_context", "read_spec_transition", "read_spec_conditions"}:
+            for page, _, _ in entry["matching_ranges"]:
+                pages[entry["protocol"], page] = None
+        if entry["tool"] == "prefetch_spec":
+            for page, _, _ in entry.get("matching_ranges", ()):
+                pages[entry["protocol"], page] = None
+        if entry["tool"] == "find_spec_conditions":
+            for page in entry["pages"]:
+                pages[entry["protocol"], page] = None
     return [{"source": LABELS[source], "page": page} for source, page in pages]
 
 
@@ -113,6 +152,8 @@ def result_for(item, form, run, assessment):
                  "rejectHits": scored["reject_hits"], "score": scored["score"],
                  "passed": scored["status"] == "pass"}
     result = {"caseId": key, "status": status, "answer": answer, "seconds": seconds, "toolCalls": calls, "review": grade}
+    if record is not None and "phaseSeconds" in record:
+        result["phaseSeconds"] = record["phaseSeconds"]
     if run is not None and "readPages" in run:
         result["readPages"] = run["readPages"]
     elif assessment is not None and "calls" in assessment:
@@ -149,6 +190,18 @@ def build(manifest_path):
             results.append(result_for(item, form, runs.get(key), reviews.get(key)))
         output.append({"id": name, "label": config["label"], "config": config["config"], "results": results})
     report = {"schemaVersion": 1, "title": manifest["title"], "cases": list(cases.values()), "rounds": output}
+    for name, label in (("conditionMetric", "condition"), ("acceptanceMetric", "acceptance")):
+        if name in manifest:
+            metric = manifest[name]
+            if any(metric["criterionId"] not in {c["id"] for c in item["criteria"]} for item in cases.values()):
+                raise ValueError(f"Missing {label} metric criterion")
+            report[name] = metric
+    if "latencyMetric" in manifest:
+        report["latencyMetric"] = manifest["latencyMetric"]
+    if "pairedLatencyLimit" in manifest:
+        report["pairedLatencyLimit"] = manifest["pairedLatencyLimit"]
+    if "history" in manifest:
+        report["iterationHistory"] = iteration_history(directory / manifest["history"], manifest["iteration"], report)
     if len(contexts) == 1:
         spec, protocol = next(iter(contexts))
         report["blindContext"] = {"spec": spec, "protocol": protocol, "observationHeading": "现场观测"}

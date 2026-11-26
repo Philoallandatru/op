@@ -1,0 +1,19 @@
+{
+  "title": "时序证据与现场处置 · 第六轮 16 道留出题",
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第五轮配置 · 当前处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · domain · 120 s · 8 次取证含预取 · closure + scoped",
+      "plan": "questions.jsonl",
+      "reviews": "baseline-reviewed.jsonl"
+    },
+    {
+      "id": "candidate",
+      "label": "第六轮配置 · 时序证据复核",
+      "config": "Pi 1.5.2 · DeepSeek 草稿 + Codex Sol 复核 · 同语料与检索 · 120 s 共用时限 · 8 次取证含预取 · timeline skill + MCP 时序原文",
+      "plan": "questions.jsonl",
+      "reviews": "candidate-reviewed.jsonl"
+    }
+  ]
+}

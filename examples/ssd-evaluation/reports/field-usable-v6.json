@@ -1,0 +1,1734 @@
+{
+  "schemaVersion": 1,
+  "title": "时序证据与现场处置 · 第六轮 16 道留出题",
+  "cases": [
+    {
+      "family": "pmr-disabled-readiness-gate",
+      "split": "challenge",
+      "question": "PMRSTS.NRDY=0，验收程序要立即写这个 PMR 窗口，可以放行吗？",
+      "observations": [
+        "同一控制器同一次有序采样，PMRCTL.EN=0，地址映射没有变。",
+        "当前工单只决定是否允许访问这个 PMR，未授权修改控制寄存器。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝当前 PMR 写。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "核对 EN 和 NRDY 的联合门槛。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "给放行条件且不擅自开启 PMR。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["看到 NRDY=0 就访问或直接修改 EN。"],
+      "id": "SSD-F6-02",
+      "referenceAnswer": "不能。PMR 就绪须同时 NRDY=0 和 PMRCTL.EN=1；EN=0 时 PMR 不接受该窗口的 PCIe 内存访问。禁止当前写，等正式启用流程后确认两项均满足再放行。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 94,
+          "section": "§3.1.4.24",
+          "anchor": "NRDY This bit indicates if the"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 94,
+          "section": "§3.1.4.24",
+          "anchor": "Region is not ready to process"
+        }
+      ]
+    },
+    {
+      "family": "boot-protection-reset-retention",
+      "split": "challenge",
+      "question": "一次 Controller Level Reset 完成后要写 Boot Partition。之前已明确锁到下一次 power cycle，现在可以试写吗？",
+      "observations": [
+        "该设备且该 Boot Partition 支持相应保护方式。复位前已记录 Write Locked Until Power Cycle。",
+        "复位控制链说明这次只做 Controller Level Reset，未发生 power cycle。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝当前写入。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明单纯 Controller Level Reset 保持保护状态。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "按给定前后记录确认为当前仍锁，保持授权边界。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把软复位当电源周期而放行，或建议未授权强制断电。"],
+      "id": "SSD-F6-08",
+      "referenceAnswer": "不能。Write Locked Until Power Cycle 跨 Controller Level Reset 保持，当前仍写锁定。继续拒绝写；后续走有授权的启动分区维护，也应重新核对实际保护状态。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 509,
+          "section": "§8.1.3.3.1, Figure 591",
+          "anchor": "Boot Partition remains in this state"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 509,
+          "section": "§8.1.3.3.1, Figure 591",
+          "anchor": "until the controller is power cycled"
+        }
+      ]
+    },
+    {
+      "family": "readiness-time-validity-history",
+      "split": "challenge",
+      "question": "初次 FLR 期间曾读 FLR Time，但当时 Valid=0。稳定后 Valid=1 且数值相同，能回填为首次 FLR 的实测恢复时间吗？",
+      "observations": [
+        "两个样本来自同一 Function。首次 FLR 没有捕获配置就绪的转折时刻。",
+        "较晚样本在驱动已启动并重新采集后取得。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝回填历史实测值。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "指出 Valid=0 时字段未定义。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "区分后来有效的报告值与旧事件的实测。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把随后 Valid=1 的值回填为旧事件已实测并签字。"],
+      "id": "SSD-F6-14",
+      "referenceAnswer": "不能回填。首次 Valid=0 时该字段未定义；后来有效读数是设备报告的 FLR 就绪时间要求，不能当作旧 FLR 的实测值。旧时长要有首次起点到就绪之间的同期观测。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 972,
+          "section": "§7.9.17.3",
+          "anchor": "FLR Time is the time"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 972,
+          "section": "§7.9.17.3",
+          "anchor": "field is undefined when the Valid"
+        }
+      ]
+    },
+    {
+      "family": "nop-power-permission-epoch",
+      "split": "challenge",
+      "question": "夜间功耗峰值后，把 NOPPME 清零。现在读回 0，能签凌晨峰值一定违反非工作电源态限制吗？",
+      "observations": [
+        "峰值发生在变更之前，当时记录了盘处于目标非工作电源态。",
+        "峰值时没有捕获同一控制器的 NOPPME，当前值来自变更成功后的读回。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝据当前清零判定历史违规。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "解释开启时的条件性许可及其边界。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "要求同一控制器峰值时的配置或覆盖峰值的变更记录。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把事后清零当作峰值时已禁用，或把允许超限解释成已证实发生。"],
+      "id": "SSD-F6-04",
+      "referenceAnswer": "不能。当前读回只证明此刻配置清零。历史若启用了 NOPPME，允许对控制器后台操作临时超出该非工作电源态限制，受最后工作态上限约束。用峰值同期的设置和活动记录再判断。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 405,
+          "section": "§5.1.25.1.10",
+          "anchor": "may temporarily exceed the power limits"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 405,
+          "section": "§5.1.25.1.10",
+          "anchor": "limits of the last operational power state"
+        }
+      ]
+    },
+    {
+      "family": "pme-interrupt-enable-existing-status",
+      "split": "challenge",
+      "question": "Root Port 开启 PME Interrupt Enable 后立刻中断。值班要把中断时间登记成 SSD 新发 PME 的时间，可以吗？",
+      "observations": [
+        "中断使能写之前，已对同一 Root Port 读得 PME Status=1；这次写仅把 Enable 从 0 变成 1。",
+        "没有同期链路上的新 PME Message 抓包。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝将中断时刻登记为新发消息时刻。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明原状态已置位且使能边沿也会触发。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "说明能确认的时序和所缺的新消息证据。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["直接认定 SSD 在使能或中断时刻新发了 PME。"],
+      "id": "SSD-F6-15",
+      "referenceAnswer": "不能。使能从 0 变 1 时，既有的 PME Status=1 就可以产生中断，无法证明该时刻有新消息。保留状态与使能时序，需登记新发时间则查该来源的同期 PME Message。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 751,
+          "section": "§7.5.3.12",
+          "anchor": "A PME interrupt is also generated"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 751,
+          "section": "§7.5.3.12",
+          "anchor": "when this bit is changed from Clear"
+        }
+      ]
+    },
+    {
+      "family": "data-link-feature-new-epoch",
+      "split": "challenge",
+      "question": "链路重建后 Remote Data Link Feature Supported Valid=1，能签事故前那一轮对端能力取值和现在一致吗？",
+      "observations": [
+        "期间捕获进入 DL_Inactive。重建后同一端口重新交换成功，远端位图保持在这次记录里。",
+        "事故前旧交换或旧位图未保存。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝签旧轮一致。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "指出进入 DL_Inactive 清有效位及新交换意义。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "分开登记本轮与保留未知的旧轮。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把重建后的有效位图作为事故前同一位图的证明。"],
+      "id": "SSD-F6-09",
+      "referenceAnswer": "不能。进入 DL_Inactive 会清有效位，新有效位对应新一轮 DL_Feature 收到的位图，能登记本轮。事故前是否相同要看原交换或之前的有效位图记录。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 799,
+          "section": "§7.7.4.3",
+          "anchor": "Cleared on entry to state DL_Inactive"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 799,
+          "section": "§7.7.4.3",
+          "anchor": "Remote Data Link Feature Supported field is meaningful"
+        }
+      ]
+    },
+    {
+      "family": "eptm-context-replay-gap",
+      "split": "challenge",
+      "question": "ePTM Requester 重放一次 PTM TLP，之后两个无重放 dialog 恢复了上下文。能把中间采集的样本用恢复后的 PTM 映射补签吗？",
+      "observations": [
+        "从重放到第二个成功 dialog 完成的区间里，只有本地时间戳，没有独立公用时基或有效映射记录。",
+        "两个成功 dialog 和样本的先后已经捕获，样本在第二次成功前。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝用恢复后的映射给空档补签。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明 ePTM 重放后的失效和两次连续成功恢复门槛。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "保留样本空档，指出可补旧时段的独立证据。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["拿后来恢复的 PTM context 直接证明旧空档样本已具有可信同步时间。"],
+      "id": "SSD-F6-16",
+      "referenceAnswer": "不能签。ePTM 上游端口 replay PTM TLP 后须使上下文无效，直到两次连续无重放的 dialog 成功。恢复后只能按其有效范围换算；空档内样本需当时可用的独立时基或明确的有效映射证据。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 633,
+          "section": "§6.22.3.1",
+          "anchor": "upon replaying a PTM TLP"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 633,
+          "section": "§6.22.3.1",
+          "anchor": "successive PTM dialogs have been completed"
+        }
+      ]
+    },
+    {
+      "family": "root-error-source-multiple-history",
+      "split": "challenge",
+      "question": "Root Error Status 显示收到多个不可纠正错误，Error Source ID 只有 BDF A。能将第二个及以后的报告全部派给 A 吗？",
+      "observations": [
+        "已知采集前未清掉首条状态；Multiple ERR_FATAL/NONFATAL Received=1。",
+        "未保存第二条及后续的错误 Message 或报告者身份。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝把后续都给 A。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明第一条身份与后续身份被丢弃。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "A 限定为报告者，后续按各自记录归属。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["以保留的单个 Source ID 证明后续同类错误也来自 A。"],
+      "id": "SSD-F6-10",
+      "referenceAnswer": "不能。首条未清时，随后同类错误只置后续错误状态，相应 Requester ID 被丢弃。A 仅为已记录首条的报告者；后续身份需各自同步的消息或采集记录。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 853,
+          "section": "§7.8.4.10",
+          "anchor": "the Requester ID of the subsequent"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 853,
+          "section": "§7.8.4.10",
+          "anchor": "the corresponding next error status bit"
+        }
+      ]
+    },
+    {
+      "family": "data-link-ack-completion-layer",
+      "split": "challenge",
+      "question": "抓到有效 Ack DLLP 覆盖该 PCIe Memory Read 请求 TLP 的序号，可以把这笔读记成已经收到返回数据吗？",
+      "observations": [
+        "两端同链路抓包确认 Ack 覆盖该请求的链路序号。",
+        "事务层没有抓到此请求的 CplD，也没有上层接收记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝将 Ack 记为读数据返回。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "解释当前可以确认的链路层范围。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "将确认读数据绑定同一事务的 Completion。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["将有效 Ack 直接视为事务层 CplD 或业务完成。"],
+      "id": "SSD-F6-12",
+      "referenceAnswer": "不能记为收到数据。Ack 确认该请求 TLP 到达对端链路层，发送侧可按规则移出重传缓冲。实际读回数据要用同一 Requester ID、Tag 的事务层 Completion 及有效数据覆盖来确认。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 237,
+          "section": "§3.6.2.2",
+          "anchor": "then the DLLP acknowledges some TLPs"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 237,
+          "section": "§3.6.2.2",
+          "anchor": "Purge from the retry buffer"
+        }
+      ]
+    },
+    {
+      "family": "nssro-power-domain-history",
+      "split": "challenge",
+      "question": "掉电复电后 NSSRO=0，能签复电前的故障窗口内没有发生 NVM Subsystem Reset 吗？",
+      "observations": [
+        "CAP.NSSRS=1。只保留复电重新枚举后该控制器的 CSTS 读值。",
+        "复电前窗口没有同一域的寄存器快照或 reset trace。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒签历史无复位。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "指出随域重新供电的复位把该位初始化为 0。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "历史证据指向同一域当时记录，不把再读当证明。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["据复电后 NSSRO=0 判定此前窗口不存在复位。"],
+      "id": "SSD-F6-01",
+      "referenceAnswer": "不能签。重新供电引发的子系统复位可以将 NSSRO 初始化为 0。该读值不能覆盖此前区间。保留未知，查同一域故障窗口内的复位或电源事件记录。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 83,
+          "section": "§3.1.4.6, Figure 42",
+          "anchor": "initial value of this bit is cleared"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 83,
+          "section": "§3.1.4.6, Figure 42",
+          "anchor": "following an NVM Subsystem Reset due"
+        }
+      ]
+    },
+    {
+      "family": "aen-enable-existing-condition",
+      "split": "challenge",
+      "question": "在同一控制器开启某条 Notice 后收到一份对应通知。能把通知时刻作为问题最早出现的时刻吗？",
+      "observations": [
+        "此前 Notice 被关闭；开启时该事件条件已真，这一点有同一控制器的同步监控。",
+        "开启成功后正常交付了通知，开启前没有够细的时间序列。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝将通知时刻当条件起点。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "指出已存在条件在开启时也会发送。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "保留最晚已为真及所缺历史证据。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["认定事件仅在收到通知时才首次出现。"],
+      "id": "SSD-F6-05",
+      "referenceAnswer": "不能。开启时已存在的条件也会发送通知。通知时刻证明报告已交付，不能当作条件首次出现的时间；最晚出现时间界可取已观测为真的时点，精确起点需此前该条件的历史观测。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 399,
+          "section": "§5.1.25.1.5",
+          "anchor": "condition for an event is true"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 399,
+          "section": "§5.1.25.1.5",
+          "anchor": "when the corresponding notice is enabled"
+        }
+      ]
+    },
+    {
+      "family": "pending-cleared-post-flr",
+      "split": "challenge",
+      "question": "FLR 后 Device Status 的 Transactions Pending=0。能据此签之前两笔 Non-Posted 请求在复位开始前都成功完成吗？",
+      "observations": [
+        "目标为 Endpoint Function。两笔请求身份清楚，但没有保存各自 Completion。",
+        "现有读数在本次 FLR 完成之后，无复位前同一时刻的 Pending 快照。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝证明复位前成功。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "解释超时终止和 FLR 清位两条路径。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "指出需同请求同期完成记录。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把 FLR 后 Pending=0 当作旧请求都成功，直接释放相应事务计账。"],
+      "id": "SSD-F6-11",
+      "referenceAnswer": "不能。该位在未完成请求结束、超时终止或 FLR 完成时可能清零。复位后的零值不能说明两笔旧请求的完成状态或先后。核对各自同身份的复位前 Completion。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 732,
+          "section": "§7.5.3.5",
+          "anchor": "have been terminated by the Completion"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 732,
+          "section": "§7.5.3.5",
+          "anchor": "cleared upon the completion of an FLR"
+        }
+      ]
+    },
+    {
+      "family": "boot-partition-read-buffer-ownership",
+      "split": "challenge",
+      "question": "先后两次读不同 Boot Partition，后来 BPINFO.BRS=10b。可以补签第一份旧缓冲已成功读出吗？",
+      "observations": [
+        "第一笔针对分区 A。第一笔状态和缓冲快照未留存。",
+        "明确看到之后向分区 B 写了 BPRSEL.BPID，同一控制器在 B 之后读得 BRS=10b。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝补签 A。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明每次 BPID 写和成功的状态迁移。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "将较晚记录绑定 B，A 留待同期证据。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["将 B 的成功当作 A 已读成功或旧缓冲有效。"],
+      "id": "SSD-F6-03",
+      "referenceAnswer": "不能签第一笔。每次 BPID 写都会使 BRS 进入进行中，成功时该次 BRS 才到 10b。后来 10b 属于 B 读取。需 A 自己的状态和缓冲记录；重读 A 只产生新样本。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 88,
+          "section": "§3.1.4.13",
+          "anchor": "If host software writes the BPRSEL"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 88,
+          "section": "§3.1.4.13",
+          "anchor": "sets this field to 10b"
+        }
+      ]
+    },
+    {
+      "family": "cdq-phase-publication",
+      "split": "challenge",
+      "question": "CDQ 刚创建，首个槽的 CDQP 从预置 0 读到 1，可以按新 CDQ 条目处理吗？",
+      "observations": [
+        "队列内存已按规范清零，此次是第一次遍历；同一 CDQ 同一槽，主机已按所用平台做读取顺序同步。",
+        "当前只判断新 CDQ 条目的发布，不是对业务处理成功做结案。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "确认这次是新条目。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "对应初值和首轮发布值。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "指出多写最后更新标签，结论只覆盖条目发布。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["继续等待相位回到 0 才处理，或把新条目直接当上层成功。"],
+      "id": "SSD-F6-07",
+      "referenceAnswer": "可以按新 CDQ 条目处理。主机在创建前预置为 0，首次发布为 1，条目多次写入时 Phase Tag 是最后写。处理该条目仍要单独按它的内容判断。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 518,
+          "section": "§8.1.6.2",
+          "anchor": "updated in the last write"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 518,
+          "section": "§8.1.6.2",
+          "anchor": "initialized to ‘0’ by the host"
+        }
+      ]
+    },
+    {
+      "family": "frs-followed-by-crs-same-function",
+      "split": "challenge",
+      "question": "已捕获同一 Function 发出 FRS，紧接着的配置读取却返回 CRS。现有同期记录足以判这次返回违反 FRS 约束吗？",
+      "observations": [
+        "Requester ID 和目标 Function 已核对一致。记录覆盖 FRS 发送直至这笔请求，期间没有后续 DRS Event 或 FRS Event。",
+        "本次只判这条 Completion 是否符合，不要求定位底层原因。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "肯定可以判这条 CRS 不符合。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "给出 FRS 后的 CRS 限制及后续事件例外。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "将同期记录和相同 Function 应用于这次判断。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["无视已经排除的后续事件继续放行，或用这对记录直接归责失败机制。"],
+      "id": "SSD-F6-13",
+      "referenceAnswer": "足以判这次 CRS 与规则不符。该 Function 发出 FRS 后，在后续 DRS 或 FRS 事件前不得返回 CRS。保留同一 Function 的两条有序记录；它们不定位底层原因。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 638,
+          "section": "§6.23.2",
+          "anchor": "must not return Completions with CRS"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 638,
+          "section": "§6.23.2",
+          "anchor": "unless a subsequent DRS Event"
+        }
+      ]
+    },
+    {
+      "family": "rrl-config-nvm-set-scope",
+      "split": "challenge",
+      "question": "成功给 NVM Set 2 设置新的 Read Recovery Level，能把 Set 5 一起标成已变更吗？",
+      "observations": [
+        "该设备支持 NVM Sets，命令带的 NVMSETID=2，成功 CQE 已核对。",
+        "Set 5 是同一子系统下另一个独立的 NVM Set，没有对 Set 5 做变更。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝把成功套到 Set 5。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "用支持 Sets 时的 NVM Set 范围解释。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "明确 Set 2 已变更，核查 Set 5 要区分对象。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把一次成功的 Set 2 变更登记成整个子系统全部已生效。"],
+      "id": "SSD-F6-06",
+      "referenceAnswer": "不能。设备支持 NVM Sets 时该 Feature 的作用域是所选 NVM Set；这次成功完成只支持将 Set 2 标为已变更。Set 5 的值如需确认要查它自己的 Get Features。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 405,
+          "section": "§5.1.25.1.11",
+          "anchor": "NVM Set if NVM Sets are supported"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 405,
+          "section": "§5.1.25.1.11",
+          "anchor": "Modifying the Read Recovery Level has no"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第五轮配置 · 当前处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · domain · 120 s · 8 次取证含预取 · closure + scoped",
+      "results": [
+        {
+          "caseId": "SSD-F6-02",
+          "status": "completed",
+          "answer": "**处置**：不放行。同一采样中 PMRCTL.EN=0 时 PMR 处于禁用状态；此时仅有 NRDY=0，不构成就绪条件，因此不得让验收程序立即写入该 PMR 窗口。\n\n**依据**：NVMe Base 2.1 p.94（PMRSTS.NRDY）指出，只有 NRDY=0 **且** PMRCTL.EN=1，PMR 才可接受并处理 PCIe memory 读写；当 NRDY=1 或 PMRCTL.EN=0 时，PMR 未就绪。p.93（PMRCTL.EN）指出，EN=0 时 PMR 禁用，且 NRDY 应置 1。本次 EN=0 与 NRDY=0 并列出现，不满足该状态，因此不能作为放行证据。",
+          "seconds": 23.32,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "正确禁止当前写入，给出 EN=1 且 NRDY=0 的就绪门槛，也未擅自修改寄存器。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 93
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 94
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 614
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-08",
+          "status": "completed",
+          "answer": "**当前处置**：不可写。该 Boot Partition 仍处于 Write Locked Until Power Cycle（写保护直到下次掉电）状态，须完成一次 power cycle 后才能写入。\n\n**依据**：NVMe 2.1 p.509，Figure 591 与 8.1.3.3.1：Write Locked Until Power Cycle 对 power cycle 为 No、对 Controller Level Reset 为 Yes；原文「remains in this state until the controller is power cycled」。本次仅有 CLR，不满足前提。",
+          "seconds": 15.45,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝当前写入，并说明仅执行控制器复位后写锁仍保持；未建议未授权断电。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 509
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-14",
+          "status": "completed",
+          "answer": "**处置（不能回填）**\n首次 FLR 时 Valid=0 的读数不能作为那次 FLR 的实测恢复时间；后续 Valid=1 且数值相同的读数只是该 Function 的声明值，不能用来反推此前读到的未定义值。\n\n**依据**\n- PCIe 5.0 p.972，Table 7-219（Readiness Time Reporting 2 Register）：FLR Time 的说明是“the time that the Function requires to become Configuration-Ready after it was issued an FLR”，该字段是要求值，属性为 HwInit/RsvdP，并且“This field is undefined when the Valid bit is Clear”；在 Valid=0 时读到的数值本身不承载信息。\n- PCIe 5.0 p.971，Table 7-218 的 bit 31：Valid“If Clear, indicates that the time values in this capability are not yet available”，即整个 capability 中的时间值在 Valid=0 时尚未可用。\n\n若要以该次 FLR 的实测恢复时间为结论，只能依据该次 FLR 期间自身出现 Config-Ready 转折时刻的观测；题面已说明该转折时刻未被捕获，因此保留为未知。",
+          "seconds": 24.7,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "正确指出首次读数未定义，后续有效报告值不能作为首次 FLR 的实测时间，并保留未知结论。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 972
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 971
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-04",
+          "status": "completed",
+          "answer": "**处置**：不能签字。清零后读回 0 只代表当前设置，不能回溯峰值时刻，因此无法判定凌晨峰值违反非工作电源态限制。\n\n**依据**：NVMe Base 2.1 p.404–405（§5.1.25.1.10，Figure 399）：NOPPME 置 1 时，控制器\"may temporarily exceed the power limits of any non-operational power state\"（控制器可暂时超出非工作电源态的功率限制），仅在该位清零后，才\"shall not exceed\"（不得超出）。p.401 Figure 394 的方向与此一致。\n\n**只读核验**：取峰值时刻该控制器的 NOPPME 读数或下发记录，以补足当时是否处于允许超限状态的前提。",
+          "seconds": 24.0,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝用事后读回值判定历史违规，也要求核验同一控制器峰值时的配置。原答说明了置 1 时可临时超限，但漏掉两项边界：仅限控制器发起的后台操作，且功耗不得超过最后一个工作电源态的上限。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 405
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 404
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-15",
+          "status": "completed",
+          "answer": "**处置**：不可以，这是 SSDs 一条既有 PME 的补报中断，并非新发 PME，只能登记为「使能 PME Interrupt Enable 的时刻」，不能作为 SSD 新发 PME 的时间。\n\n**依据**：\n- PCIe 5.0 §7.5.3.12 Root Control 寄存器（PDF p.751）规定：PME Status 已置 1 时，将 PME Interrupt Enable 由 Clear 改为 Set 也会产生 PME 中断。\n- PCIe 5.0 §6.1.6（PDF p.503）规定：PME Status 由「收到 PME Message」置位，中断只是该状态反映。\n\n现场 PME Status 早已为 1、无新 PME Message，故该中断对应的是写使能之前的状态。",
+          "seconds": 15.34,
+          "toolCalls": 4,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝把中断时刻登记为新发时间，也说明了使能前 Status 已置位，使能边沿足以触发中断。但原答把缺少同期抓包写成确定没有新消息，又把既有 PME 归给 SSD，会导致错误归因和记录。",
+            "otherError": "Root Port 的既有状态不能单独确定消息来源。未捕获同期消息也不能排除 SSD 同期新发 PME，且使能写入与中断是两个不同的时间点，不能把中断时间直接登记为使能时间。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 751
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 503
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-09",
+          "status": "completed",
+          "answer": "**处置**：不能签。Valid=1 只说明该字段在本次重建后有意义，读到的现值来自重建后的重新交换；事故前的取值已在进入 DL_Inactive 时被清除且未存档，因此无法证明与现在一致。\n\n**依据**：PCIe 5.0 Table 7-61（PDF p.799）：Remote Data Link Feature Supported[22:0] 与 Remote Data Link Feature Supported Valid[31] 均在进入 DL_Inactive 时清零，Valid=1 表示已在 DL_Feature 收到 Data Link Feature DLLP 且字段有意义；p.215 3.3：仅在 Valid 为 0 时才会录入新收到的 DLLP 并置位。\n\n我未把旧值保存为证据，因此前一轮取值已不可追溯；本轮没有可补的观测，故用两项结案。",
+          "seconds": 14.72,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分重建后的有效位图与无法证明的旧值，并说明进入 DL_Inactive 时清零。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F6-16",
+          "status": "completed",
+          "answer": "**处置**：不补签。从重放到第二个无重放 dialog 完成之间属于 Invalid PTM Context 区间；此区间内只有本地时间，没有可用的 PTM Master Time 映射。恢复后的映射只对恢复后有效，不得回填该区间内采集到的样本。中间样本的 PTM 时间应记为未知，仅保留本地时间。\n\n**依据**：PCIe 5.0 p.633 §6.22.3.1 规定，ePTM Upstream Port 在重放 PTM TLP 后，必须使其 PTM context 失效，直至两次连续成功且无重放的 PTM dialog 完成；p.631 §6.22.2 指出，PTM context 正是让软件在 local time 与 PTM Master Time 之间换算的依据。",
+          "seconds": 37.81,
+          "toolCalls": 6,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝回填，说明了重放后失效及连续两次成功且无重放的恢复门槛，并保留本地时间。原答指出空档内缺少可用映射，但未说明覆盖样本时段的独立公用时基或当时有效的映射记录可用于核验旧样本。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 632
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-10",
+          "status": "completed",
+          "answer": "**处置**：不能。BDF A 只是第一条不可纠正错误报告的 Requester ID；Multiple ERR_FATAL/NONFATAL Received=1 仅表示其后还收到过不可纠正错误，未保存的第二条及以后报告者不能推定或全部归给 A。\n\n**依据**：\n- PCIe 5.0 p.852，7.8.4.10：收到错误时置首个错误位并记录 Requester ID；ERR_NONFATAL/ERR_FATAL 归为不可纠正一组。\n- p.853 Table 7-108 bit 3：ERR_FATAL/NONFATAL Received 已置位时再收到即置 Multiple 位（RW1CS）。\n- p.855 Table 7-109 bit 31:16：ERR_FATAL/NONFATAL Source Identification 仅在 “ERR_FATAL/NONFATAL Received bit is not already set” 时载入 Requester ID（ROS），后续报告不改写该字段。",
+          "seconds": 26.25,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "正确限定 A 为首条报告者，并说明后续身份未被保留，不能推定归属。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 854
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 852
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 855
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-12",
+          "status": "completed",
+          "answer": "**处置**：不可以。该 Ack 只证明请求 TLP 被对端数据链路层无错接收并转发，不能证明这笔 Memory Read 已取到数据；在抓到与请求 Tag 匹配的 CplD 之前，这笔读必须记为未完成。\n\n**依据**：\n- PCIe 5.0 §3.5/Table 3-3，PDF p.221：Ack DLLP 是「TLP Sequence Number acknowledgement；成功接收若干个 TLP」，按 §3.6.3 由数据链路层处理。\n- §3.6.3.1，PDF p.240：序号相符时仅去序号/LCRC 后转交接收事务层，且「数据链路层把 TLP 当作黑盒，不处理也不修改其内容」。\n- §2.3.2，PDF p.176 与 §2.2.5 CplD 定义 p.109：读数据由「Completion with Data」返回，Read Completion 才是最终 Completion。\n\n现场无 CplD、无上层接收记录，回报数据缺失，签名按“未返回”处理。",
+          "seconds": 47.66,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "原答正确限定了 Ack 的链路层含义，也要求查 CplD，但只提 Tag，未核对 Requester ID 和有效数据覆盖，无法排除其他请求或部分返回。当前证据足以拒绝签收，却不足以断言数据未返回。",
+            "otherError": "要求按“未返回”记录，会把漏采误记为实际未返回。“Read Completion 才是最终 Completion”也未区分拆分返回中的中间 CplD，可能导致整笔读被提前结案。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 175
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-01",
+          "status": "completed",
+          "answer": "**处置：不能签字确认。** CAP.NSSRS=1 只说明支持该特性、NSSRO 有效；复电后 NSSRO=0 不能证明复电前窗口内未发生 NVM Subsystem Reset。\n\n**依据**\n- NVMe 2.1 p.83（CSTS bit 04 NSSRO，HwInit）：仅当上一次 NVM Subsystem Reset 发生在供电期间时，初值才置 1；而“因施加电源引起的 NVM Subsystem Reset”之后，初值会清 0。掉电复电正属于后一种情况，所以读到的 0 是该情形下预期出现的值。\n- NVMe 2.1 p.139（3.7.1.1）：只有供电期间的复位才由复位后的 NSSRO 初值报告，复位前窗口无寄存器快照时无法回推。\n\n**核验**：需要掉电前窗口内同一域某控制器的 CSTS.NSSRO 快照或 reset trace；这是唯一能补足“复位是否发生在供电期间”这一前提的观测。",
+          "seconds": 28.31,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，说明复电复位后的初始化，并要求同一域故障窗口内的历史证据。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 83
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-05",
+          "status": "completed",
+          "answer": "**处置**：不能。通知时刻只是交付时刻，不可作为问题最早出现时刻；最早出现时刻早于开启动作，具体时刻仍属未知。\n\n**依据**：NVMe Base 2.1 §5.1.25.1.5（PDF p.399）：“If the condition for an event is true when the corresponding notice is enabled, then an event is sent to the host”——因此通知可由开启前已为真（true）的条件直接触发。§5.1.2（PDF p.197）：事件可由控制器保留为 pending event，同类多事件可合并为一次响应，因此响应时刻也不对应单一事件发生的时刻。\n\n两项即可交接：题面已具备“开启时条件为真”的同步监控，无需额外核验。",
+          "seconds": 27.84,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确区分了通知交付与条件首次出现，也说明开启时已为真即可触发通知。原答保留了精确起点未知，但同步观测只支持起点不晚于开启时刻；要进一步定位，仍需此前的条件观测记录。",
+            "otherError": "断言起点严格早于开启，会让现场把未经证实的先后关系写入故障时间线，排除条件恰在开启时成立的可能。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 399
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 197
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-11",
+          "status": "completed",
+          "answer": "**处置**：不能签。在本次 FLR 完成后，TP=0 不能证明这两笔 Non-Posted 请求都已成功完成；它们是否成功仍应记为未知。\n\n**依据**\n- PCI Express Base Spec 5.0 §7.5.3.5，PDF p.732：Endpoint 的 Transactions Pending 位只在全部 Non-Posted 请求已完成、或已被 Completion Timeout 机制终止时才会清零；并且该位**必须在 FLR 完成时清零**。\n- 同规范 §6.6.2，PDF p.556：收到 FLR 时，设备可以清除包括 Transactions Pending 在内的事务状态，也可以把 Completion Timeout 恢复为默认值，让所有在途事务在 FLR 执行期间超时；无论采用哪种方式，FLR 完成时 TP 都必须为 0。\n\n因此，这次读数无法区分两种情况：两笔请求在复位开始前已经成功完成，还是因完成超时等终止。要实际签字，需要缺失的观测是复位前保存下来的两笔 Completion（含 Completion Status）。",
+          "seconds": 30.82,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝签字，说明超时终止和 FLR 清位，并要求核对各请求复位前的 Completion 状态。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 732
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-03",
+          "status": "completed",
+          "answer": "**当前处置**：不能补签第一份旧缓冲读取成功。BPINFO.BRS 是单一状态字段，写入 BPRSEL.BPID（本次为分区 B）即使其转回 01b，之后读得的 10b 只证明分区 B 这次传输完成；分区 A 第一笔的完成状态与缓冲内容均无独立证据，保持未知。\n\n**直接依据**：NVMe 2.1 p.88（3.1.4.13 BPINFO，BRS 值表及“写入 BPRSEL.BPID 后转为 01b、成功后才置 10b”；出错时缓冲内容未定义）；p.506（8.1.3.1 步骤 6–7，缓冲与状态均对应本次请求）。",
+          "seconds": 16.85,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签 A，说明 BPID 写入和成功完成的状态迁移，并将后续结果归于 B。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 88
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 506
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-07",
+          "status": "completed",
+          "answer": "**处置**：可以，该槽应作为新 CDQ 条目处理。\n\n**依据**：NVMe Base 2.1 §8.1.6.2，PDF p.518——CDQP 由主机在创建 CDQ 前初始化为 ‘0’；CDQ 创建后首次向某槽发布条目时，该条目的 CDQP 被置为 ‘1’（之后每次发布均取反，绕回时清 ‘0’）。本题为刚创建、首次遍历、内存已清零、读取顺序已同步，0→1 正是首次发布的规范形态，故该槽表示新条目已发布。",
+          "seconds": 14.81,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "同槽预置 0、首次发布为 1，足以支持本次新条目判断。原答只认定发布，未认定业务成功，但遗漏了分多次写入时须在最后一次写入更新 CDQP。文中的“每次发布均取反”描述相位值，未说明写入顺序。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 518
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-13",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 23.83,
+          "toolCalls": 5,
+          "review": {
+            "usability": "no_answer",
+            "reason": "未在本次运行中交卷。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 637
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 639
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 638
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-06",
+          "status": "completed",
+          "answer": "**处置**：不能。Set 5 不得标为已变更，仅 Set 2 的 Read Recovery Level 更新。\n\n**依据**：\n- NVMe 2.1 p.405，Figure 400/401（5.1.25.1.11，Feature 12h）：“NVM Set Identifier (NVMSETID): This field specifies the NVM Set to be modified.”“Read Recovery Level (RRL): This field sets the Read Recovery Level for the NVM Set specified.”该动作作用域为 NVMSETID 指定的单个 NVM Set。\n- NVMe 2.1 p.568，8.1.20：“The Read Recovery Level applies to an NVM Set with which the Read Recovery Level is associated.”RRL 为 NVM Set 级属性，不跨 Set 传递；Set 5 是否仍为默认 Level 4 未观测，保持未知。",
+          "seconds": 14.17,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确限定变更范围为 Set 2，并将 Set 5 的状态保持为未知。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 405
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 406
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 568
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "第六轮配置 · 时序证据复核",
+      "config": "Pi 1.5.2 · DeepSeek 草稿 + Codex Sol 复核 · 同语料与检索 · 120 s 共用时限 · 8 次取证含预取 · timeline skill + MCP 时序原文",
+      "results": [
+        {
+          "caseId": "SSD-F6-02",
+          "status": "completed",
+          "answer": "**处置** 不放行立即写入。最早可在同一 PMR 确认 PMRCTL.EN=1 且 PMRSTS.NRDY=0 时放行。\n\n**依据** 同一次有序采样中 EN=0、NRDY=0，按 NVMe 2.1 PDF 第 93–94 页，该 PMR 未就绪。第 614 页规定，未就绪时写请求会正常完成，但不会更新内存。",
+          "seconds": 30.7,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "当前禁写、EN=1 且 NRDY=0 的放行条件均正确，也未要求修改 EN。给定片段只证实 PMR 未就绪，无法核实“写请求会正常完成但不更新内存”的附加断言。该断言不改变本次禁写决定。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 92
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 93
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 94
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 614
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-08",
+          "status": "completed",
+          "answer": "**处置** 不可试写。本次复位后写锁仍有效，写入会被拒绝。最早须等到下一次 power cycle，且该分区处于 Write Unlocked 时才可写入。\n\n**依据** 该分区复位前已记录 Write Locked Until Power Cycle，复位控制链确认本次未发生 power cycle。NVME PDF p.509 图591规定该锁跨 Controller Level Reset 保留，持续至下一次 power cycle。",
+          "seconds": 24.31,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝当前写入，说明锁跨控制器复位保持，并要求后续确认分区已解锁。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F6-14",
+          "status": "completed",
+          "answer": "**处置** 不能将较晚读到的相同数值回填为首次 FLR 的实测恢复时间。\n\n**依据** PCIe 5.0 PDF 第 971–972 页规定，Valid=0 时 FLR Time 未定义。较晚的 Valid=1 仅确认重采时该能力值有效。首次 FLR 未捕获配置就绪的转折时刻。\n\n**必要核验** 查找同一 Function 首次 FLR 的同期记录，须能确定 FLR 发出及进入配置就绪的时刻。",
+          "seconds": 30.1,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝回填，指出首次字段未定义，并区分后来有效的能力值与首次事件的实测时间。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 971
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 972
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-04",
+          "status": "completed",
+          "answer": "**处置** 不能签认凌晨峰值一定违规。清零已成功，读回的 0 只证实变更后的值。\n\n**依据** NVMe PDF 第405页图399规定，NOPPME 为 0 时，控制器发起的后台操作不得超过该非工作电源态的功率限制。峰值时已确认处于目标电源态，但缺少同一控制器当时的 NOPPME 记录。\n\n**必要核验** 调取同一控制器在峰值时刻的 NOPPME 记录。",
+          "seconds": 22.38,
+          "toolCalls": 2,
+          "review": {
+            "usability": "revise",
+            "reason": "C1、C3 满足：原答正确拒绝用事后读回的 0 判定历史违规，并明确要求核验同一控制器峰值时的配置。C2 不得分：原答只解释了清零时的限制，未说明开启时可为控制器发起的后台操作临时超限，也未说明上限为最后一个工作电源态的功率限制。当前拒签正确，但若查到当时为 1，仍缺少结合同期活动和功率判断峰值的依据。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 0,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 70.0,
+            "passed": false
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F6-15",
+          "status": "completed",
+          "answer": "**处置** 不得把这次中断时间登记为 SSD 新发 PME 的时间。\n\n**依据** 同一 Root Port 写前已读得 PME Status=1，本次写仅将 Enable 从 0 置 1。PCIe 5.0 PDF p.504 §6.1.6 规定，使用 MSI/MSI-X 且满足适用的向量解屏蔽条件时，已有置位状态即可在使能时触发中断。缺少同期新 PME 的链路证据。\n\n**必要核验** 需当时同一链路上带时间戳、Requester ID 对应该 SSD 的新 PME Message 抓包。",
+          "seconds": 38.51,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝登记，并说明已有状态在使能时可触发中断，以及确认新消息所需的同期证据。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 504
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-09",
+          "status": "completed",
+          "answer": "**处置** 不能签认事故前的对端能力取值与当前一致。\n\n**依据** PCIe 5.0 PDF 第215页 §3.3规定，Valid 为 0 时，记录收到的能力位图并置 Valid 为 1。同一端口的现存位图只证实重建后这轮交换的取值，事故前的交换或位图未保存。\n\n**必要核验** 需同一端口事故前那轮收到的 Data Link Feature DLLP 记录，或当时有效的远端能力位图。",
+          "seconds": 26.18,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒签旧轮一致，说明现存位图只证实本轮，也指出核验旧轮所需的记录。说明 Valid 从 0 置 1 只覆盖了新交换，漏掉了进入 DL_Inactive 会清除 Valid 这一关键状态变化。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 215
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-16",
+          "status": "completed",
+          "answer": "**处置** 不能用恢复后的 PTM 映射补签这批样本。最早可从连续第二个成功且无重放的 PTM dialog 完成时起使用恢复的映射。\n\n**依据** PCIe 5.0 PDF 第633页 §6.22.3.1 要求重放后上下文失效，直至连续两个 dialog 成功且无重放。第631页 §6.22.2 说明 PTM context 用于本地时间与主时基换算。现场样本早于第二次完成，仅有本地时间戳，缺少覆盖采样时段的独立公用时基或有效映射记录。",
+          "seconds": 30.34,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝补签，说明恢复门槛和旧时段所需的独立证据。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 633
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 631
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-10",
+          "status": "completed",
+          "answer": "**处置** 不能将第二条及后续报告全部派给 A。BDF A 仅标识首条不可纠正错误报告的 Requester ID。\n\n**依据** PCIe 5.0 PDF p.854 §7.8.4.11、p.855 表7-109规定，Received 位尚未置位时才装载该 ID。现场首条状态未清除，Multiple 位为 1，但缺少后续各条的来源记录。\n\n**必要核验** 需同一接收端当时逐条收到的后续 ERR_FATAL/ERR_NONFATAL Message，或对应的 Requester ID 记录。",
+          "seconds": 28.34,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "“Received 位尚未置位时才装载该 ID”已说明首条未清时寄存器不会记录后续 ID，等价覆盖身份丢弃。原答把 A 限定为首条报告者，并要求按逐条消息或 Requester ID 归属后续报告。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 854
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-12",
+          "status": "completed",
+          "answer": "**处置** 不能记为已收到返回数据。须确认该请求的全部 Completion 合计恰好返回所请求的数据量。\n\n**依据** PCI Express Base Specification.pdf 第221页 §3.5 规定 Ack 仅确认链路层收到请求 TLP。第169页 §2.3.1.1 规定读返回的数据量。现场缺少该请求的 CplD 和上层接收记录。\n\n**必要核验** 补查当时与该请求匹配的 CplD 抓包或上层接收记录，核实返回数据量。",
+          "seconds": 33.21,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分链路层确认与读数据返回，并要求核查匹配请求的 Completion 和数据量。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F6-01",
+          "status": "completed",
+          "answer": "**处置** 不能签。复电重新枚举后读到 NSSRO=0，无法排除复电前故障窗口内发生过 NVM Subsystem Reset。\n\n**依据** CAP.NSSRS=1，该位有效。NVMe 2.1 PDF p.83 规定，域上电引发 NVM Subsystem Reset 后，NSSRO 初始值为 0。现场仅保留复电后读值，缺少同域历史证据。\n\n**必要核验** 补查当时同一域完整覆盖故障窗口的复位追踪。",
+          "seconds": 37.8,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，说明域重新供电后的复位会将该位初始化为 0，并要求查同域故障窗口的历史记录。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 83
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-05",
+          "status": "completed",
+          "answer": "**处置** 不能把通知交付时刻作为问题起点。起点未知。\n\n**依据** 同一控制器的同步监控证实，开启 Notice 时条件已成立。NVMe 2.1 page-195.md 第39–48行规定通过完成 AER 报告事件。现场缺少开启前的起点证据。\n\n**必要核验** 查找同一控制器当时带时间戳、覆盖可能起始窗口并能定位条件首次由假转真的连续监控记录。",
+          "seconds": 33.29,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝以通知时刻为起点。同步监控已把起点上界限定在开启时，精确定位仍需此前的历史记录。但“开启时条件已成立”是现场事实，所引 AER 条文只说明交付方式，原答未说明开启 Notice 时已为真的条件也会触发通知。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 0,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 70.0,
+            "passed": false
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F6-11",
+          "status": "completed",
+          "answer": "**处置** 不能签署。两笔 Non-Posted 请求是否均在本次 FLR 开始前成功完成，仍无法确认。\n\n**依据** PCI Express Base Specification.pdf 第556页 §6.6.2 要求 FLR 完成时 TP 清零，第557页说明 FLR 会丢失对未完成请求的跟踪。现场仅有复位后 TP=0 的读数，缺两笔请求各自的 Completion 记录。\n\n**必要核验** 查找当时可分别匹配到该 Function 两笔请求的完整 Completion 记录，确认两笔均在本次 FLR 开始前成功完成。",
+          "seconds": 31.56,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "拒签正确，且要求逐笔匹配 FLR 开始前的成功 Completion。原答解释了 FLR 完成时强制清位，但遗漏 Completion Timeout 终止请求也可使该位清零。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 557
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-03",
+          "status": "completed",
+          "answer": "**处置** 不能补签分区 A 的数据已成功读入旧缓冲。\n\n**依据** NVMe 2.1 PDF 第 88、506 页：写入分区 B 的 BPRSEL.BPID 后，BRS 转为 01b，随后读得的 10b 证实 B 所请求的数据已传入缓冲。A 的状态和缓冲快照均未留存。\n\n**必要核验** 补证需有 B 发起前可归属 A 首笔的 BRS=10b 记录，或当时能证实 A 所请求数据已完整写入旧缓冲的记录。",
+          "seconds": 23.35,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝补签 A，说明 BPID 写入后的状态迁移，并将后续成功状态归属 B；所列补证条件与现场决定相符。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 88
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 506
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-07",
+          "status": "completed",
+          "answer": "**处置** 可以将首槽按新发布的 CDQ 条目处理。本次只确认条目已发布。\n\n**依据** 同一 CDQ 首次遍历，主机完成读取顺序同步后，读到首槽 CDQP 从预置 0 变为 1。NVMe Base 2.1 PDF 第 517 页规定发布时反转 CDQP，第 518 页规定创建前置 0，槽位首次发布时置 1。",
+          "seconds": 23.22,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "发布判断及初值、首轮值正确，也限定了结论范围；但未指出条目经多次写入时 CDQP 在最后一次写入中更新。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 518
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-13",
+          "status": "completed",
+          "answer": "**处置** 现有记录不足以判定这次 CRS Completion 违规。\n\n**依据** PCIe Base 5.0 v1.0 §6.23.2（PDF 第638页）规定，FRS 发出后，所指 Function 在后续 DRS Event 或 FRS Event 发生前不得返回 CRS。Requester ID 与目标 Function 已核对一致，但无事件记录只覆盖到请求。\n\n**必要核验** 补查该 Function 从本次请求到返回 CRS Completion 的同期记录，确认返回前是否发生 DRS Event 或 FRS Event。",
+          "seconds": 34.97,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "原答未给出 C1 指定的肯定结论，但题面只排除了截至请求时的后续事件，规范约束的是返回 CRS 的时刻。原答正确应用了同一 Function 和记录时段，补查请求至 Completion 的缺口会直接影响判定，暂缓裁定不构成放行。",
+            "otherError": "",
+            "credits": {
+              "C1": 0,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 60.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 638
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 637
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F6-06",
+          "status": "completed",
+          "answer": "**处置** 不能把 Set 5 标为已变更。本次 Read Recovery Level 变更仅适用于 Set 2。\n\n**依据** 设备支持 NVM Sets，本次命令的 NVMSETID=2，已核对成功 CQE，现场确认未对 Set 5 执行变更。NVMe 2.1 PDF 第405页图400、401规定命令对指定的 NVM Set 设置 RRL，第568页 §8.1.20 规定 RRL 作用于其关联的 NVM Set。",
+          "seconds": 27.23,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确按 NVM Set 范围认定 Set 2 已变更，拒绝将结果登记到独立的 Set 5。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 405
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 406
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 568
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

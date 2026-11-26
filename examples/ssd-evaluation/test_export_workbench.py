@@ -68,9 +68,15 @@ class WorkbenchExportTest(unittest.TestCase):
 
     def test_bundled_report_matches_reviewed_archive(self):
         kit = Path(__file__).resolve().parent
-        manifest = kit / "studies/field-usable-v3/workbench-manifest.json"
+        manifest = kit / "studies/field-usable-v16/workbench-manifest.json"
         bundled = kit.parents[1] / "packages/app/src/components/evaluations/ssd-example-report.json"
         self.assertEqual(json.loads(bundled.read_text(encoding="utf-8")), build(manifest))
+        for round_name in ("field-usable-v3", "field-usable-v4", "field-usable-v5", "field-usable-v6", "field-usable-v7",
+                           "field-usable-v8", "field-usable-v9", "field-usable-v10", "field-usable-v11",
+                           "field-usable-v12", "field-usable-v13", "field-usable-v14", "field-usable-v15"):
+            previous = kit / f"reports/{round_name}.json"
+            self.assertEqual(json.loads(previous.read_text(encoding="utf-8")),
+                             build(kit / f"studies/{round_name}/workbench-manifest.json"))
 
     def test_archived_scores_and_different_planned_denominators(self):
         self.run_record(self.plan[0], self.review["answer"])

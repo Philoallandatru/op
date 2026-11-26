@@ -1,0 +1,24 @@
+{"sheet": "01ab214ace", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓上线，引用同轮 r8 两路落点实测，并要求取得应用负责人对 r8 的批准。", "other_error": ""}
+{"sheet": "0560a61913", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "限定两条 m5 路径签通过，批准主体、版本和逐请求资源映射一致，验收证据及通过条件明确。", "other_error": ""}
+{"sheet": "0df6981e34", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分非法架构长度与合法但不支持的宽度，并要求逐例核对请求、接收端能力和对应结果。", "other_error": ""}
+{"sheet": "203274c8db", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓归因，区分了界面聚合与线级合并，并给出原始 TLP 和数据归属的核验及判定条件。", "other_error": ""}
+{"sheet": "24e9977cb5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签发，区分规范建议与工单门槛，并要求核对同次 CQE 收到至重提的间隔。", "other_error": ""}
+{"sheet": "25a442dee2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签发，要求负责人批准实际部署的 r8，并核对同一端口、同一轮两路请求的资源落点。", "other_error": ""}
+{"sheet": "2ff9ac91e6", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓归因，区分 UI 聚合与线级合并，并要求以原始 TLP 和事务数据关联确定合并及其发生位置。", "other_error": ""}
+{"sheet": "4872ff0fa2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝仅凭 PBA 清零签署，说明了发送后清位和掩蔽期间事件已处理两条路径，并要求关联本次解掩的实际消息核对地址和数据。", "other_error": ""}
+{"sheet": "49bd550413", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签署，区分规范建议与工单门槛，并给出同次事件的有效时标核验或可证明的收件最迟时刻。", "other_error": ""}
+{"sheet": "4dbed718c3", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝现有窗口，给出先空闲 10 秒再测 30 秒、正确使用 scale 及按工单目标验收的条件。", "other_error": ""}
+{"sheet": "55849ee482", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "当前暂缓写入的判断正确，也要求续批及写前复核 CC.EN；但未要求写后读回 CC.MPS 验收，现场不能按原答完成验收。", "other_error": ""}
+{"sheet": "567c15a46a", "usability": "misleading", "criteria": {"C1": 1, "C2": 0.5, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签现有窗口，并给出 10 秒空闲及 30 秒测量要求；但列举空闲条件和必要核验时均漏掉 sanitize 操作，可能在 sanitize 进行时错误判定空闲并签发测量。", "other_error": "未要求等待及采样全程无 sanitize 操作。"}
+{"sheet": "8725c81e8f", "usability": "no_answer", "criteria": {}, "reject_hits": [], "reason": "未在本次运行中交卷。", "other_error": ""}
+{"sheet": "8b882dfde4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓生产操作，明确生产审批和目标复核门槛，并给出有效掩蔽、读回及发包验收条件。", "other_error": ""}
+{"sheet": "8c5dbdbe96", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓归因；正确区分 CQ6 与 CQ5 的条目，并给出同期 CQ5 EventIdx 和门铃记录的核验门槛。", "other_error": ""}
+{"sheet": "918bdb1b33", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确暂缓生产操作，并要求审批、对象复核及有效掩蔽；但生产写后验收只要求读回，缺少对应消息发包核对。", "other_error": ""}
+{"sheet": "a19b1d5182", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓当前写入，说明技术条件与授权窗口，并要求续批覆盖同一控制器的实际写入，同时核对现场读数和 PRP 配置。", "other_error": ""}
+{"sheet": "a1db4098e8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "按 m5 和题定批准人限定范围通过，并引用同次记录确认两条请求与各自资源的对应关系。", "other_error": ""}
+{"sheet": "a666d017f8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签署，并要求按适用命令集版本和具体序列核对两条已保存状态的组合。附加的提交规则说明不改变本题处置。", "other_error": ""}
+{"sheet": "a8642d95a8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓漏写判定，使用 CQ5 同期 EventIdx 的正确跨越门槛，并要求核对对应门铃写入及记录覆盖范围。", "other_error": ""}
+{"sheet": "b1c6da6c92", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确保持待验，说明 Pending 清零的两条路径，并要求关联实际消息核对 A2、D2；复测签发范围也限定清楚。", "other_error": ""}
+{"sheet": "c0b9166f68", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "按普通 TPH 发包范围通过，正确区分普通 tag 与扩展前缀，并逐条对应应用值和抓包。", "other_error": ""}
+{"sheet": "d65b257245", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂不签合规，保留并关联两条原始状态；要求按同次命令集版本、操作码及序列规则核对状态组合。", "other_error": ""}
+{"sheet": "e571fe2e19", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论符合普通 TPH 发包验收范围，已逐条对应同一 Function 的请求、TH 和普通 tag；无需扩展前缀。", "other_error": ""}

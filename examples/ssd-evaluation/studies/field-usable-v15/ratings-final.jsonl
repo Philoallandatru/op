@@ -1,0 +1,32 @@
+{"sheet": "00c609d311", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确通过预期负测，并分别核对命令与 CQE 的对应关系及同一位置前后读回值。", "other_error": ""}
+{"sheet": "0b79126e05", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并给出同范围、同区间的实际读取量核验及通过条件。", "other_error": ""}
+{"sheet": "0bed487d9a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分当前值与能力查询，并给出同控制器、同 FID 的查询和匹配完成项的验收条件。", "other_error": ""}
+{"sheet": "0bf2bb7e46", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "签发范围限于本代次 QID=9 的 SQ Tail 和 CQ Head，依据是重启后的新配置成功及两类实际写入轨迹。原答明确要求留存 CQE、布局和各槽位的地址、值、写入方，但归档清单漏了载有本次 PRP1/PRP2 的 Admin SQE，故 C3 只得部分分。", "other_error": ""}
+{"sheet": "147490b392", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答逐条对应了提交与有效 CQE，正确解释了 Compare 预期不匹配及 Write 因伙伴失败报 09h，并核实同一 NSID/LBA 前后独立读回均为 A6，故 C2、C3 均满分。它把额外的提交槽位和传输记录核查列为结案前提，导致本应通过的注入被暂缓。", "other_error": "将提交合规细节另设为本工单的放行门槛，改变了当前结案决定。"}
+{"sheet": "30c05c837a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并给出逐 NSID 核对写完成时序和 Flush 成功 CQE 的验收条件。", "other_error": ""}
+{"sheet": "3190f88599", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓重试，正确说明 DNR=0 的含义，并要求按当前错误确认处置及取得覆盖本次单次重试的有效审批。", "other_error": ""}
+{"sheet": "3748ec0f20", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准计数检查；SHST=01b 满足非 10b 的递增条件，并记录同一控制器的现场轨迹及 71→72 计数。", "other_error": ""}
+{"sheet": "439291c349", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "批准正确；SHST=01b 表明控制器尚未报告可断电，同控制器的现场状态和 71→72 计数均已记录。", "other_error": ""}
+{"sheet": "448bdb0fe3", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "暂缓正确。More=1 指向同控制器 01h 日志中的追加状态，SMART 总数无法定位该命令。原答要求确认条目归属，但 SQID、CID 和状态均可能重复，只说明日志按新旧排序，未说明如何用事件时序或等价证据区分本次失败。", "other_error": ""}
+{"sheet": "4983800138", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓启用，区分候选报文、固件批准和旧应用批准，并要求核对同一映射的双方批准及真实请求。", "other_error": ""}
+{"sheet": "553d2e370b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓启用，并要求保留实际请求和固件批准、补齐覆盖同一 Function 与应用的 R52 批准。", "other_error": ""}
+{"sheet": "5bb192b1bd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "批准范围正确；同 NSID 的写完成早于 Flush 提交，跨 SQ 不影响覆盖，所需原始记录齐全。", "other_error": ""}
+{"sheet": "5eaf3a380a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前不重试，正确区分 DNR 与授权，并要求依据匹配的当前 CQE 重新确认处置及取得单次审批。", "other_error": ""}
+{"sheet": "6d3878dde0", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答依据同事务原始包号和地址拒签，并说明地址排序掩盖链路时序；留存证据和升序通过条件明确。", "other_error": ""}
+{"sheet": "7f07164bb3", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确换算 IDLP 为 0.060 W，并关联同一状态的预空闲、完整采样及两个独立门槛。", "other_error": ""}
+{"sheet": "7fb8d8dd5a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，关联了 FB=10b、广播 NSID 与实际错误；要求逐附着 NSID 核对写完成、Flush 提交及成功 CQE，覆盖 NSID 4 和 9。", "other_error": ""}
+{"sheet": "8416065a2d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签门槛等值点，计算和严格小于条件正确；题面已给出阈值与回差，验收也核对同一事件的温度、TTC 和恢复事件。", "other_error": ""}
+{"sheet": "90f5e8d5d7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签正确；说明了 More 与日志的关系，并给出同控制器条目及存档的匹配核验方法。", "other_error": ""}
+{"sheet": "9ae1a82a17", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准该对超越，比较了规定的两个 ID，并要求留存入出端顺序和头字段。", "other_error": ""}
+{"sheet": "a345e6a3e9", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "原答正确采用复位后的成功配置，也核对了 QID=9 两类事件的槽位、值和写入方，但未明确将新 Admin SQE 与匹配 CQE 一并归档。本次实测已达到签收条件，原答却要求暂缓。暂缓原因是新增门铃核验，与沿用物理页无关。", "other_error": "将 EventIdx 回绕比较和控制器门铃轨迹列为放行前提，导致已满足工单范围的两类事件被错误扣留。"}
+{"sheet": "a4b3ba41f4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "签发范围正确，串联了掩蔽期间服务、PBA 清零及解掩后的目标消息观察。", "other_error": ""}
+{"sheet": "a577e238ab", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分同地址、不同数据的两项，并依据持续掩蔽、注入、PBA 和窗口内消息完成表项 3 的验收。", "other_error": ""}
+{"sheet": "b8e4d80d1a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并给出两端取整范围及同对象、同区间的实际读取量验收条件。", "other_error": ""}
+{"sheet": "be22381153", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签等于门槛的采样点，并给出严格低于门槛及对应恢复证据的验收条件。", "other_error": ""}
+{"sheet": "d0270000c8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "按同一 Function 的完整地址和数据区分两项；注入、掩蔽、PBA 和唯一匹配消息的记录支持表项 3 的验收。", "other_error": ""}
+{"sheet": "d28c2c6304", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "IPS 换算所得 0.060 W 与同一状态预空闲 10 秒后连续采样 30 秒的均值 0.071 W 分别达标。题面已确认完整空闲采样，原答却把清理和自检须单独补证设为签发条件，实际暂缓了应签工单。", "other_error": "额外证据要求导致错误暂缓，无法补证时还会触发不必要的重测。"}
+{"sheet": "e0ec562019", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签并以原始链路顺序验收；附加核验 Completion 状态和数据不改变当前拒签决定。", "other_error": ""}
+{"sheet": "e1ba6b5ff3", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答限定已服务事件的验收范围，正确串联掩蔽、PBA 清零、实际解掩和同项消息观察。", "other_error": ""}
+{"sheet": "f14806b98f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准该对记录，使用 Completion 的 Completer ID 与较早 Posted Request 的 Requester ID 比较；原始捕获及相关字段均已明确。", "other_error": ""}
+{"sheet": "f1e5a6c04d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签当前值最低位推断，并给出同控制器、同 FID 的能力查询及成功回执判定。SSFS 核验和为 0 时的处置未见会改变判断的错误。", "other_error": ""}
+{"sheet": "f268714078", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "同源时间戳证明 NSID=21 的 Write 在 Flush 提交前已完成，跨 SQ 可签。原答列齐两条命令的原始提交和成功 CQE。题面已确认 Flush 的匹配 CQE 成功，原答也要求留存该记录，无须再单列一次相位检查。签收范围未扩展到 NSID=22。", "other_error": ""}

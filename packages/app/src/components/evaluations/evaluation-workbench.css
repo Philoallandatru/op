@@ -144,6 +144,161 @@
 .evaluation-pairs i[data-tone="loss"] {
   background: var(--destructive);
 }
+.evaluation-analysis {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 1.2rem;
+  margin-block-end: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.evaluation-plot {
+  min-width: 0;
+  padding-block: 0.8rem;
+  border-block-start: 1px solid var(--border);
+}
+.evaluation-plot figcaption,
+.evaluation-history > summary {
+  font-size: 0.92rem;
+  font-weight: 610;
+}
+.evaluation-plot-meta,
+.evaluation-history-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.85rem;
+  margin-block: 0.45rem 0.6rem;
+  color: var(--muted-foreground);
+  font-size: 0.73rem;
+}
+.evaluation-plot-meta strong {
+  color: var(--foreground);
+  font-size: 1.15rem;
+}
+.evaluation-plot-meta strong[data-missed="true"] {
+  color: var(--destructive);
+}
+.evaluation-plot-axis,
+.evaluation-plot-case {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 6.1rem minmax(2.8rem, 1fr) 4.4rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding-inline: 0.28rem;
+  text-align: start;
+  font-size: 0.69rem;
+}
+.evaluation-plot-axis {
+  direction: ltr;
+  color: var(--muted-foreground);
+}
+.evaluation-plot-axis > span:nth-child(2) {
+  display: flex;
+  justify-content: space-between;
+}
+.evaluation-plot-list {
+  max-height: 11.4rem;
+  overflow-y: auto;
+}
+.evaluation-plot-case {
+  min-height: 1.7rem;
+  cursor: pointer;
+  border-block-end: 1px solid var(--border);
+}
+.evaluation-plot-case:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.evaluation-plot-case:hover,
+.evaluation-plot-case[aria-pressed="true"] {
+  background: var(--muted);
+}
+.evaluation-plot-case b {
+  text-align: end;
+  white-space: nowrap;
+}
+.evaluation-plot-track {
+  position: relative;
+  display: block;
+  height: 1.15rem;
+  background: linear-gradient(
+    to right,
+    transparent calc(50% - 0.5px),
+    var(--border) 50%,
+    transparent calc(50% + 0.5px)
+  );
+}
+.evaluation-plot-limit,
+.evaluation-plot-delta {
+  position: absolute;
+}
+.evaluation-plot-limit {
+  inset-block: 0;
+  border-inline-start: 1px dashed var(--destructive);
+}
+.evaluation-plot-delta {
+  inset-block: 0.38rem;
+  background: var(--chart-2);
+}
+.evaluation-plot-delta[data-slower="true"] {
+  background: var(--chart-1);
+}
+.evaluation-plot-key {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.37rem;
+  margin-inline-end: 0.32rem;
+  background: var(--muted-foreground);
+}
+.evaluation-plot-key[data-candidate],
+.evaluation-stage-bars i[data-candidate] {
+  background: var(--chart-2);
+}
+.evaluation-stage-list > div {
+  padding-block: 0.37rem;
+  border-block-end: 1px solid var(--border);
+  font-size: 0.74rem;
+}
+.evaluation-stage-list dd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: 0.2rem;
+}
+.evaluation-stage-bars {
+  display: grid;
+  gap: 0.18rem;
+}
+.evaluation-stage-bars i {
+  height: 0.31rem;
+  background: var(--muted-foreground);
+}
+.evaluation-plot-note,
+.evaluation-history > summary span {
+  margin-block-start: 0.45rem;
+  color: var(--muted-foreground);
+  font-size: 0.71rem;
+}
+.evaluation-history {
+  margin-block-end: 1rem;
+  padding-block: 0.65rem;
+  border-block: 1px solid var(--border);
+}
+.evaluation-history-entry {
+  padding: 0.65rem 0.25rem 0.15rem 1rem;
+  font-size: 0.8rem;
+}
+.evaluation-history-entry dl > div {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  gap: 0.35rem;
+  padding-block: 0.15rem;
+}
+.evaluation-history-entry dt {
+  color: var(--muted-foreground);
+}
 .evaluation-case-selector {
   margin-block: 1.3rem 0.75rem;
 }
@@ -340,6 +495,9 @@
   font-size: 0.78rem;
 }
 @container (max-width: 36rem) {
+  .evaluation-analysis {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .evaluation-answers {
     grid-template-columns: minmax(0, 1fr);
   }

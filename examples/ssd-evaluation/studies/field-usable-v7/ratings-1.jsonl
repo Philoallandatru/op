@@ -1,0 +1,32 @@
+{"sheet": "002c508fc8", "usability": "revise", "criteria": {"C1": 1, "C2": 0.5, "C3": 1}, "reject_hits": [], "reason": "正确拒绝登记并说明状态补读的限制，但只将 Enabled=1 列为归因所需记录，未说明其为 1 时控制字段决定 Function substate。", "other_error": ""}
+{"sheet": "13a1b48757", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝以清位时刻作为旧请求的统一起点，保留是否应用超时及两种起点，并要求结合记录确定实际行为。", "other_error": ""}
+{"sheet": "1bae024e9f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝迁移和跨复位沿用，并要求非零身份自行完成注册。", "other_error": ""}
+{"sheet": "2c742003c7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前第 17 个注册，区分能力与配置上限，并给出释放后的新增条件。", "other_error": ""}
+{"sheet": "2d4dba2d4e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝当前写入，保留能力支持和 ATS 停用条件，并要求另行授权后核验。", "other_error": ""}
+{"sheet": "34a8525504", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝以 Pending 清零证明收讫，给出两种清零路径及本次消息的接收证据要求。", "other_error": ""}
+{"sheet": "495bc6cf87", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝回卷并说明两条路径，但核验建议只要求确认 OS 驱动写入 0，遗漏核实此前 OS 已成功初始化，不能仅凭写入记录确认符合清零条件。", "other_error": ""}
+{"sheet": "4eefe0c753", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝统一截止线，保留是否应用及两种起点，并要求逐请求核验。", "other_error": ""}
+{"sheet": "4fab4e7e68", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出无负载时发送端不得置 EP，接收端行为未规定，未强制指定接收动作。", "other_error": ""}
+{"sheet": "6724fe9092", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出 800 GB 超过目标 domain 的 700 GB 上限，并列出三项容量限制和 Insufficient Capacity 结果。", "other_error": ""}
+{"sheet": "787d1ea2da", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确限定本次撤销的主机、子系统和 P0，但未明确 P1 的访问及连接状态仍需独立核验。", "other_error": ""}
+{"sheet": "78f490b3ea", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝统一 UR，正确区分 Root Port 与普通 Endpoint 的超限处置，并保留其他路径的适用条件。", "other_error": ""}
+{"sheet": "8208b56fec", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝以当前内存读签字，区分两种屏障及就绪、正常前提，并给出适用的 PMRSTS 读核验。", "other_error": ""}
+{"sheet": "8562300bcc", "usability": "revise", "criteria": {"C1": 1, "C2": 0, "C3": 1}, "reject_hits": [], "reason": "正确拒绝签认并要求匹配的接收证据，但遗漏发送请求满足和链路进入 DL_Down 两种清零路径；声称条款原文缺失也与给定规范片段不符。", "other_error": ""}
+{"sheet": "8796069fdd", "usability": "misleading", "criteria": {"C1": 1, "C2": 0.5, "C3": 0}, "reject_hits": [1], "reason": "虽暂不签字并保留就绪、正常前提，但未区分 CPMTSTSR，也未给出同一 PMR 的 PMRSTS 读完成路径；其建议在本次读已完成后补查 CMR 能力并据此签认，与现场只声明支持 PMRSTS 屏障不符，可能错误放行。", "other_error": ""}
+{"sheet": "88231998b2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出目标域容量上限被超越，列出三项限制及对应的中止状态。", "other_error": ""}
+{"sheet": "8c13510a50", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝凭控制字段读回值签收，正确区分使能条件，并要求同一 Function 的同期状态证据；核验建议未越过授权边界。", "other_error": ""}
+{"sheet": "8ce1d3637e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓第二条 Abort，区分目标 I/O 与 Abort 自身完成，并要求匹配管理完成后补投。", "other_error": ""}
+{"sheet": "9d4c34869e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝该规则，说明一般添加或替换与 Enhanced 例外，并给出中止状态及无元数据变更的结果。", "other_error": ""}
+{"sheet": "aab26cde0d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝用 A 的列表替代 B，并指出 B 的 CSI 对应不支持时应返回的状态。", "other_error": ""}
+{"sheet": "aee9d0922d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝双零时重新使能，说明仍有未完成请求，并要求同一接口 Stopped=1 后再启用；未建议执行未授权 Reset。", "other_error": ""}
+{"sheet": "af70c81654", "usability": "revise", "criteria": {"C1": 1, "C2": 0.5, "C3": 1}, "reject_hits": [], "reason": "正确拒绝部署并给出失败状态和无变更结果，但未说明一般 Host Metadata 的添加或替换行为。", "other_error": ""}
+{"sheet": "b2c8cb1027", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓第二条 Abort，并以第一条 Abort 自身完成及控制器在途数满足上限为补投条件。", "other_error": ""}
+{"sheet": "b79c95085d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝复制，按 CSI 对应命令集判断支持情况，并区分预期中止状态与现场尚未取得的完成记录。", "other_error": ""}
+{"sheet": "b8b331a80b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝回卷解释，说明饱和和 OS 清零两条路径，并要求核查实际写入时序。", "other_error": ""}
+{"sheet": "bb500a6ddf", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分 Root Port 的推荐处理及备选路径与普通 Endpoint 的强制处理，并按各自上限验收。", "other_error": ""}
+{"sheet": "c47a574d28", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前第 17 个并发登记，区分能力与实际限制，并给出释放后新增及重新配置验证的条件。", "other_error": ""}
+{"sheet": "d3daeeaed2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确限定本次撤销的主机、子系统和端口范围，并要求独立证据支持 P1 的断开义务。", "other_error": ""}
+{"sheet": "ddf6413046", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝双零时重新使能，说明旧请求可能仍在途或排队，并以同一接口 Stopped=1 为恢复门槛。", "other_error": ""}
+{"sheet": "ecd2abb457", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝在线写入，并保留能力和 ATS Enable 条件；重新评审前应明确须先获授权，按平台流程停用 ATS。", "other_error": ""}
+{"sheet": "f57527f7a2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝迁移及跨控制器级复位沿用零标识旧注册，并要求核验非零身份自身的有效注册；附加处置条件未见改变现场判断的错误。", "other_error": ""}
+{"sheet": "f90196cb77", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出发送端违规、接收行为未规定，且未指定必然接收动作。", "other_error": ""}

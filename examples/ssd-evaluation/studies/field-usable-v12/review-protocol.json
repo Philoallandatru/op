@@ -1,0 +1,11 @@
+{
+  "raters": ["codex/gpt-6.1-terra", "opencode-go/beam-free"],
+  "adjudicator": "codex/gpt-6.2-astra",
+  "latency_endpoint": "Median candidate minus baseline wall seconds for the same questions completed by both. Keep all first attempts in quality, and report a sensitivity scoped only by prespecified execution errors.",
+  "paired_latency_limit_seconds": 2.5,
+  "readiness_endpoint": "Ready per planned, at least 90% and at least the same-batch baseline; report paired regressions",
+  "misleading_endpoint": "Observed misleading per completed, with zero as the target",
+  "acceptance_endpoint": "C3 full credit per planned question",
+  "condition_endpoint": "C2 full credit per planned question",
+  "slices": {"approval": 4, "operational": 6, "transfer": 6}
+}

@@ -1,0 +1,9 @@
+{
+  "raters": ["codex/gpt-6.1-terra", "opencode-go/beam-free"],
+  "adjudicator": "codex/gpt-6.2-astra",
+  "condition_endpoint": "C2 full credit per planned question",
+  "readiness_endpoint": "Ready per planned question",
+  "misleading_endpoint": "Misleading per completed answer with planned and paired denominators reported",
+  "latency_endpoint": "Median wall seconds per delivered answer, with paired delivered deltas and phase medians",
+  "slices": {"gate": "Admission or recovery conditions", "branches": "Different applicable outcomes or scopes", "history": "Past and current states"}
+}

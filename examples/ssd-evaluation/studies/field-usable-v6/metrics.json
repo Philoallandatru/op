@@ -1,0 +1,222 @@
+{
+  "all": {
+    "baseline": {
+      "planned": 16,
+      "completed": 15,
+      "ready": 9,
+      "misleading": 3,
+      "revise": 3,
+      "no_answer": 1,
+      "passed": 14,
+      "median_seconds": 23.915
+    },
+    "candidate": {
+      "planned": 16,
+      "completed": 16,
+      "ready": 10,
+      "misleading": 0,
+      "revise": 6,
+      "no_answer": 0,
+      "passed": 11,
+      "median_seconds": 30.22
+    },
+    "newly_ready": [
+      "SSD-F6-15",
+      "SSD-F6-16",
+      "SSD-F6-12",
+      "SSD-F6-13"
+    ],
+    "lost_ready": [
+      "SSD-F6-02",
+      "SSD-F6-09",
+      "SSD-F6-11"
+    ],
+    "both_completed": {
+      "count": 15,
+      "baseline_misleading": 3,
+      "candidate_misleading": 0
+    }
+  },
+  "control": {
+    "baseline": {
+      "planned": 6,
+      "completed": 5,
+      "ready": 3,
+      "misleading": 1,
+      "revise": 1,
+      "no_answer": 1,
+      "passed": 5,
+      "median_seconds": 19.385
+    },
+    "candidate": {
+      "planned": 6,
+      "completed": 6,
+      "ready": 4,
+      "misleading": 0,
+      "revise": 2,
+      "no_answer": 0,
+      "passed": 5,
+      "median_seconds": 28.965
+    },
+    "newly_ready": [
+      "SSD-F6-12",
+      "SSD-F6-13"
+    ],
+    "lost_ready": [
+      "SSD-F6-02"
+    ],
+    "both_completed": {
+      "count": 5,
+      "baseline_misleading": 1,
+      "candidate_misleading": 0
+    }
+  },
+  "history": {
+    "baseline": {
+      "planned": 10,
+      "completed": 10,
+      "ready": 6,
+      "misleading": 2,
+      "revise": 2,
+      "no_answer": 0,
+      "passed": 9,
+      "median_seconds": 25.475
+    },
+    "candidate": {
+      "planned": 10,
+      "completed": 10,
+      "ready": 6,
+      "misleading": 0,
+      "revise": 4,
+      "no_answer": 0,
+      "passed": 6,
+      "median_seconds": 30.22
+    },
+    "newly_ready": [
+      "SSD-F6-15",
+      "SSD-F6-16"
+    ],
+    "lost_ready": [
+      "SSD-F6-09",
+      "SSD-F6-11"
+    ],
+    "both_completed": {
+      "count": 10,
+      "baseline_misleading": 2,
+      "candidate_misleading": 0
+    }
+  },
+  "sensitivity": {
+    "excluded": [
+      "SSD-F6-04",
+      "SSD-F6-13"
+    ],
+    "scopes": {
+      "all": {
+        "baseline": {
+          "planned": 14,
+          "completed": 14,
+          "ready": 9,
+          "misleading": 3,
+          "revise": 2,
+          "no_answer": 0,
+          "passed": 14,
+          "median_seconds": 24.01
+        },
+        "candidate": {
+          "planned": 14,
+          "completed": 14,
+          "ready": 9,
+          "misleading": 0,
+          "revise": 5,
+          "no_answer": 0,
+          "passed": 11,
+          "median_seconds": 30.22
+        },
+        "newly_ready": [
+          "SSD-F6-15",
+          "SSD-F6-16",
+          "SSD-F6-12"
+        ],
+        "lost_ready": [
+          "SSD-F6-02",
+          "SSD-F6-09",
+          "SSD-F6-11"
+        ],
+        "both_completed": {
+          "count": 14,
+          "baseline_misleading": 3,
+          "candidate_misleading": 0
+        }
+      },
+      "control": {
+        "baseline": {
+          "planned": 5,
+          "completed": 5,
+          "ready": 3,
+          "misleading": 1,
+          "revise": 1,
+          "no_answer": 0,
+          "passed": 5,
+          "median_seconds": 15.45
+        },
+        "candidate": {
+          "planned": 5,
+          "completed": 5,
+          "ready": 3,
+          "misleading": 0,
+          "revise": 2,
+          "no_answer": 0,
+          "passed": 5,
+          "median_seconds": 27.23
+        },
+        "newly_ready": [
+          "SSD-F6-12"
+        ],
+        "lost_ready": [
+          "SSD-F6-02"
+        ],
+        "both_completed": {
+          "count": 5,
+          "baseline_misleading": 1,
+          "candidate_misleading": 0
+        }
+      },
+      "history": {
+        "baseline": {
+          "planned": 9,
+          "completed": 9,
+          "ready": 6,
+          "misleading": 2,
+          "revise": 1,
+          "no_answer": 0,
+          "passed": 9,
+          "median_seconds": 26.25
+        },
+        "candidate": {
+          "planned": 9,
+          "completed": 9,
+          "ready": 6,
+          "misleading": 0,
+          "revise": 3,
+          "no_answer": 0,
+          "passed": 6,
+          "median_seconds": 30.34
+        },
+        "newly_ready": [
+          "SSD-F6-15",
+          "SSD-F6-16"
+        ],
+        "lost_ready": [
+          "SSD-F6-09",
+          "SSD-F6-11"
+        ],
+        "both_completed": {
+          "count": 9,
+          "baseline_misleading": 2,
+          "candidate_misleading": 0
+        }
+      }
+    }
+  }
+}

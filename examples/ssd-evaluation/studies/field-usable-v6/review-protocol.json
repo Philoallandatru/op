@@ -1,0 +1,5 @@
+{
+  "raters": ["codex/gpt-6.1-terra", "opencode-go/beam-free"],
+  "adjudicator": "codex/gpt-6.2-astra",
+  "slices": {"history": "Claims about earlier events or intervals", "control": "Contemporaneous evidence or present disposition"}
+}

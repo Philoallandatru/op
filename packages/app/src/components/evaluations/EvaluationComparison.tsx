@@ -12,8 +12,10 @@ import type {
   EvaluationResult,
   EvaluationRound,
 } from '@/lib/agent-evaluation-report';
+import { median } from '@/lib/evaluation-timing';
 import { EvaluationCaseDetail } from './EvaluationCaseDetail';
 import { EvaluationRetestExport } from './EvaluationRetestExport';
+import { EvaluationIterationHistory, EvaluationRunAnalysis } from './EvaluationRunAnalysis';
 
 function usable(result: EvaluationResult): boolean | null {
   if (result.status === 'incomplete') return false;
@@ -44,7 +46,86 @@ function fraction(count: number, total: number, locale: string) {
     : '—';
 }
 
-function RoundSummary({ round }: { round: EvaluationRound }) {
+function MetricCell({
+  count,
+  total,
+  final,
+  locale,
+}: {
+  count: number;
+  total: number;
+  final: boolean;
+  locale: string;
+}) {
+  return (
+    <td>
+      <strong>{final ? fraction(count, total, locale) : '—'}</strong>
+      <small>
+        {count} / {total}
+      </small>
+    </td>
+  );
+}
+
+function RoundLatency({
+  round,
+  metric,
+  locale,
+}: {
+  round: EvaluationRound;
+  metric: NonNullable<EvaluationReport['latencyMetric']>;
+  locale: string;
+}) {
+  const completed = round.results.filter((row) => row.status === 'completed');
+  const measured = completed.flatMap((row) => (row.seconds === null ? [] : [row.seconds]));
+  const phases = completed.flatMap((row) => (row.phaseSeconds ? [row.phaseSeconds] : []));
+  const formatter = new Intl.NumberFormat(locale || undefined, {
+    maximumFractionDigits: 3,
+    style: 'unit',
+    unit: 'second',
+  });
+  const duration = (values: number[]) => {
+    const value = median(values);
+    return value === null ? '—' : formatter.format(value);
+  };
+  return (
+    <td>
+      <strong>{duration(measured)}</strong>
+      {measured.length < completed.length ? (
+        <small>
+          {measured.length} / {completed.length}
+        </small>
+      ) : null}
+      {phases.length ? (
+        <small>
+          {Object.keys(metric.stages).map((stage) => {
+            const key = stage as keyof typeof metric.stages;
+            return (
+              <span key={key} className="block whitespace-nowrap">
+                {metric.stages[key]} {duration(phases.map((row) => row[key]))}
+              </span>
+            );
+          })}
+          {phases.length < measured.length ? (
+            <span className="block">
+              {phases.length} / {measured.length}
+            </span>
+          ) : null}
+        </small>
+      ) : null}
+    </td>
+  );
+}
+
+function RoundSummary({
+  round,
+  criterionMetrics,
+  latencyMetric,
+}: {
+  round: EvaluationRound;
+  criterionMetrics: (NonNullable<EvaluationReport['conditionMetric']> & { key: string })[];
+  latencyMetric?: EvaluationReport['latencyMetric'];
+}) {
   const { t, i18n } = useLingui();
   const totals = summarize(round);
   const metrics = [
@@ -65,13 +146,20 @@ function RoundSummary({ round }: { round: EvaluationRound }) {
         </details>
       </th>
       {metrics.map(([label, count, total, final]) => (
-        <td key={label}>
-          <strong>{final ? fraction(count, total, i18n.locale) : '—'}</strong>
-          <small>
-            {count} / {total}
-          </small>
-        </td>
+        <MetricCell key={label} count={count} total={total} final={final} locale={i18n.locale} />
       ))}
+      {criterionMetrics.map(({ criterionId, key }) => (
+        <MetricCell
+          key={key}
+          count={round.results.filter((r) => r.review?.credits[criterionId] === 1).length}
+          total={totals.planned}
+          final={totals.unscored === 0}
+          locale={i18n.locale}
+        />
+      ))}
+      {latencyMetric ? (
+        <RoundLatency round={round} metric={latencyMetric} locale={i18n.locale} />
+      ) : null}
       <td>{totals.ungraded}</td>
     </tr>
   );
@@ -160,7 +248,11 @@ function Picker({
 }
 
 export function EvaluationComparison({ report }: { report: EvaluationReport }) {
-  const { rounds, cases } = report;
+  const { rounds, cases, conditionMetric, acceptanceMetric, latencyMetric } = report;
+  const criterionMetrics = [
+    ...(conditionMetric ? [{ key: 'conditions', ...conditionMetric }] : []),
+    ...(acceptanceMetric ? [{ key: 'acceptance', ...acceptanceMetric }] : []),
+  ];
   const [baselineId, setBaseline] = useState(rounds[0]?.id ?? '');
   const [candidateId, setCandidate] = useState(rounds.at(-1)?.id ?? '');
   const [caseId, setCase] = useState(cases[0]?.id ?? '');
@@ -206,6 +298,12 @@ export function EvaluationComparison({ report }: { report: EvaluationReport }) {
               <th scope="col">
                 <Trans>Completed / planned</Trans>
               </th>
+              {criterionMetrics.map(({ key, label }) => (
+                <th key={key} scope="col">
+                  {label}
+                </th>
+              ))}
+              {latencyMetric ? <th scope="col">{latencyMetric.label}</th> : null}
               <th scope="col">
                 <Trans>Awaiting verdict</Trans>
               </th>
@@ -213,7 +311,12 @@ export function EvaluationComparison({ report }: { report: EvaluationReport }) {
           </thead>
           <tbody>
             {rounds.map((round) => (
-              <RoundSummary key={round.id} round={round} />
+              <RoundSummary
+                key={round.id}
+                round={round}
+                criterionMetrics={criterionMetrics}
+                latencyMetric={latencyMetric}
+              />
             ))}
           </tbody>
         </table>
@@ -236,6 +339,19 @@ export function EvaluationComparison({ report }: { report: EvaluationReport }) {
       )}
       {baseline && candidate && baseline !== candidate && (
         <PairedReadiness baseline={baseline} candidate={candidate} />
+      )}
+      {baseline && candidate && baseline !== candidate && latencyMetric && (
+        <EvaluationRunAnalysis
+          baseline={baseline}
+          candidate={candidate}
+          stages={latencyMetric.stages}
+          limit={report.pairedLatencyLimit}
+          caseId={caseId}
+          selectCase={setCase}
+        />
+      )}
+      {!!report.iterationHistory?.length && (
+        <EvaluationIterationHistory history={report.iterationHistory} />
       )}
       {candidate && <EvaluationRetestExport report={report} round={candidate} />}
       <div className="evaluation-case-selector">

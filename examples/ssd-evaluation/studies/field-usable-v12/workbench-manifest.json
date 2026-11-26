@@ -1,0 +1,13 @@
+{
+  "title": "单次精简签发 · 第十二轮 16 道独立新题",
+  "conditionMetric": {"criterionId": "C2", "label": "处置条件完整 / 计划"},
+  "acceptanceMetric": {"criterionId": "C3", "label": "验收可执行 / 计划"},
+  "latencyMetric": {"label": "交卷耗时中位数", "stages": {"retrieval": "检索", "draft": "独立起草", "review": "签发", "other": "其他"}},
+  "pairedLatencyLimit": 2.5,
+  "history": "../iteration-history.json",
+  "iteration": "field-usable-v12",
+  "rounds": [
+    {"id": "baseline", "label": "第九轮 · 核对边界与验收记录", "config": "Codex Sol · 单次核验签发 · 120 秒 · 8 次取证含预取", "plan": "questions.jsonl", "reviews": "baseline-reviewed.jsonl"},
+    {"id": "candidate", "label": "第十二轮 · 单次精简签发", "config": "同模型、语料与预算 · 合并重复说明 · 保留批准及核验门槛 · 补齐 IDLP 与 Completion 原文窗口", "plan": "questions.jsonl", "reviews": "candidate-reviewed.jsonl"}
+  ]
+}

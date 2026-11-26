@@ -1,0 +1,32 @@
+{"sheet": "017bf7bf5d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并以同一表项的线上写入核对完整地址和数据；高位不符足以判定失败。", "other_error": ""}
+{"sheet": "0298c785ea", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确撤销混合判法并批准两项验收；按 Requester ID 和 Tag 区分事务，引用了两组各自升序的现场抓包。", "other_error": ""}
+{"sheet": "062e198a95", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签当前结果，并要求 Sanitize 结束后确认完整空闲条件及复测窗口。", "other_error": ""}
+{"sheet": "11be6458de", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签发，要求用 SQID/CID 关联本次两条原始完成项，并按适用命令集核验状态。", "other_error": ""}
+{"sheet": "18a2a7e38a", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "拒绝按 CRDT3 归档及 ACRE 判定正确，但未明确要求归档并关联同一 CQE 的 SCT/SC、DNR 与完成时的 ACRE。", "other_error": ""}
+{"sheet": "1c9bdd4fab", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "拒签及 AMRO 的解释正确，但验收条件只要求写完成，遗漏合同指定的数据校验，不能据此原样签发。", "other_error": ""}
+{"sheet": "2803a3c0ed", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签发，并要求用覆盖同一窗口全部相关命令的可核验记录确认用户数据写入为零。", "other_error": ""}
+{"sheet": "28285925b5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确判断本次未跨过实际采用的 EventIdx，无额外 MMIO 义务，并将比较记录和 Shadow 更新绑定到同一 CQ。", "other_error": ""}
+{"sheet": "28eda58811", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并要求同一目标报文同时满足 TH=1 和预期 ST。", "other_error": ""}
+{"sheet": "3ae36b9051", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并要求关联同期模式和目标 TLP，复验短 tag 全零。", "other_error": ""}
+{"sheet": "3ce315556c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确限定负向场景并签通过；提交、CQE 匹配和两条状态均有现场证据。", "other_error": ""}
+{"sheet": "3e976cce59", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "签发范围与授权一致，掩蔽改写、实际解掩及同源完整发包均有题面证据。", "other_error": ""}
+{"sheet": "4782584620", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "处置及事务分组原则正确，但记录只称两组各自升序，未保存实际分段地址及其到达顺序。", "other_error": ""}
+{"sheet": "4b39541a2d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "通过结论、首末字节和 MRRS 比较均正确，核验对象及所需记录完整。", "other_error": ""}
+{"sheet": "538629ac67", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签署；要求以 SQID 和 CID 关联两条完成记录，并按适用状态规则验收。", "other_error": ""}
+{"sheet": "640e9100b7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签 TH=0 的当前报文，并给出同一目标 Requester 新样本的 TH 和 ST 核验条件。", "other_error": ""}
+{"sheet": "8eac28e665", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并要求实际解掩后关联目标事务核对地址和数据。", "other_error": ""}
+{"sheet": "91039c6623", "usability": "no_answer", "criteria": {}, "reject_hits": [], "reason": "未在本次运行中交卷。", "other_error": ""}
+{"sheet": "9d08c793d5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并要求确认 Sanitize 结束、留存完整空闲证据及按规定窗口复测。", "other_error": ""}
+{"sheet": "9e1da2581a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出表项仍被单项掩蔽，并要求实际解掩后核对目标写事务的完整地址和数据。", "other_error": ""}
+{"sheet": "9ee8faed03", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝归档为 CRDT3，说明 ACRE=0 使 CRD 保留，并关联同一 CQE 的状态与同期控制器设置。", "other_error": ""}
+{"sheet": "a27c2bd678", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确通过该负向场景；已关联同次提交及两条有效 CQE，首条符合预期错误，次条 09h 表示伙伴失败中止。", "other_error": ""}
+{"sheet": "a9b742dfde", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并要求关联同一表项的实际事务，核对完整地址和数据。", "other_error": ""}
+{"sheet": "b43b4f1a7d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "通过结论正确；同次请求的地址、长度、字节使能及 Requester MRRS 均已用于判断。", "other_error": ""}
+{"sheet": "c25737127b", "usability": "misleading", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "对题面已识别的目标请求，签发结论及全零含义正确；但答卷给出的请求头字段位置错误，会导致现场读取错误字节。", "other_error": "ST[7:0] 位于请求头 Byte 7 的 [7:0]，并非答卷所称 Byte 6 的 [7:0]；按原答读取可能错误判定请求的 Steering Tag。"}
+{"sheet": "c6cc4fc61a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确阻断当前启用，区分布局与本次配置成功门槛，并要求查当前状态及取得匹配重配命令的成功 CQE。", "other_error": ""}
+{"sheet": "cf9d624a81", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确阻断并要求重配成功，但未要求先提取本次失败 CQE 的完整原始 SCT/SC，缺少必要的失败状态记录。", "other_error": ""}
+{"sheet": "dc209f1e28", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出 DUW 为零表示未报告，要求补全同窗口用户数据计量，无法补证时重测。", "other_error": ""}
+{"sheet": "e30d1f4e3e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签非零 tag，依据同一 Requester 的模式和关联 TLP 判断，并给出该项全零通过条件。", "other_error": ""}
+{"sheet": "ec56b75ad2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "限定测试机表项 5 签发，并引用授权、掩蔽写入、读回、实际解掩及同一中断源 A5/D5 事务证据。Pending 路径的补充说明未改变本次验收决定。", "other_error": ""}
+{"sheet": "f405915b27", "usability": "misleading", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签当前结果，但将全部目标写入成功证据齐备作为放行条件，遗漏合同要求的指定数据校验；现场可能在校验未完成时错误签收。", "other_error": "放行条件遗漏指定的数据校验，可能导致验收证据不完整即签收。"}
+{"sheet": "ff2c4524c2", "usability": "misleading", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "签发决定及全零 ST 的含义正确，也绑定了目标请求；但现场验收误指 Byte 6，可能读取错误字段并导致错误验收。", "other_error": "Memory Write 请求头的 ST[7:0] 位于 Byte 7，而非 Byte 6。"}

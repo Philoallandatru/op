@@ -1,0 +1,19 @@
+{
+  "title": "现场处置交接 · 第五轮 8 道留出题",
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第三轮配置 · 逐项处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证 · outcomes + decision-audit",
+      "plan": "questions.jsonl",
+      "reviews": "baseline-reviewed.jsonl"
+    },
+    {
+      "id": "candidate",
+      "label": "第五轮配置 · 收束到当前处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证 · decision + scoped",
+      "plan": "questions.jsonl",
+      "reviews": "candidate-reviewed.jsonl"
+    }
+  ]
+}

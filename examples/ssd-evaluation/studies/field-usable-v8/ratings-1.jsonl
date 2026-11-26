@@ -1,0 +1,32 @@
+{"sheet": "0c5aedb79c", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝改写另一处表并要求核对有效向量，但未指出 ST 位于对应 MSI-X 表项的 Vector Control 高两字节，编程位置不够具体。", "other_error": ""}
+{"sheet": "18c80530c8", "usability": "misleading", "criteria": {"C1": 1, "C2": 0.5, "C3": 1}, "reject_hits": [], "reason": "正确拒绝登记和将读规则用于写，且保留重发路径；但遗漏额外读取字节全 1，并错误要求核验复位后首次访问。", "other_error": "将有效复位后首次访问当作 0001h 哨兵规则的必要前提，会使现场人员错误质疑已观察到的 CRS 合成读数，并要求不必要的记录核验。"}
+{"sheet": "242101e376", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分请求类型和两侧使能，撤除单凭 IDO 判 Malformed 的规则，并给出复核方法。", "other_error": ""}
+{"sheet": "27b6b9c495", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝写另一处表，并给出合并表的适用条件、字段位置和有效向量范围检查。", "other_error": ""}
+{"sheet": "2951385674", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分配置读哨兵与配置写重发，并要求分别核实正常读取和写入最终结果。", "other_error": ""}
+{"sheet": "2a9776a90c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝对本次提交作跨重启承诺，说明预期中止状态，并要求核实当前值和具体 FID 的持久性规则。", "other_error": ""}
+{"sheet": "2f40b35efd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝整类忽略，保留有限 NPD 更新，并正确区分无限字段及可选 FCPE 检查。", "other_error": ""}
+{"sheet": "39c5b06951", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签当前直接停链路脚本，区分软件触发与先禁用 DPC 的推荐路径，并要求 OS 与固件协调及核验禁用顺序。", "other_error": ""}
+{"sheet": "40e37ebbbf", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签；说明新一轮入口清零会覆盖上轮状态，并要求补充上轮退出同期证据或完整过程记录。", "other_error": ""}
+{"sheet": "4f9a7c6a08", "usability": "misleading", "criteria": {"C1": 1, "C2": 0.5, "C3": 1}, "reject_hits": [], "reason": "正确拒绝直接恢复，也要求重配成功后放行；但容量公式漏掉每个队列 ID 的提交队列和完成队列两个门铃条目，可能将实际放不进单页的队列分配误判为合格。", "other_error": "容量检查公式少了因子 2，可能导致错误放行快速路径。"}
+{"sheet": "5506e40b69", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确保留底层 uncorrectable 错误，区分两类 Mask 对状态、日志及 ERR_COR 的作用。", "other_error": ""}
+{"sheet": "59a8f04810", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前布局，区分两个能力位，并给出连续布局及受支持的不连续布局的核验条件。", "other_error": ""}
+{"sheet": "67172c2236", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签直接停链路，并给出软件触发及无该能力时协调固件禁用 DPC 的路径。", "other_error": ""}
+{"sheet": "6e72a86a18", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "当前轮禁止重办及重新协商的时序正确，但未给出仅查询现有分配时使用 Get Features 的路径。", "other_error": ""}
+{"sheet": "72fcfe4518", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确说明当前不能定责，区分历史 ACRE 两种情况，并要求核查同期状态和主机重试记录。", "other_error": ""}
+{"sheet": "76ff1eea18", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确保留环绕并要求单次门铃公开两条命令，但遗漏两条命令各有 CQE、需分别核对完成状态。", "other_error": ""}
+{"sheet": "7a82e8c2ee", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前布局，区分两个能力位，并给出连续布局及其他受支持路径的核验条件。", "other_error": ""}
+{"sheet": "7bd0f89b74", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签首个区间漏报，说明取走 I/O 后可续开，并要求核验下一完整区间。", "other_error": ""}
+{"sheet": "7d7ef198ae", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝对本次 SV=1 设置作跨重启承诺，并指出预期状态；但未明确给出仅需当前生效时清 SV 重试并核对结果的路径。", "other_error": ""}
+{"sheet": "7fd420330a", "usability": "revise", "criteria": {"C1": 1, "C2": 0.5, "C3": 1}, "reject_hits": [], "reason": "拒签和补证要求正确，但仅称摘录所示清除分支可产生两个零，未明确同端口同速率的新 Phase 1 入口会清除这两个标志，缺少关键时点依据。", "other_error": ""}
+{"sheet": "83dce272ef", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确维持当前服务，并说明 Offline 清除资源、获授权后完整重分配及 Online 的前提。", "other_error": ""}
+{"sheet": "859b6f33fe", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确限制目标能力、短 Tag 位数和混用时的别名，并要求按目标及并发路径核验。", "other_error": ""}
+{"sheet": "90c32fa22a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝在线原地扩容，完整说明离线门槛、资源清除及获授权后的重配和上线条件。", "other_error": ""}
+{"sheet": "940b922f7a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "处置、双方使能条件和 Malformed 判定均正确，并要求修正后核验。", "other_error": ""}
+{"sheet": "9f17d97aa1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确保留有限 NPD 更新，区分两项均无限的情形，并按可选检查处理非零 HdrFC。", "other_error": ""}
+{"sheet": "a46c0325da", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝本轮重设，说明已创建 CQ 即越过门槛、删除不恢复资格及预期状态，并给出查询和获授权后重设的路径。", "other_error": ""}
+{"sheet": "a8454d19f9", "usability": "revise", "criteria": {"C1": 1, "C2": 0.5, "C3": 1}, "reject_hits": [], "reason": "拒签、重配和容量检查正确，但未明确 Shadow Doorbell 由主机写入、EventIdx 由控制器写入，缺少缓冲区所有权说明。", "other_error": ""}
+{"sheet": "abac7b25a8", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝当前定责并区分历史 ACRE 状态，但必要核验遗漏主机实际重试处理记录。", "other_error": ""}
+{"sheet": "b8fa506306", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝两次门铃，保留同 SQ 环绕相邻，并要求单次发布两条及分别完成。", "other_error": ""}
+{"sheet": "da3d49ad36", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确保留底层 uncorrectable non-fatal 记录，并区分 ERR_COR 信令、状态置位和头部日志受屏蔽的原因。", "other_error": ""}
+{"sheet": "dcfa3e1e7f", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "首区间判断和进入下一区间的条件正确；指出第二段记录不完整，但未明确要求核对下一完整区间的起点、计时器有效性和取命令记录。", "other_error": ""}
+{"sheet": "ddfb4d6861", "usability": "misleading", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签和限宽、防别名要求正确，但断言 B 返回的 Completion 必须按 Unexpected Completion 处理，忽略了返回 Tag 与在途短 Tag 别名的可能，会误导错误诊断及处理。", "other_error": "将不具备能力的 Completer 返回的 Completion 一律判为 Unexpected Completion；发生 Tag 别名时可能被错误匹配。"}

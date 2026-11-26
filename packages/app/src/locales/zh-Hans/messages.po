@@ -12422,3 +12422,59 @@ msgstr "权重"
 
 msgid "Open SSD example"
 msgstr "打开 SSD 示例"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.paired"
+msgstr "同题耗时差"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.median"
+msgstr "同题增量中位数"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.limit"
+msgstr "上限"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.largest"
+msgstr "变化最大题目及当前题"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.stages"
+msgstr "分阶段耗时"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.baseline"
+msgstr "基线"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.candidate"
+msgstr "候选"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.stagePairs"
+msgstr "有分段计时的配对"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.title"
+msgstr "迭代历史"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.ready"
+msgstr "原样可用 / 计划"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.misleading"
+msgstr "可能误导 / 已回答"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.method"
+msgstr "改法"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.progress"
+msgstr "进度"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.next"
+msgstr "下一步"

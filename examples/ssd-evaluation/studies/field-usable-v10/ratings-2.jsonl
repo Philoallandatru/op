@@ -1,0 +1,32 @@
+{"sheet": "0c07ac2deb", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签并指出256B未超MRRS但跨4KiB边界，复验要求逐笔同时满足MRRS与单区间。", "other_error": ""}
+{"sheet": "12902cfec5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝由 DUR 差值反推精确字节，并要求批次命令与实际完成长度汇总。", "other_error": ""}
+{"sheet": "1b787904ec", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 EXLAT=0/ENLAT 作通过证据，区分 ENLAT/EXLAT，并要求同一控制器同一次退出的起止记录与 ≤50 µs 验收。", "other_error": ""}
+{"sheet": "1e770550c1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分7→9不触发写入、9→10必须写入，并要求关联第二次Shadow/EventIdx/门铃trace。", "other_error": ""}
+{"sheet": "534500b296", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝据DUR差值签精确字节，说明千单位上取整与排除元数据，并要求按批次实际命令长度汇总512000字节。", "other_error": ""}
+{"sheet": "5845e76224", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝当前签发，并保留 Function Mask 与发送记录核验。", "other_error": ""}
+{"sheet": "5fc01b81aa", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝基于反向角色记录签字，明确 PRP1/Shadow 由主机更新、PRP2/EventIdx 由控制器更新，要求原始基址与发起方证据。", "other_error": ""}
+{"sheet": "6a89da7107", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确按Requester ID+Tag分组，拒签A/4逆序，并允许不同Transaction ID交错。", "other_error": ""}
+{"sheet": "6dead16cfb", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签当前记录并保留PRP1/2地址、映射与实际写入方核验链路。", "other_error": ""}
+{"sheet": "6fd42d58bb", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论正确：表项读回与线上扩展请求分开，未见 TPH TLP Prefix 时拒签；核验要求同请求捕获前缀并解码完整 tag 0x4327。", "other_error": ""}
+{"sheet": "7f9f9e4d31", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前结论未签发 Extended TPH，且区分 MSI-X 表项读回与线上 Prefix 证据；验收要求同一请求同时具备 Prefix 和 0x4327。", "other_error": ""}
+{"sheet": "86890c6181", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确不以旧相位 CID32 签成功，要求 Phase Tag 与 SQID/CID 联合证明两条各自 CQE，并核对同次提交与新相位成功。", "other_error": ""}
+{"sheet": "88710b54d0", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签当前短标签映射，指出相同低字节不能证明各自平台资源，要求应用认可映射和逐流实际目标资源。", "other_error": ""}
+{"sheet": "89f0da02f4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝仅凭 ST Table 读回签发；Device Specific Mode 解耦表项，要求两类工作负载实际请求的 TPH/ST 逐条匹配。", "other_error": ""}
+{"sheet": "92384e8a3c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓结案，区分管理 CQE 与两条目标 I/O CQE，并要求只读核验两条完成状态。", "other_error": ""}
+{"sheet": "9598c69065", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前请求因跨 4 KiB 边界被拒；MRRS 合格不替代边界要求，复验同时检查长度与区间。", "other_error": ""}
+{"sheet": "97d096d54f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "两次写区分正确：7→9 未触发，9→10 必须写 10；验收要求按同一 CQ 时序核对第二次实际门铃值 10。", "other_error": ""}
+{"sheet": "988b96ff35", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论和证据完整，验收条件可按原样执行。", "other_error": ""}
+{"sheet": "9d5d6166dd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "新配置成功但旧页抓包不能覆盖新页，按原答暂缓并要求新页实际访问记录。", "other_error": ""}
+{"sheet": "bab07323a5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签联合验收，区分读回与实际捕获，并要求A1与D1同时匹配。", "other_error": ""}
+{"sheet": "bbbe2f6b5d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论、证据和验收条件与题面一致。", "other_error": ""}
+{"sheet": "c22b2ec82e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "已暂缓旧页证据，要求本次配置下的两页实际访问记录。", "other_error": ""}
+{"sheet": "c4ceb5cb93", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝仅凭旧值归因 T0，并要求 T0 可归属事件与匹配发送。", "other_error": ""}
+{"sheet": "c7c24b0819", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "指出单条 Abort 管理 CQE 不足以证明 fused pair 已中止，需只读核验两条 I/O CQE。", "other_error": ""}
+{"sheet": "cbc57acc8a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签并指出 Device Specific Mode 与表读回解耦，要求两类工作负载实际请求的 TPH/ST 证据。", "other_error": ""}
+{"sheet": "d625751df7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前负向验收不通过；0Ah 不等于伙伴失败中止的 09h，复验需关联同次提交与两条匹配 CQE。", "other_error": ""}
+{"sheet": "d93a162483", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签当前发包，正确指出 Function Mask=1 时仅清 Vector Mask 不构成有效解掩，并给出安全窗口内清除 Function Mask 后的两级掩码时序与对应 DWORD Write 地址/数据核验。", "other_error": ""}
+{"sheet": "d9c63e7f10", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 EXLAT=0/ENLAT 作证，并给出实际退出起止核验。", "other_error": ""}
+{"sheet": "de83a0ad7b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "已拒绝数据不匹配的发送验收，并要求同一事件地址数据同时匹配。", "other_error": ""}
+{"sheet": "e8589b4eb5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "已按规范区分09h与0Ah，并要求同次提交与匹配CQE复测。", "other_error": ""}
+{"sheet": "f08ab2e075", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝用旧相位 CID32 签发；要求 CID31、CID32 各自当前有效 CQE 成功，并核对同次提交与相邻槽位。", "other_error": ""}
+{"sheet": "fbc34f98a4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确判定 A/4 逆序不合规，且允许不同 Transaction ID 交错。", "other_error": ""}

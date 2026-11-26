@@ -1,0 +1,21 @@
+{
+  "title": "耗时与交付质量 · 第八轮 16 道留出题",
+  "conditionMetric": {"criterionId": "C2", "label": "处置条件完整 / 计划"},
+  "latencyMetric": {"label": "交卷耗时中位数", "stages": {"retrieval": "检索", "draft": "独立起草", "review": "签发", "other": "其他"}},
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第七轮 · 起草后复核",
+      "config": "DeepSeek 草稿 + Codex Sol 签发 · 120 秒 · 8 次取证含预取 · 检索计入工具等待，起草与签发单独计时 · 各阶段中位数独立计算",
+      "plan": "questions.jsonl",
+      "reviews": "baseline-reviewed.jsonl"
+    },
+    {
+      "id": "candidate",
+      "label": "第八轮 · 取证后直接签发",
+      "config": "Codex Sol 取证、核对和签发 · 同语料、签发要求、120 秒和 8 次取证 · 独立起草为零，作答计入签发 · 各阶段中位数独立计算",
+      "plan": "questions.jsonl",
+      "reviews": "candidate-reviewed.jsonl"
+    }
+  ]
+}

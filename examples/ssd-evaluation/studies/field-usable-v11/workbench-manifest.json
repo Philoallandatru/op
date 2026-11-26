@@ -1,0 +1,10 @@
+{
+  "title": "现场验收与批准证据 · 独立复测 12 道新题",
+  "conditionMetric": {"criterionId": "C2", "label": "处置条件完整 / 计划"},
+  "acceptanceMetric": {"criterionId": "C3", "label": "验收可执行 / 计划"},
+  "latencyMetric": {"label": "交卷耗时中位数", "stages": {"retrieval": "检索", "draft": "独立起草", "review": "签发", "other": "其他"}},
+  "rounds": [
+    {"id": "baseline", "label": "第九轮 · 核对边界与验收记录", "config": "Codex Sol · 单次核验签发 · 120 秒 · 8 次取证含预取", "plan": "questions.jsonl", "reviews": "baseline-reviewed.jsonl"},
+    {"id": "candidate", "label": "第十一轮 · 核对现场证据与批准", "config": "同模型、语料与预算 · 验收对象、记录和通过条件 · 核对题面要求的批准与实测结果", "plan": "questions.jsonl", "reviews": "candidate-reviewed.jsonl"}
+  ]
+}

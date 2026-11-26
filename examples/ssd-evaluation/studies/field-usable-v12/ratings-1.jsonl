@@ -1,0 +1,32 @@
+{"sheet": "0a7068bad2", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 1}, "reject_hits": [2], "reason": "已满足批准的普通 TPH 发包验收条件，原答却要求两条请求均无 TPH 前缀才通过，错误扩大验收范围并导致暂缓签发。", "other_error": ""}
+{"sheet": "2b090635fd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出共享地址和数据时无法归因，并要求关联同期事务或排除项 8；题面已提供匹配的 DWORD 写入证据。", "other_error": ""}
+{"sheet": "319870b970", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝将 0Ah 计为本次通过，区分建议状态与配对缺失状态，并给出同次命令和完成项的验收条件。", "other_error": ""}
+{"sheet": "40fe0c98a9", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "依据同次同端口两条独立 Completion 的标识和各自正确数据，仅撤销这两笔归因，并区分线级合并与 UI 聚合。", "other_error": ""}
+{"sheet": "61839e8c13", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0}, "reject_hits": [], "reason": "处置和对齐判断正确，但未要求将该请求与对应 Completer 的错误记录关联，无法完成现场验收。", "other_error": ""}
+{"sheet": "64b730d451", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签并指出 B 落点错误；复验要求同次逐流标签和资源记录均符合批准及合同。", "other_error": ""}
+{"sheet": "6b46e02403", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签发指定两条，并以逐条关联的实测 ST 验收；设备特定模式下表读回差异不构成否决。", "other_error": ""}
+{"sheet": "7003d1b7c6", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "拒绝全局掩蔽及单项改址条件正确，但验收缺少表项 2 解掩后的实际发包地址和数据核验，不能仅凭读回签收。", "other_error": ""}
+{"sheet": "7a8c6d8941", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分 UI 聚合与线级合并；题面已提供两条独立记录、对应请求及数据正确的实证。", "other_error": ""}
+{"sheet": "87810c0a69", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确保留比较时 EventIdx 的条件，并给出对应门铃写入的验收要求。", "other_error": ""}
+{"sheet": "9568fd5614", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确禁止凭只读诊断单执行 Abort；保留分别提交两条 Abort、核对目标 I/O 完成记录以及覆盖本次命令对的维护批准，验收对象和通过条件明确。", "other_error": ""}
+{"sheet": "9844bad962", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签发同一电源状态下的 0.9W 实测结果，并说明 IDLP 为 0 表示未报告；空闲条件、测量窗口和合同限值均对应。", "other_error": ""}
+{"sheet": "9956667d15", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分发送端置位违规和接收端 Malformed 判定，并给出同期配置、报文及接收效果的核验条件。", "other_error": ""}
+{"sheet": "9d3748f610", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确当前只读、两条命令分别处理中止，并要求获批后核对两条目标完成及管理完成。", "other_error": ""}
+{"sheet": "9f28e57a44", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确驳回按 CRDT1 重试，但未要求归档同次 CQE 的完整状态，包括 SCT/SC。", "other_error": ""}
+{"sheet": "9f43a0bbfa", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签发合同实测结果，并区分 IDLP 未报告与实测；测窗、状态及通过门槛均对应现场记录。", "other_error": ""}
+{"sheet": "a440f7a64f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝物理页混叠，说明两个缓冲区的写入角色，并给出映射、边界和管理完成核验。", "other_error": ""}
+{"sheet": "a78d52beed", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签旧数据事务，说明实际解掩后的缓存更新要求，并给出同项复验的地址和完整数据门槛。", "other_error": ""}
+{"sheet": "ba527ca9bd", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答保留了负责人批准及逐条报文匹配，但对题面已明确的普通 TPH 发包要求额外核查，导致本可签通过的项目被暂缓。", "other_error": "把确认无扩展前缀或取得发包时寄存器记录作为签署必要条件，错误改变了本项验收决定。"}
+{"sheet": "befc3968df", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，说明实际解掩后的缓存刷新要求，并以同项事务地址 A、完整数据 D3 作为通过条件。", "other_error": ""}
+{"sheet": "c0224bed48", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "未用当前状态证明历史状态，正确区分全介质只读与命名空间写保护，并要求覆盖旧时点的原始证据。", "other_error": ""}
+{"sheet": "c167e2ddca", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分当前与历史状态及命名空间写保护，给出对应时点和对象的核验路径及通过条件。", "other_error": ""}
+{"sheet": "d2888851d6", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝以 0Ah 通过约定验收，区分 Base 建议的 02h 与配对缺失状态，并要求核对支持位及同次 SQE、CQE。", "other_error": ""}
+{"sheet": "d46d7fc2ea", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出共享地址和数据时不能仅凭匹配值归因，并给出隔离或来源追踪及事务内容核验方法。", "other_error": ""}
+{"sheet": "d4a168b791", "usability": "revise", "criteria": {"C1": 1, "C2": 0.5, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝物理页混叠并给出隔离复验，但未明确 PRP1 对应 Shadow、PRP2 对应 EventIdx，也遗漏 Admin CQE 状态核验。", "other_error": ""}
+{"sheet": "e138307c80", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "限定签署指定两条，正确说明设备特定模式与 ST Table 的关系，并逐条引用现场捕获及匹配值。", "other_error": ""}
+{"sheet": "e881e37137", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0}, "reject_hits": [], "reason": "归类和对齐判断正确，但未要求将该请求与所属 Completer 的错误记录关联，无法验收实际是否按 Malformed 处理。", "other_error": ""}
+{"sheet": "f574a8436c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝联合签收，识别 B 命中错误，并给出同次逐流标签和实际资源的验收条件。", "other_error": ""}
+{"sheet": "f5a1297326", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签并指出 DNR=1 时 CRD 保留，但未说明归档同次 CQE 的完整状态，包括 SCT/SC。", "other_error": ""}
+{"sheet": "f7f6c2dc77", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出事后值不能证明当次无漏写，并给出当次比较值及对应门铃写入的验收条件。", "other_error": ""}
+{"sheet": "feffc444e8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分发送端使能约束与接收端 Malformed 判断，并给出对应的发送及接收验收方法。", "other_error": ""}
+{"sheet": "ff43f39e9f", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝全局掩蔽，并要求项 2 在有效掩蔽时改写、保持项 3 解掩；但验收缺少项 2 地址和数据读回及解掩后实际发包的匹配核验。", "other_error": ""}

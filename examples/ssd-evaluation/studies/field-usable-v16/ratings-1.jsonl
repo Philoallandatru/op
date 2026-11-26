@@ -1,0 +1,32 @@
+{"sheet": "10575b9403", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签发，说明旧包不能证明本轮用法，并给出解掩后可归属消息的完整验收条件。", "other_error": ""}
+{"sheet": "14ca246064", "usability": "no_answer", "criteria": {}, "reject_hits": [], "reason": "未在本次运行中交卷。", "other_error": ""}
+{"sheet": "1bcc37397d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准目标请求实测，说明无需从架构 ST 表取值，并核对了模式、报文关联及 TH/ST。", "other_error": ""}
+{"sheet": "1e5f446907", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签署两个独立能力标志，并核对同控制器、FID 的 SEL 和成功 CQE 位值；未扩大为所有取值均可修改。", "other_error": ""}
+{"sheet": "2a2bfe35ec", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前普通 MSI 消息可签；已结合题面核对控制状态、地址和 DWORD 数据。", "other_error": ""}
+{"sheet": "326a231f9f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "限定配置检查可签；启用范围、越界表项及同轮配置和选表记录均核对到位。", "other_error": ""}
+{"sheet": "396b741ad9", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "拒签及 X/Y 绑定判断正确；重配后的验收只明确核对 Shadow 槽，未要求核对同代 SQ/CQ 最远槽的 EventIdx 页访问。", "other_error": ""}
+{"sheet": "41c5fa79e5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签发当前普通 MSI 消息，核对了配置、地址及实发数据与寄存器读回的一致性。", "other_error": ""}
+{"sheet": "4847a07ad1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确允许不同事务交错，并以原始包序和 Tag A 的地址递增核验同事务排序。", "other_error": ""}
+{"sheet": "5cdbc4b03e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓签发，说明旧包不能证明本轮改址，并给出本轮目标表项、解掩后消息及完整地址和数据的验收条件。", "other_error": ""}
+{"sheet": "5df04a8a18", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "可签该次命令成功；缓存、操作状态及匹配的 SQE/CQE 证据和通过门槛均已对应，没有将其当作持久性实测。", "other_error": ""}
+{"sheet": "64fe9837b7", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "拒签及 X/Y 与 Z 的关联判断正确。验收条件要求新的成功配置，但未明确执行 Z/Y 重新配置，也未明确核对新两页最远槽访问及角色，现场处置步骤不完整。", "other_error": ""}
+{"sheet": "6cd64cd200", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确判定长度合规、地址未按单个操作数对齐及 Malformed TLP；原答已引用题面原始报文字段，另给出修正后验收条件。", "other_error": ""}
+{"sheet": "7dd65b4737", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分广播范围与提交时间，并依据匹配记录签认 NSID=1；后续核验路径明确。", "other_error": ""}
+{"sheet": "7e96bc294f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签当前样本，并要求同一温度超过 271 K 且 TTC 清零后恢复；现场已给出配置和当前同次样本。", "other_error": ""}
+{"sheet": "8b1534e81e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准排序，区分不同事务交错与同一事务内部顺序，并依据给定包序和 Tag A 地址完成判定。", "other_error": ""}
+{"sheet": "8b8bf1c860", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准本次工单，并结合 IANP、目标完成状态、标识和时序验收。", "other_error": ""}
+{"sheet": "952eefc278", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准该次 Flush，说明缓存禁用且非 Sanitize 时应成功，并关联同窗口状态和匹配的成功 CQE。", "other_error": ""}
+{"sheet": "9ca689a85a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准目标请求实测，说明设备专有模式无需从架构 ST 表取值，并核对模式、报文关联及 TH/ST。", "other_error": ""}
+{"sheet": "abe031a6ce", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "同一 Function 的配置和同轮日志足以验收题目限定范围，选表范围判断正确。", "other_error": ""}
+{"sheet": "b0735da813", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "利用无复位窗口内的唯一新增项及 CQE 状态匹配定位本次追加状态，验收证据充分。", "other_error": ""}
+{"sheet": "b0d62f45ab", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签当前新增数量，说明生命周期计数与本轮增量的区别，并给出边界样本或完整记录的核验路径。", "other_error": ""}
+{"sheet": "b8a1af2849", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确分别解释并批准两个能力标志，核验同控制器和 FID 的 SEL 及成功 CQE，未扩大为所有取值均可修改。", "other_error": ""}
+{"sheet": "ba4106e567", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分寿命累计值与本轮增量，并给出同一控制器边界计数或完整记录的核验路径。", "other_error": ""}
+{"sheet": "ba8a4469e9", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "区分了两条命令的成功状态与目标命名空间的数据校验，并给出同次目标读回记录或重新验证的可执行路径。", "other_error": ""}
+{"sheet": "c360a45418", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分两条命令成功与目标命名空间的数据验收，并要求关联本次写入后读取 NSID=14、LBA=0x99 的 T9。", "other_error": ""}
+{"sheet": "cb6c26a855", "usability": "misleading", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝 CRDT2 的决定及同次字段核对正确；但断言 ACRE=0 时控制器必须清零所有 CQE 的 CRD 缺乏依据，会把保留字段非零误判为规范违规。", "other_error": "错误断言 ACRE=0 要求所有 CQE 的 CRD 清零，并据此判定本次不符合规范。"}
+{"sheet": "d567a23e06", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结合 IANP、目标状态、未复用的标识和注入时序批准本次验收，也说明了状态码可能涉及 Cancel。", "other_error": ""}
+{"sheet": "dc1c396461", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签对齐通过，确认长度合规，并依据单个 128 位操作数判定地址未按 16 字节对齐、报文为 Malformed TLP。", "other_error": ""}
+{"sheet": "dd0535fc27", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "仅签 NSID=1，正确区分广播作用域与提交时序，并给出 NSID=2 后续补签的证据和条件。", "other_error": ""}
+{"sheet": "e10ecdfbc0", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签边界样本，并要求同一事件温度严格超过 271 K、TTC 清零及对应恢复事件。", "other_error": ""}
+{"sheet": "fdfaa745e7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签发，并结合 More、有效 CQE、无复位前后快照及唯一新增条目和状态匹配完成关联。", "other_error": ""}

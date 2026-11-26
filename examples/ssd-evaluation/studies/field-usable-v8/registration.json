@@ -1,0 +1,97 @@
+{
+  "questions_sha256": "2fb8141521de743f04bcea9e4e1d1e2488a6609a502086488eff960d89be609b",
+  "bank_sha256": "192b28811e0b58e1384beaca947db5f151a38842e95fbd79c33caee39d879682",
+  "code": {
+    "pi_trial.py": "1d2c6546e4c6ad7f6721c438fb45cf41a43bb0c3aa8c62eaf705386ddfe4a414",
+    "retrieval_trial.py": "ac3b32a7449ecc630e620a935811be1699553c8674e609f026c439786c32c555",
+    "evidence_mcp.py": "5092e2beb7ed8cbdd70877a47ee97ff4dc9a44b55e1166daa92425524a81297b",
+    "evidence_timeline_mcp.py": "71585852aec96d058af990431541fadc239232f9c9211cd9366846b9d099b082",
+    "handoff_review.py": "7991c2ade247dc6004de1cc297cab01e80a6e14feabfd6d48350747d36d71403",
+    "evidence_conditions_mcp.py": "916e122efd5e3ed89078e21c1ac9de6f0810b7a8e82a83e0ff5bf89fd8565437",
+    "condition_review.py": "436399b971b1d376bf90321dd4a85dd928be9a93bd8e5ec6eb6c66ddc93cc219",
+    "evidence_fast_conditions_mcp.py": "9ceb4af9a9a9d8b2b31af710fea6cda01f7c8e6ebba6d9b3ab4d1741be68bf17",
+    "trial_timing.py": "d5146538aa46fd5745c7281cdaf78aa390a0a9ad375ae1e3b0808266b121cd95",
+    "skills/conditions/ssd-field-decisions/SKILL.md": "d8ed9c262e4dc0b67d3e7a1734c2eee401829df8d7dbec44b1b67972584d8ef1",
+    "skills/fast-conditions/ssd-field-decisions/SKILL.md": "6e13aaca43f2d79b83e3ab7484d15ae9d372daef9e67b5c7f19af70cce03e10d"
+  },
+  "source_pdfs": {
+    "nvme": "4e31f826dd7ceaee311f93b74eef5c05ac32afe4ef45436534dfcfd6a40dc746",
+    "pcie": "b863834e2ecd4240d033299f4d782478b870076ff84e9e6826e37ec495c5d004"
+  },
+  "validation": {
+    "scenarios": 16,
+    "criteria": 48,
+    "anchors": {
+      "nvme": 16,
+      "pcie": 16
+    },
+    "verified_pdfs": [
+      "nvme",
+      "pcie"
+    ]
+  },
+  "old_case_count": 126,
+  "old_family_count": 112,
+  "evaluation_slices": {
+    "history": 4,
+    "gate": 5,
+    "branches": 7
+  },
+  "order_seed": "ssd-field-usable-v8-paired",
+  "baseline_first_ids": [
+    "SSD-F8-09",
+    "SSD-F8-01",
+    "SSD-F8-07",
+    "SSD-F8-14",
+    "SSD-F8-08",
+    "SSD-F8-10",
+    "SSD-F8-13",
+    "SSD-F8-03"
+  ],
+  "configuration": {
+    "provider": "magpie",
+    "model": "auto/deepseek-v4.1-flash",
+    "mode": "domain",
+    "calls": 8,
+    "timeout": 120
+  },
+  "prefetch": true,
+  "thinking": "off",
+  "arms": {
+    "baseline": "decision",
+    "candidate": "decision"
+  },
+  "styles": {
+    "baseline": "conditions",
+    "candidate": "fast-conditions"
+  },
+  "skills": {
+    "baseline": "conditions",
+    "candidate": "fast-conditions"
+  },
+  "candidate_review_model": "codex/gpt-6.2-sol",
+  "baseline_review_model": "codex/gpt-6.2-sol",
+  "timing": "Median of completed responses. Retrieval is prefetch plus concurrent Pi evidence waits counted once. Draft is the standalone drafting stage. Sign-off includes generation for the direct path. Both model-stage timings exclude evidence-tool wait.",
+  "grading": {
+    "raters": [
+      "codex/gpt-6.1-terra",
+      "opencode-go/beam-free"
+    ],
+    "adjudicator": "codex/gpt-6.2-astra",
+    "condition_endpoint": "C2 full credit per planned question",
+    "readiness_endpoint": "Ready per planned question",
+    "misleading_endpoint": "Misleading per completed answer with planned and paired denominators reported",
+    "latency_endpoint": "Median wall seconds per delivered answer, with paired delivered deltas and phase medians",
+    "slices": {
+      "gate": "Admission or recovery conditions",
+      "branches": "Different applicable outcomes or scopes",
+      "history": "Past and current states"
+    }
+  },
+  "metrics": [
+    "ready/planned",
+    "misleading/completed",
+    "misleading/planned",
+    "misleading on both-completed pairs"
+  ]
+}

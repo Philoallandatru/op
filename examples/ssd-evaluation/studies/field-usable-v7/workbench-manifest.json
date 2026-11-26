@@ -1,0 +1,20 @@
+{
+  "title": "处置条件与时序证据 · 第七轮 16 道留出题",
+  "conditionMetric": {"criterionId": "C2", "label": "处置条件完整 / 计划"},
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第六轮配置 · 时序证据复核",
+      "config": "Pi 1.5.2 · DeepSeek 草稿 + Codex Sol 复核 · 120 s · 8 次取证含预取 · timeline skill",
+      "plan": "questions.jsonl",
+      "reviews": "baseline-reviewed.jsonl"
+    },
+    {
+      "id": "candidate",
+      "label": "第七轮配置 · 保留处置条件",
+      "config": "同 Pi、模型、语料、120 s 和 8 次取证 · conditions skill · 字段相邻页取证 · 逐条交付判定条件",
+      "plan": "questions.jsonl",
+      "reviews": "candidate-reviewed.jsonl"
+    }
+  ]
+}

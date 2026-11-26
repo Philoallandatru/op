@@ -1,0 +1,32 @@
+{"sheet": "0c07ac2deb", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确计算跨界范围并拒签；复验要求逐笔满足 MRRS 和 4 KiB 边界，补发以获授权为前提。", "other_error": ""}
+{"sheet": "12902cfec5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝从舍入后的计数差推断精确字节，并要求按批次汇总计入统计的实际完成用户数据。", "other_error": ""}
+{"sheet": "1b787904ec", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分进入和退出延迟，并要求按客户口径测量目标状态同次退出时间，与 50 微秒门槛比较。", "other_error": ""}
+{"sheet": "1e770550c1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "两次阈值判断正确；题面已给出对应的 Shadow 更新与同期 EventIdx，答案要求核对第二次同一 CQ 的实际门铃写入及记录覆盖。", "other_error": ""}
+{"sheet": "534500b296", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝按计数差签发，说明舍入和元数据规则，并给出按批次汇总实际读取量的验收条件。", "other_error": ""}
+{"sheet": "5845e76224", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并要求实际解除两级屏蔽后，将目标表项的事件与使用新地址和数据的实际发包关联。", "other_error": ""}
+{"sheet": "5fc01b81aa", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签并要求复核实址和写入方，但只要求复核相同索引，未明确覆盖最远 SQ 和 CQ 两个条目。", "other_error": ""}
+{"sheet": "6a89da7107", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确判定 A/4 逆序，区分不同 Requester 的同 Tag 请求，并依据题面已核实的同点记录给出升序通过条件。", "other_error": ""}
+{"sheet": "6dead16cfb", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签当前记录，正确对应两页写入方，并给出同次配置、原始写入和最高编号条目的验收条件。", "other_error": ""}
+{"sheet": "6fd42d58bb", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分表项读回与实际发包，要求关联目标请求并核验前缀及完整 tag。", "other_error": ""}
+{"sheet": "7f9f9e4d31", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，区分表项读回与实际发包，并要求在同一目标请求中核对前缀和完整 tag。", "other_error": ""}
+{"sheet": "86890c6181", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签旧相位记录，并要求关联同次提交、核对两条有效成功完成后再签。", "other_error": ""}
+{"sheet": "88710b54d0", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签并要求逐流核对实际资源，但验收步骤未明确核对应用批准的映射及同一轮两流记录。", "other_error": ""}
+{"sheet": "89f0da02f4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并说明设备决定请求与 tag 的对应关系；验收证据覆盖两种工作负载及其指定请求。", "other_error": ""}
+{"sheet": "92384e8a3c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓结案，区分管理完成与两条目标 I/O 完成，并限定只读核对配对和各自状态。", "other_error": ""}
+{"sheet": "9598c69065", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，计算了请求范围，并用现有捕获逐项核对 MRRS 和 4 KiB 边界。", "other_error": ""}
+{"sheet": "97d096d54f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分两次更新，并要求核对同一 CQ 第二次更新后的值为 10 的实际门铃写入；现有记录可用于关联 Shadow 和 EventIdx。", "other_error": ""}
+{"sheet": "988b96ff35", "usability": "misleading", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "当前阻断判断正确，但答卷允许仅凭平台映射证明替代应用批准；现场可能在缺少应用认可的短标签映射时放行。", "other_error": "将平台映射证明列为应用批准映射的替代条件，可能导致未获应用认可即签发。"}
+{"sheet": "9d5d6166dd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓签发，并要求在本次有效配置下核对两块新页的最高编号条目、地址及写入方。", "other_error": ""}
+{"sheet": "bab07323a5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分表项读回与实际发送，拒签联合验收，并要求关联同一表项复验地址和完整数据。", "other_error": ""}
+{"sheet": "bbbe2f6b5d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确维持待验，说明 T1 可发送旧组合，并要求将 T0 事件与实际写入关联，地址和数据均匹配新值才通过复验。", "other_error": ""}
+{"sheet": "c22b2ec82e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓新页验收，区分配置、边界与实测覆盖，并要求关联当前 PRP 的两页对应条目及写入方。", "other_error": ""}
+{"sheet": "c4ceb5cb93", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确指出当前旧消息无法归因于 T0，也给出了可归属的核验路径；但未明确写出复测中 T0 的实际发送地址和数据均须分别等于 A1、D1 才能通过验收。", "other_error": ""}
+{"sheet": "c7c24b0819", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓结案，区分了分别提交 Abort、管理完成和两条 I/O 完成，并给出只读关联及状态验收条件。", "other_error": ""}
+{"sheet": "cbc57acc8a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确说明设备自定义的选择机制，并要求关联两类工作负载的实际请求逐一核验。", "other_error": ""}
+{"sheet": "d625751df7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，区分 09h 与 0Ah，并以同次提交及两条匹配 CQE 验收。", "other_error": ""}
+{"sheet": "d93a162483", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出 Function Mask 仍使表项掩蔽，并要求实际解掩后关联目标事件和匹配新地址、数据的发送记录。", "other_error": ""}
+{"sheet": "d9c63e7f10", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确判断现有表项和采样不足以签发 SLA，但未明确要求记录目标状态退出请求与客户定义的恢复结束时点，计算同次时间差并对照 50 µs。", "other_error": ""}
+{"sheet": "de83a0ad7b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分表项读回与实际发送，拒签数据不匹配的事务，并给出同一事件的双字段验收条件。", "other_error": ""}
+{"sheet": "e8589b4eb5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，区分 09h 与 0Ah，并要求复测关联同次提交的两条 CQE，核对首条预期失败和次条 Generic 09h。", "other_error": ""}
+{"sheet": "f08ab2e075", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确排除旧相位 CQE，并要求按消费顺序核对本次 SQ6/CID32 的有效相位和成功状态。附加提交记录核验不改变正确处置。", "other_error": ""}
+{"sheet": "fbc34f98a4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签 A/4 逆序，区分不同 Transaction ID 的交错，并给出可执行的现场验收条件。", "other_error": ""}

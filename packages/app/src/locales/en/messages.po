@@ -12422,3 +12422,59 @@ msgstr "Weight"
 
 msgid "Open SSD example"
 msgstr "Open SSD example"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.paired"
+msgstr "Paired latency"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.median"
+msgstr "Median change"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.limit"
+msgstr "Limit"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.largest"
+msgstr "Largest changes and selected question"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.stages"
+msgstr "Time by stage"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.baseline"
+msgstr "Baseline"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.candidate"
+msgstr "Candidate"
+
+#. js-lingui-explicit-id
+msgid "evaluation.plot.stagePairs"
+msgstr "Pairs with stage timing"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.title"
+msgstr "Iteration history"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.ready"
+msgstr "Ready / planned"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.misleading"
+msgstr "Misleading / completed"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.method"
+msgstr "Method"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.progress"
+msgstr "Progress"
+
+#. js-lingui-explicit-id
+msgid "evaluation.history.next"
+msgstr "Next step"

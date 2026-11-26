@@ -1,0 +1,430 @@
+{
+  "all": {
+    "baseline": {
+      "planned": 12,
+      "completed": 11,
+      "ready": 8,
+      "misleading": 1,
+      "revise": 2,
+      "no_answer": 1,
+      "passed": 10,
+      "median_seconds": 18.37,
+      "conditions_complete": 10,
+      "acceptance_complete": 8,
+      "timed_completed": 11,
+      "median_phase_seconds": {
+        "retrieval": 0.406,
+        "draft": 0,
+        "review": 17.876,
+        "other": 0.008
+      }
+    },
+    "candidate": {
+      "planned": 12,
+      "completed": 12,
+      "ready": 12,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 12,
+      "median_seconds": 20.515,
+      "conditions_complete": 12,
+      "acceptance_complete": 12,
+      "timed_completed": 12,
+      "median_phase_seconds": {
+        "retrieval": 0.348,
+        "draft": 0.0,
+        "review": 20.21,
+        "other": 0.009
+      }
+    },
+    "newly_ready": [
+      "SSD-F11-10",
+      "SSD-F11-09",
+      "SSD-F11-03",
+      "SSD-F11-04"
+    ],
+    "lost_ready": [],
+    "both_completed": {
+      "count": 11,
+      "baseline_misleading": 1,
+      "candidate_misleading": 0,
+      "timed": 11,
+      "candidate_faster": 1,
+      "median_paired_seconds_saved": -5.42
+    }
+  },
+  "approval": {
+    "baseline": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 2,
+      "misleading": 0,
+      "revise": 2,
+      "no_answer": 0,
+      "passed": 4,
+      "median_seconds": 22.135,
+      "conditions_complete": 4,
+      "acceptance_complete": 2,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.456,
+        "draft": 0.0,
+        "review": 21.669,
+        "other": 0.009
+      }
+    },
+    "candidate": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 4,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 4,
+      "median_seconds": 26.105,
+      "conditions_complete": 4,
+      "acceptance_complete": 4,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.423,
+        "draft": 0.0,
+        "review": 25.724,
+        "other": 0.009
+      }
+    },
+    "newly_ready": [
+      "SSD-F11-03",
+      "SSD-F11-04"
+    ],
+    "lost_ready": [],
+    "both_completed": {
+      "count": 4,
+      "baseline_misleading": 0,
+      "candidate_misleading": 0,
+      "timed": 4,
+      "candidate_faster": 1,
+      "median_paired_seconds_saved": -5.805
+    }
+  },
+  "operational": {
+    "baseline": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 4,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 4,
+      "median_seconds": 15.92,
+      "conditions_complete": 4,
+      "acceptance_complete": 4,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.297,
+        "draft": 0.0,
+        "review": 15.582,
+        "other": 0.008
+      }
+    },
+    "candidate": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 4,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 4,
+      "median_seconds": 19.11,
+      "conditions_complete": 4,
+      "acceptance_complete": 4,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.277,
+        "draft": 0.0,
+        "review": 18.833,
+        "other": 0.009
+      }
+    },
+    "newly_ready": [],
+    "lost_ready": [],
+    "both_completed": {
+      "count": 4,
+      "baseline_misleading": 0,
+      "candidate_misleading": 0,
+      "timed": 4,
+      "candidate_faster": 0,
+      "median_paired_seconds_saved": -2.31
+    }
+  },
+  "transfer": {
+    "baseline": {
+      "planned": 4,
+      "completed": 3,
+      "ready": 2,
+      "misleading": 1,
+      "revise": 0,
+      "no_answer": 1,
+      "passed": 2,
+      "median_seconds": 13.8,
+      "conditions_complete": 2,
+      "acceptance_complete": 2,
+      "timed_completed": 3,
+      "median_phase_seconds": {
+        "retrieval": 0.275,
+        "draft": 0,
+        "review": 13.562,
+        "other": 0.008
+      }
+    },
+    "candidate": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 4,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 4,
+      "median_seconds": 16.965,
+      "conditions_complete": 4,
+      "acceptance_complete": 4,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.247,
+        "draft": 0.0,
+        "review": 16.727,
+        "other": 0.009
+      }
+    },
+    "newly_ready": [
+      "SSD-F11-10",
+      "SSD-F11-09"
+    ],
+    "lost_ready": [],
+    "both_completed": {
+      "count": 3,
+      "baseline_misleading": 1,
+      "candidate_misleading": 0,
+      "timed": 3,
+      "candidate_faster": 0,
+      "median_paired_seconds_saved": -5.42
+    }
+  },
+  "sensitivity": {
+    "excluded": [
+      "SSD-F11-01",
+      "SSD-F11-10"
+    ],
+    "scopes": {
+      "all": {
+        "baseline": {
+          "planned": 10,
+          "completed": 10,
+          "ready": 7,
+          "misleading": 1,
+          "revise": 2,
+          "no_answer": 0,
+          "passed": 9,
+          "median_seconds": 19.345,
+          "conditions_complete": 9,
+          "acceptance_complete": 7,
+          "timed_completed": 10,
+          "median_phase_seconds": {
+            "retrieval": 0.411,
+            "draft": 0.0,
+            "review": 18.839,
+            "other": 0.008
+          }
+        },
+        "candidate": {
+          "planned": 10,
+          "completed": 10,
+          "ready": 10,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 10,
+          "median_seconds": 20.515,
+          "conditions_complete": 10,
+          "acceptance_complete": 10,
+          "timed_completed": 10,
+          "median_phase_seconds": {
+            "retrieval": 0.348,
+            "draft": 0.0,
+            "review": 20.21,
+            "other": 0.009
+          }
+        },
+        "newly_ready": [
+          "SSD-F11-09",
+          "SSD-F11-03",
+          "SSD-F11-04"
+        ],
+        "lost_ready": [],
+        "both_completed": {
+          "count": 10,
+          "baseline_misleading": 1,
+          "candidate_misleading": 0,
+          "timed": 10,
+          "candidate_faster": 1,
+          "median_paired_seconds_saved": -4.18
+        }
+      },
+      "approval": {
+        "baseline": {
+          "planned": 3,
+          "completed": 3,
+          "ready": 1,
+          "misleading": 0,
+          "revise": 2,
+          "no_answer": 0,
+          "passed": 3,
+          "median_seconds": 23.33,
+          "conditions_complete": 3,
+          "acceptance_complete": 1,
+          "timed_completed": 3,
+          "median_phase_seconds": {
+            "retrieval": 0.496,
+            "draft": 0,
+            "review": 22.822,
+            "other": 0.009
+          }
+        },
+        "candidate": {
+          "planned": 3,
+          "completed": 3,
+          "ready": 3,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 3,
+          "median_seconds": 26.64,
+          "conditions_complete": 3,
+          "acceptance_complete": 3,
+          "timed_completed": 3,
+          "median_phase_seconds": {
+            "retrieval": 0.433,
+            "draft": 0,
+            "review": 26.3,
+            "other": 0.01
+          }
+        },
+        "newly_ready": [
+          "SSD-F11-03",
+          "SSD-F11-04"
+        ],
+        "lost_ready": [],
+        "both_completed": {
+          "count": 3,
+          "baseline_misleading": 0,
+          "candidate_misleading": 0,
+          "timed": 3,
+          "candidate_faster": 1,
+          "median_paired_seconds_saved": -5.7
+        }
+      },
+      "operational": {
+        "baseline": {
+          "planned": 4,
+          "completed": 4,
+          "ready": 4,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 4,
+          "median_seconds": 15.92,
+          "conditions_complete": 4,
+          "acceptance_complete": 4,
+          "timed_completed": 4,
+          "median_phase_seconds": {
+            "retrieval": 0.297,
+            "draft": 0.0,
+            "review": 15.582,
+            "other": 0.008
+          }
+        },
+        "candidate": {
+          "planned": 4,
+          "completed": 4,
+          "ready": 4,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 4,
+          "median_seconds": 19.11,
+          "conditions_complete": 4,
+          "acceptance_complete": 4,
+          "timed_completed": 4,
+          "median_phase_seconds": {
+            "retrieval": 0.277,
+            "draft": 0.0,
+            "review": 18.833,
+            "other": 0.009
+          }
+        },
+        "newly_ready": [],
+        "lost_ready": [],
+        "both_completed": {
+          "count": 4,
+          "baseline_misleading": 0,
+          "candidate_misleading": 0,
+          "timed": 4,
+          "candidate_faster": 0,
+          "median_paired_seconds_saved": -2.31
+        }
+      },
+      "transfer": {
+        "baseline": {
+          "planned": 3,
+          "completed": 3,
+          "ready": 2,
+          "misleading": 1,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 2,
+          "median_seconds": 13.8,
+          "conditions_complete": 2,
+          "acceptance_complete": 2,
+          "timed_completed": 3,
+          "median_phase_seconds": {
+            "retrieval": 0.275,
+            "draft": 0,
+            "review": 13.562,
+            "other": 0.008
+          }
+        },
+        "candidate": {
+          "planned": 3,
+          "completed": 3,
+          "ready": 3,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 3,
+          "median_seconds": 19.22,
+          "conditions_complete": 3,
+          "acceptance_complete": 3,
+          "timed_completed": 3,
+          "median_phase_seconds": {
+            "retrieval": 0.262,
+            "draft": 0,
+            "review": 18.99,
+            "other": 0.008
+          }
+        },
+        "newly_ready": [
+          "SSD-F11-09"
+        ],
+        "lost_ready": [],
+        "both_completed": {
+          "count": 3,
+          "baseline_misleading": 1,
+          "candidate_misleading": 0,
+          "timed": 3,
+          "candidate_faster": 0,
+          "median_paired_seconds_saved": -5.42
+        }
+      }
+    }
+  }
+}

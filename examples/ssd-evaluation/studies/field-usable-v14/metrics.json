@@ -1,0 +1,431 @@
+{
+  "all": {
+    "baseline": {
+      "planned": 16,
+      "completed": 15,
+      "ready": 14,
+      "misleading": 0,
+      "revise": 1,
+      "no_answer": 1,
+      "passed": 15,
+      "median_seconds": 15.0,
+      "conditions_complete": 15,
+      "acceptance_complete": 14,
+      "timed_completed": 15,
+      "median_phase_seconds": {
+        "retrieval": 0.4,
+        "draft": 0,
+        "review": 14.563,
+        "other": 0.008
+      }
+    },
+    "candidate": {
+      "planned": 16,
+      "completed": 16,
+      "ready": 13,
+      "misleading": 1,
+      "revise": 2,
+      "no_answer": 0,
+      "passed": 15,
+      "median_seconds": 13.255,
+      "conditions_complete": 16,
+      "acceptance_complete": 13,
+      "timed_completed": 16,
+      "median_phase_seconds": {
+        "retrieval": 0.244,
+        "draft": 0.0,
+        "review": 12.838,
+        "other": 0.007
+      }
+    },
+    "newly_ready": [
+      "SSD-F14-10"
+    ],
+    "lost_ready": [
+      "SSD-F14-13",
+      "SSD-F14-03"
+    ],
+    "both_completed": {
+      "count": 15,
+      "baseline_misleading": 0,
+      "candidate_misleading": 0,
+      "timed": 15,
+      "candidate_faster": 10,
+      "median_paired_seconds_saved": 1.85
+    }
+  },
+  "operational": {
+    "baseline": {
+      "planned": 6,
+      "completed": 6,
+      "ready": 5,
+      "misleading": 0,
+      "revise": 1,
+      "no_answer": 0,
+      "passed": 6,
+      "median_seconds": 18.675,
+      "conditions_complete": 6,
+      "acceptance_complete": 5,
+      "timed_completed": 6,
+      "median_phase_seconds": {
+        "retrieval": 0.415,
+        "draft": 0.0,
+        "review": 18.222,
+        "other": 0.008
+      }
+    },
+    "candidate": {
+      "planned": 6,
+      "completed": 6,
+      "ready": 6,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 6,
+      "median_seconds": 12.98,
+      "conditions_complete": 6,
+      "acceptance_complete": 6,
+      "timed_completed": 6,
+      "median_phase_seconds": {
+        "retrieval": 0.21,
+        "draft": 0.0,
+        "review": 12.688,
+        "other": 0.007
+      }
+    },
+    "newly_ready": [
+      "SSD-F14-10"
+    ],
+    "lost_ready": [],
+    "both_completed": {
+      "count": 6,
+      "baseline_misleading": 0,
+      "candidate_misleading": 0,
+      "timed": 6,
+      "candidate_faster": 6,
+      "median_paired_seconds_saved": 5.695
+    }
+  },
+  "scope": {
+    "baseline": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 4,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 0,
+      "passed": 4,
+      "median_seconds": 14.05,
+      "conditions_complete": 4,
+      "acceptance_complete": 4,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.322,
+        "draft": 0.0,
+        "review": 13.704,
+        "other": 0.008
+      }
+    },
+    "candidate": {
+      "planned": 4,
+      "completed": 4,
+      "ready": 3,
+      "misleading": 0,
+      "revise": 1,
+      "no_answer": 0,
+      "passed": 4,
+      "median_seconds": 13.635,
+      "conditions_complete": 4,
+      "acceptance_complete": 3,
+      "timed_completed": 4,
+      "median_phase_seconds": {
+        "retrieval": 0.2,
+        "draft": 0.0,
+        "review": 13.313,
+        "other": 0.007
+      }
+    },
+    "newly_ready": [],
+    "lost_ready": [
+      "SSD-F14-03"
+    ],
+    "both_completed": {
+      "count": 4,
+      "baseline_misleading": 0,
+      "candidate_misleading": 0,
+      "timed": 4,
+      "candidate_faster": 2,
+      "median_paired_seconds_saved": 0.65
+    }
+  },
+  "transfer": {
+    "baseline": {
+      "planned": 6,
+      "completed": 5,
+      "ready": 5,
+      "misleading": 0,
+      "revise": 0,
+      "no_answer": 1,
+      "passed": 5,
+      "median_seconds": 10.79,
+      "conditions_complete": 5,
+      "acceptance_complete": 5,
+      "timed_completed": 5,
+      "median_phase_seconds": {
+        "retrieval": 0.404,
+        "draft": 0,
+        "review": 10.353,
+        "other": 0.007
+      }
+    },
+    "candidate": {
+      "planned": 6,
+      "completed": 6,
+      "ready": 4,
+      "misleading": 1,
+      "revise": 1,
+      "no_answer": 0,
+      "passed": 5,
+      "median_seconds": 12.37,
+      "conditions_complete": 6,
+      "acceptance_complete": 4,
+      "timed_completed": 6,
+      "median_phase_seconds": {
+        "retrieval": 0.371,
+        "draft": 0.0,
+        "review": 11.994,
+        "other": 0.007
+      }
+    },
+    "newly_ready": [],
+    "lost_ready": [
+      "SSD-F14-13"
+    ],
+    "both_completed": {
+      "count": 5,
+      "baseline_misleading": 0,
+      "candidate_misleading": 0,
+      "timed": 5,
+      "candidate_faster": 2,
+      "median_paired_seconds_saved": -0.04
+    }
+  },
+  "sensitivity": {
+    "excluded": [
+      "SSD-F14-15"
+    ],
+    "scopes": {
+      "all": {
+        "baseline": {
+          "planned": 15,
+          "completed": 15,
+          "ready": 14,
+          "misleading": 0,
+          "revise": 1,
+          "no_answer": 0,
+          "passed": 15,
+          "median_seconds": 15.0,
+          "conditions_complete": 15,
+          "acceptance_complete": 14,
+          "timed_completed": 15,
+          "median_phase_seconds": {
+            "retrieval": 0.4,
+            "draft": 0,
+            "review": 14.563,
+            "other": 0.008
+          }
+        },
+        "candidate": {
+          "planned": 15,
+          "completed": 15,
+          "ready": 13,
+          "misleading": 0,
+          "revise": 2,
+          "no_answer": 0,
+          "passed": 15,
+          "median_seconds": 13.15,
+          "conditions_complete": 15,
+          "acceptance_complete": 13,
+          "timed_completed": 15,
+          "median_phase_seconds": {
+            "retrieval": 0.242,
+            "draft": 0,
+            "review": 12.675,
+            "other": 0.007
+          }
+        },
+        "newly_ready": [
+          "SSD-F14-10"
+        ],
+        "lost_ready": [
+          "SSD-F14-13",
+          "SSD-F14-03"
+        ],
+        "both_completed": {
+          "count": 15,
+          "baseline_misleading": 0,
+          "candidate_misleading": 0,
+          "timed": 15,
+          "candidate_faster": 10,
+          "median_paired_seconds_saved": 1.85
+        }
+      },
+      "operational": {
+        "baseline": {
+          "planned": 6,
+          "completed": 6,
+          "ready": 5,
+          "misleading": 0,
+          "revise": 1,
+          "no_answer": 0,
+          "passed": 6,
+          "median_seconds": 18.675,
+          "conditions_complete": 6,
+          "acceptance_complete": 5,
+          "timed_completed": 6,
+          "median_phase_seconds": {
+            "retrieval": 0.415,
+            "draft": 0.0,
+            "review": 18.222,
+            "other": 0.008
+          }
+        },
+        "candidate": {
+          "planned": 6,
+          "completed": 6,
+          "ready": 6,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 6,
+          "median_seconds": 12.98,
+          "conditions_complete": 6,
+          "acceptance_complete": 6,
+          "timed_completed": 6,
+          "median_phase_seconds": {
+            "retrieval": 0.21,
+            "draft": 0.0,
+            "review": 12.688,
+            "other": 0.007
+          }
+        },
+        "newly_ready": [
+          "SSD-F14-10"
+        ],
+        "lost_ready": [],
+        "both_completed": {
+          "count": 6,
+          "baseline_misleading": 0,
+          "candidate_misleading": 0,
+          "timed": 6,
+          "candidate_faster": 6,
+          "median_paired_seconds_saved": 5.695
+        }
+      },
+      "scope": {
+        "baseline": {
+          "planned": 4,
+          "completed": 4,
+          "ready": 4,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 4,
+          "median_seconds": 14.05,
+          "conditions_complete": 4,
+          "acceptance_complete": 4,
+          "timed_completed": 4,
+          "median_phase_seconds": {
+            "retrieval": 0.322,
+            "draft": 0.0,
+            "review": 13.704,
+            "other": 0.008
+          }
+        },
+        "candidate": {
+          "planned": 4,
+          "completed": 4,
+          "ready": 3,
+          "misleading": 0,
+          "revise": 1,
+          "no_answer": 0,
+          "passed": 4,
+          "median_seconds": 13.635,
+          "conditions_complete": 4,
+          "acceptance_complete": 3,
+          "timed_completed": 4,
+          "median_phase_seconds": {
+            "retrieval": 0.2,
+            "draft": 0.0,
+            "review": 13.313,
+            "other": 0.007
+          }
+        },
+        "newly_ready": [],
+        "lost_ready": [
+          "SSD-F14-03"
+        ],
+        "both_completed": {
+          "count": 4,
+          "baseline_misleading": 0,
+          "candidate_misleading": 0,
+          "timed": 4,
+          "candidate_faster": 2,
+          "median_paired_seconds_saved": 0.65
+        }
+      },
+      "transfer": {
+        "baseline": {
+          "planned": 5,
+          "completed": 5,
+          "ready": 5,
+          "misleading": 0,
+          "revise": 0,
+          "no_answer": 0,
+          "passed": 5,
+          "median_seconds": 10.79,
+          "conditions_complete": 5,
+          "acceptance_complete": 5,
+          "timed_completed": 5,
+          "median_phase_seconds": {
+            "retrieval": 0.404,
+            "draft": 0,
+            "review": 10.353,
+            "other": 0.007
+          }
+        },
+        "candidate": {
+          "planned": 5,
+          "completed": 5,
+          "ready": 4,
+          "misleading": 0,
+          "revise": 1,
+          "no_answer": 0,
+          "passed": 5,
+          "median_seconds": 11.38,
+          "conditions_complete": 5,
+          "acceptance_complete": 4,
+          "timed_completed": 5,
+          "median_phase_seconds": {
+            "retrieval": 0.389,
+            "draft": 0,
+            "review": 10.988,
+            "other": 0.007
+          }
+        },
+        "newly_ready": [],
+        "lost_ready": [
+          "SSD-F14-13"
+        ],
+        "both_completed": {
+          "count": 5,
+          "baseline_misleading": 0,
+          "candidate_misleading": 0,
+          "timed": 5,
+          "candidate_faster": 2,
+          "median_paired_seconds_saved": -0.04
+        }
+      }
+    }
+  }
+}

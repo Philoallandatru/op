@@ -1,0 +1,32 @@
+{"sheet": "002c508fc8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝把控制字段读回作为切换证明，区分Enabled条件，并要求Substate Status核验。", "other_error": ""}
+{"sheet": "13a1b48757", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "清位后旧在途请求可被应用或不被应用超时，起点也可为清位或发出时刻，不能统一签验收线。", "other_error": ""}
+{"sheet": "1bae024e9f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝迁移并要求新身份注册。", "other_error": ""}
+{"sheet": "2c742003c7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝第17个注册并区分Max能力与Limit实际上限，释放后可按16上限新增。", "other_error": ""}
+{"sheet": "2d4dba2d4e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝在线写入，保留Supported与ATS Enable两道条件，并说明待授权停用ATS的门槛。", "other_error": ""}
+{"sheet": "34a8525504", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒签对端收讫，列出发送满足与 DL_Down 两条清零路径，并要求本次消息或对端匹配证据。", "other_error": ""}
+{"sheet": "495bc6cf87", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝回卷，同时区分预启动饱和与OS初始化清零两条路径，并要求核查中间写入记录。", "other_error": ""}
+{"sheet": "4eefe0c753", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝统一计时起点，保留可选应用与两种起点，并要求按实现/请求记录处理旧在途请求。", "other_error": ""}
+{"sheet": "4fab4e7e68", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分发送端设置不合规与接收端行为未规定。", "other_error": ""}
+{"sheet": "6724fe9092", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝并并列三项容量限制，指出目标域上限被超越及 Insufficient Capacity。", "other_error": ""}
+{"sheet": "787d1ea2da", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论明确拒绝把P1纳入本次撤销；三要素（host、导出子系统、导出端口）匹配，且P0断开要求与P1需独立核验均被保留。", "other_error": ""}
+{"sheet": "78f490b3ea", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "Root Port 超限 Request 推荐 UR 否则 Malformed，其他 Function 必须 Malformed，不能统一验 UR。", "other_error": ""}
+{"sheet": "8208b56fec", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签内存读并指定PMRSTS读完成。", "other_error": ""}
+{"sheet": "8562300bcc", "usability": "revise", "criteria": {"C1": 1, "C2": 0, "C3": 1}, "reject_hits": [], "reason": "拒绝签认对端接收，但未同时说明Pending清零的发送满足与DL_Down两条路径。", "other_error": ""}
+{"sheet": "8796069fdd", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0}, "reject_hits": [], "reason": "已拒签当前内存读并保留 PMR 就绪正常前提，但未给出适用的 PMRSTS 读完成核验路径。", "other_error": ""}
+{"sheet": "88231998b2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确并列三容量限制并拒绝800GB。", "other_error": ""}
+{"sheet": "8c13510a50", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝将控制字段读回登记为已完成切换，并要求 Status 核验。", "other_error": ""}
+{"sheet": "8ce1d3637e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓，区分Abort与目标I/O完成计数，并要求Abort自身完成后再补投。", "other_error": ""}
+{"sheet": "9d4c34869e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝 Enhanced Controller Metadata 上的 EA=00b，并说明例外及 Invalid Field in Command 与无变更结果。", "other_error": ""}
+{"sheet": "aab26cde0d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论与三项判据均成立，无有害断言。", "other_error": ""}
+{"sheet": "aee9d0922d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝双零下重新使能，说明仍有旧请求，并以Stopped=1为恢复门槛且未请求未授权Reset。", "other_error": ""}
+{"sheet": "af70c81654", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝Enhanced Controller Metadata下的EA=00b通用规则，并给出Invalid Field in Command与无元数据变更。", "other_error": ""}
+{"sheet": "b2c8cb1027", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前结论正确：暂缓第二条 Abort；明确区分 Abort 自身完成与目标 I/O 完成，并要求按 CID 匹配的 Admin CQE 确认额度释放后再提交。", "other_error": ""}
+{"sheet": "b79c95085d", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝用 A 的列表替代 B，并指出需匹配 CSI 且不支持时返回 Invalid I/O Command Set。", "other_error": ""}
+{"sheet": "b8b331a80b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝回卷解释，并区分预启动饱和与 OS 清零路径。", "other_error": ""}
+{"sheet": "bb500a6ddf", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝统一UR期望，区分Root Port推荐UR/否则Malformed与非Root必须Malformed，并按各自超限请求验收。", "other_error": ""}
+{"sheet": "c47a574d28", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前 Limit=00100b 为 16 并发上限，Max 仅表示能力，已占用 16 时不可新增；释放后按同一 Limit 新增。", "other_error": ""}
+{"sheet": "d3daeeaed2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论与证据一致，未触发否决。", "other_error": ""}
+{"sheet": "ddf6413046", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝双零时重新使能，并给出 Stopped=1 恢复门槛。", "other_error": ""}
+{"sheet": "ecd2abb457", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "明确拒绝在线写，并同时保留 Supported 与 ATS Enable 条件及后续授权停用门槛。", "other_error": ""}
+{"sheet": "f57527f7a2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝沿用旧 0h 注册，并说明零标识不迁移且不跨 Controller Level Reset，要求新身份注册。", "other_error": ""}
+{"sheet": "f90196cb77", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确指出发送端 EP 置位仅适用于带数据 TLP，接收端行为未规定，不强行要求 Malformed。", "other_error": ""}

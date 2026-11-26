@@ -1,0 +1,32 @@
+{"sheet": "0c5aedb79c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝写TPH能力中的假定表；两位置互斥且MSI活动MSI-X禁用仍可用MSI-X表；按有效向量索引与Vector Control字段核对。", "other_error": ""}
+{"sheet": "18c80530c8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝把 0001h 登记为 VID，明确 CRS 读哨兵与写/其他读作为新请求重发，并要求后续正常完成后再登记。", "other_error": ""}
+{"sheet": "242101e376", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分 Memory Read 与 Configuration Read，并要求撤销 Malformed 的 IDO 判据及后续核对。", "other_error": ""}
+{"sheet": "27b6b9c495", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝改写能力结构中的表，明确 MSI active/MSI-X disabled 仍可使用已声明的 MSI-X 表位置，并要求核验向量范围与 ST Table Size，未默认所有向量有效。", "other_error": ""}
+{"sheet": "2951385674", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 0001h 为 Vendor ID，覆盖两字节 CRS 哨兵与额外字节全 1、写请求重发和重试上限描述正确，登记前核验路径明确。", "other_error": ""}
+{"sheet": "2a9776a90c", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝跨重启承诺，SSFS、单 FID Saveable、Changeable 与 SV 区分正确，SV=1 且不可保存应中止，当前值路径与限制明确。", "other_error": ""}
+{"sheet": "2f40b35efd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝整类忽略，区分单侧无限仍需更新与两侧无限，并保留 NPD 更新与可选 FCPE 检查。", "other_error": ""}
+{"sheet": "39c5b06951", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝直接 Link Disable，并区分软件触发与先禁用 DPC 的路径，要求 OS 与固件协调。", "other_error": ""}
+{"sheet": "40e37ebbbf", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝以新一轮入口清零值推断上一轮失败。", "other_error": ""}
+{"sheet": "4f9a7c6a08", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝仅写旧页恢复，并给出复位失效、双缓冲区与当前 MPS/对齐/容量检查、Admin 成功后再放行。", "other_error": ""}
+{"sheet": "5506e40b69", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝排除，区分 advisory non-fatal、Advisory Mask 清零后的状态置位及 UM 对头部日志影响。", "other_error": ""}
+{"sheet": "59a8f04810", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 CMB 中不连续队列，区分 CQMMS 与 CQPDS，并给出连续布局或受支持 CQPDS=1 的路径。", "other_error": ""}
+{"sheet": "67172c2236", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "当前DPC启用未触发时拒签直接Link Disable；有软件触发推荐写触发，缺能力先禁用DPC再Link Disable；OS与固件协调禁用。", "other_error": ""}
+{"sheet": "6e72a86a18", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答明确拒绝本轮重发，指出任一 I/O CQ 已创建即越过门槛、删除不恢复时序、预期 Command Sequence Error，并给出 Get 或授权新初始化窗口的正确路径。", "other_error": ""}
+{"sheet": "72fcfe4518", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂不定责，区分历史 ACRE 状态并要求同期记录与主机处理证据。", "other_error": ""}
+{"sheet": "76ff1eea18", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝双门铃并保留环尾至环首合法相邻，内存队列一次门铃公开两条，修正后再提交并分别核对CQE。", "other_error": ""}
+{"sheet": "7a82e8c2ee", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝结论与规范一致，CQMMS 与 CQPDS 区分正确，CQPDS=0 要求 CMB 队列物理连续，后续路径可执行。", "other_error": ""}
+{"sheet": "7bd0f89b74", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签首个 KATT 漏报，因末尾取走 I/O 命令不满足超时条件，并要求核验下一完整区间。", "other_error": ""}
+{"sheet": "7d7ef198ae", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝承诺跨重启，并区分 SSFS、FID Saveable、Changeable 与 SV，说明 SV=1 中止；当前值路径与跨重启验证边界清晰。", "other_error": ""}
+{"sheet": "7fd420330a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并说明新一轮入口清零导致读数时点无效，要求上轮退出前证据。", "other_error": ""}
+{"sheet": "83dce272ef", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝在线原地分配，明确Offline门槛、Offline移除全部资源、以及Online需配置合适且Primary已启用；授权后按完整目标重分配并确认Online。", "other_error": ""}
+{"sheet": "859b6f33fe", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝A/B共用10-bit策略，区分Requester与Completer能力，短Tag位宽限制，以及混用时防止别名与目标相关验证。", "other_error": ""}
+{"sheet": "90c32fa22a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝 Online 原地 Assign，并给出 Offline 门槛、移除全部资源及授权后完整重分配与 Online 确认。", "other_error": ""}
+{"sheet": "940b922f7a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "部分放行与Malformed判据撤销均与规范一致。", "other_error": ""}
+{"sheet": "9f17d97aa1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答正确拒绝整类忽略，区分单边无限并保留有限 NPD 更新与可选 FCPE。", "other_error": ""}
+{"sheet": "a46c0325da", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前初始化内重发Number of Queues。", "other_error": ""}
+{"sheet": "a8454d19f9", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答正确拒绝仅写旧页恢复，明确复位后配置失效、重新配置并等待完成。", "other_error": ""}
+{"sheet": "abac7b25a8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝现阶段定责，区分 ACRE=0/1 下的 Command Interrupted 与 CRD 规则，并要求查同期 ACRE 与主机处理记录。", "other_error": ""}
+{"sheet": "b8fa506306", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝分别推进门铃，保留合法环绕，要求一次门铃同时公开两条命令。", "other_error": ""}
+{"sheet": "da3d49ad36", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝把ERR_COR一律视为可纠正，区分Advisory Non-Fatal与对应Uncorrectable Status，并说明Uncorrectable Mask=1阻止头部记录但不影响ERR_COR信令。", "other_error": ""}
+{"sheet": "dcfa3e1e7f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "原答正确拒绝首轮漏报，准确要求整段无取命令且核对下一完整区间。", "other_error": ""}
+{"sheet": "ddfb4d6861", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝统一向 A、B 发送 10-bit Tag，并覆盖目标 Completer 能力、短 Tag 5 位限制、并发别名和验收要求。", "other_error": ""}

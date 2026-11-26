@@ -46,11 +46,14 @@ const review = z.object({
   score: z.number().min(0).max(100),
   passed: z.boolean(),
 });
+const phases = ['retrieval', 'draft', 'review', 'other'] as const;
+const phase = z.enum(phases);
 const result = z.object({
   caseId: id,
   status: z.enum(['completed', 'incomplete', 'pending']),
   answer: prose.nullable(),
   seconds: z.number().nonnegative().nullable(),
+  phaseSeconds: z.record(phase, z.number().nonnegative()).optional(),
   toolCalls: z.number().int().nonnegative().nullable(),
   tokens: z.number().int().nonnegative().optional(),
   readPages: z
@@ -65,12 +68,43 @@ const round = z.object({
   config: prose,
   results: z.array(result).min(1).max(10_000),
 });
+const criterionMetric = z.object({ criterionId: id, label });
+const iterationCounts = z
+  .object({
+    planned: z.number().int().positive(),
+    completed: z.number().int().nonnegative(),
+    ready: z.number().int().nonnegative(),
+    misleading: z.number().int().nonnegative(),
+  })
+  .refine((row) => row.ready + row.misleading <= row.completed && row.completed <= row.planned);
+const iteration = z
+  .object({
+    id,
+    title: label,
+    method: label,
+    progress: label,
+    next: label,
+    baseline: iterationCounts,
+    candidate: iterationCounts,
+    timedPairs: z.number().int().nonnegative(),
+    medianDelta: z.number().nullable(),
+  })
+  .refine(
+    (row) =>
+      (row.medianDelta === null) === (row.timedPairs === 0) &&
+      row.timedPairs <= Math.min(row.baseline.completed, row.candidate.completed),
+  );
 const report = z.object({
   schemaVersion: z.literal(1),
   title: label,
   blindContext: z
     .object({ spec: label, protocol: label, observationHeading: label.optional() })
     .optional(),
+  conditionMetric: criterionMetric.optional(),
+  acceptanceMetric: criterionMetric.optional(),
+  latencyMetric: z.object({ label, stages: z.record(phase, label) }).optional(),
+  pairedLatencyLimit: z.number().nonnegative().optional(),
+  iterationHistory: z.array(iteration).max(100).optional(),
   cases: z.array(scenario).min(1).max(10_000),
   rounds: z.array(round).min(1).max(100),
 });
@@ -87,6 +121,11 @@ function unique<T>(values: T[]) {
 function validResult(row: EvaluationResult, item: EvaluationCase) {
   const completed = row.status === 'completed';
   if (completed ? !row.answer?.trim() : row.answer !== null) return false;
+  const timing = row.phaseSeconds;
+  if (timing) {
+    const total = phases.reduce((sum, phase) => sum + timing[phase], 0);
+    if (row.seconds === null || Math.abs(total - row.seconds) > 0.008) return false;
+  }
   if (row.status === 'pending') {
     return (
       row.review === null &&
@@ -132,7 +171,12 @@ export function parseEvaluationReport(text: string): EvaluationReport {
   if (cases.size !== data.cases.length || !unique(data.rounds.map((item) => item.id))) {
     throw new Error('Duplicate case or round ID.');
   }
+  if (data.iterationHistory && !unique(data.iterationHistory.map((item) => item.id))) {
+    throw new Error('Duplicate iteration history ID.');
+  }
   const blindIdentities = new Set<string>();
+  const conditionId = data.conditionMetric?.criterionId;
+  const acceptanceId = data.acceptanceMetric?.criterionId;
   for (const item of data.cases) {
     const followup = item.blindFollowup;
     const identity = followup ? `${followup.caseId}:${followup.form}` : `${item.id}:0`;
@@ -145,6 +189,12 @@ export function parseEvaluationReport(text: string): EvaluationReport {
       item.criteria.some((c) => c.evidence.some((e) => !sources.has(e)))
     ) {
       throw new Error('Invalid case rubric or evidence references.');
+    }
+    if (conditionId && !item.criteria.some((c) => c.id === conditionId)) {
+      throw new Error('Missing condition metric criterion.');
+    }
+    if (acceptanceId && !item.criteria.some((c) => c.id === acceptanceId)) {
+      throw new Error('Missing acceptance metric criterion.');
     }
   }
   for (const iteration of data.rounds) {

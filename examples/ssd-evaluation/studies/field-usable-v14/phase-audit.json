@@ -1,0 +1,477 @@
+{
+  "timedPairs": 15,
+  "medianDelta": {
+    "retrieval": -0.003,
+    "draft": 0,
+    "review": -1.843,
+    "other": -0.001,
+    "seconds": -1.85,
+    "outputTokens": -99
+  },
+  "cases": [
+    {
+      "caseId": "SSD-F14-01",
+      "baseline": {
+        "seconds": 20.74,
+        "phaseSeconds": {
+          "retrieval": 0.392,
+          "draft": 0,
+          "review": 20.339,
+          "other": 0.008
+        },
+        "outputTokens": 485,
+        "toolTurns": 4,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 18.66,
+        "phaseSeconds": {
+          "retrieval": 0.155,
+          "draft": 0,
+          "review": 18.496,
+          "other": 0.008
+        },
+        "outputTokens": 386,
+        "toolTurns": 4,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-02",
+      "baseline": {
+        "seconds": 13.1,
+        "phaseSeconds": {
+          "retrieval": 0.252,
+          "draft": 0,
+          "review": 12.845,
+          "other": 0.007
+        },
+        "outputTokens": 387,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 14.12,
+        "phaseSeconds": {
+          "retrieval": 0.158,
+          "draft": 0,
+          "review": 13.951,
+          "other": 0.006
+        },
+        "outputTokens": 322,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-03",
+      "baseline": {
+        "seconds": 15.0,
+        "phaseSeconds": {
+          "retrieval": 0.427,
+          "draft": 0,
+          "review": 14.563,
+          "other": 0.009
+        },
+        "outputTokens": 392,
+        "toolTurns": 2,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 13.15,
+        "phaseSeconds": {
+          "retrieval": 0.464,
+          "draft": 0,
+          "review": 12.675,
+          "other": 0.008
+        },
+        "outputTokens": 288,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-04",
+      "baseline": {
+        "seconds": 9.74,
+        "phaseSeconds": {
+          "retrieval": 0.242,
+          "draft": 0,
+          "review": 9.49,
+          "other": 0.008
+        },
+        "outputTokens": 230,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 10.29,
+        "phaseSeconds": {
+          "retrieval": 0.242,
+          "draft": 0,
+          "review": 10.04,
+          "other": 0.007
+        },
+        "outputTokens": 245,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-05",
+      "baseline": {
+        "seconds": 24.33,
+        "phaseSeconds": {
+          "retrieval": 0.4,
+          "draft": 0,
+          "review": 23.917,
+          "other": 0.014
+        },
+        "outputTokens": 688,
+        "toolTurns": 3,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 15.27,
+        "phaseSeconds": {
+          "retrieval": 0.351,
+          "draft": 0,
+          "review": 14.916,
+          "other": 0.007
+        },
+        "outputTokens": 391,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-06",
+      "baseline": {
+        "seconds": 10.53,
+        "phaseSeconds": {
+          "retrieval": 0.164,
+          "draft": 0,
+          "review": 10.365,
+          "other": 0.006
+        },
+        "outputTokens": 314,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 9.23,
+        "phaseSeconds": {
+          "retrieval": 0.168,
+          "draft": 0,
+          "review": 9.057,
+          "other": 0.006
+        },
+        "outputTokens": 241,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-07",
+      "baseline": {
+        "seconds": 13.3,
+        "phaseSeconds": {
+          "retrieval": 0.183,
+          "draft": 0,
+          "review": 13.112,
+          "other": 0.008
+        },
+        "outputTokens": 405,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 10.4,
+        "phaseSeconds": {
+          "retrieval": 0.18,
+          "draft": 0,
+          "review": 10.209,
+          "other": 0.007
+        },
+        "outputTokens": 256,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-08",
+      "baseline": {
+        "seconds": 16.55,
+        "phaseSeconds": {
+          "retrieval": 0.43,
+          "draft": 0,
+          "review": 16.116,
+          "other": 0.007
+        },
+        "outputTokens": 446,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 11.33,
+        "phaseSeconds": {
+          "retrieval": 0.122,
+          "draft": 0,
+          "review": 11.2,
+          "other": 0.007
+        },
+        "outputTokens": 290,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-09",
+      "baseline": {
+        "seconds": 22.88,
+        "phaseSeconds": {
+          "retrieval": 0.464,
+          "draft": 0,
+          "review": 22.41,
+          "other": 0.008
+        },
+        "outputTokens": 555,
+        "toolTurns": 4,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 15.55,
+        "phaseSeconds": {
+          "retrieval": 0.24,
+          "draft": 0,
+          "review": 15.305,
+          "other": 0.007
+        },
+        "outputTokens": 245,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-10",
+      "baseline": {
+        "seconds": 20.8,
+        "phaseSeconds": {
+          "retrieval": 0.467,
+          "draft": 0,
+          "review": 20.328,
+          "other": 0.008
+        },
+        "outputTokens": 459,
+        "toolTurns": 2,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 14.63,
+        "phaseSeconds": {
+          "retrieval": 0.446,
+          "draft": 0,
+          "review": 14.175,
+          "other": 0.007
+        },
+        "outputTokens": 355,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-11",
+      "baseline": {
+        "seconds": 9.05,
+        "phaseSeconds": {
+          "retrieval": 0.221,
+          "draft": 0,
+          "review": 8.822,
+          "other": 0.007
+        },
+        "outputTokens": 192,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 9.03,
+        "phaseSeconds": {
+          "retrieval": 0.247,
+          "draft": 0,
+          "review": 8.771,
+          "other": 0.007
+        },
+        "outputTokens": 225,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-12",
+      "baseline": {
+        "seconds": 15.06,
+        "phaseSeconds": {
+          "retrieval": 0.463,
+          "draft": 0,
+          "review": 14.591,
+          "other": 0.007
+        },
+        "outputTokens": 335,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 15.1,
+        "phaseSeconds": {
+          "retrieval": 0.463,
+          "draft": 0,
+          "review": 14.633,
+          "other": 0.007
+        },
+        "outputTokens": 332,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-13",
+      "baseline": {
+        "seconds": 16.87,
+        "phaseSeconds": {
+          "retrieval": 0.404,
+          "draft": 0,
+          "review": 16.458,
+          "other": 0.008
+        },
+        "outputTokens": 569,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 11.38,
+        "phaseSeconds": {
+          "retrieval": 0.389,
+          "draft": 0,
+          "review": 10.988,
+          "other": 0.006
+        },
+        "outputTokens": 288,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-14",
+      "baseline": {
+        "seconds": 9.3,
+        "phaseSeconds": {
+          "retrieval": 0.211,
+          "draft": 0,
+          "review": 9.083,
+          "other": 0.007
+        },
+        "outputTokens": 260,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 10.46,
+        "phaseSeconds": {
+          "retrieval": 0.215,
+          "draft": 0,
+          "review": 10.241,
+          "other": 0.007
+        },
+        "outputTokens": 279,
+        "toolTurns": 0,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-15",
+      "baseline": {
+        "seconds": 12.12,
+        "phaseSeconds": {
+          "retrieval": 0.236,
+          "draft": 0,
+          "review": 11.87,
+          "other": 0.016
+        },
+        "outputTokens": 348,
+        "toolTurns": 0,
+        "completed": false,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 13.36,
+        "phaseSeconds": {
+          "retrieval": 0.354,
+          "draft": 0,
+          "review": 13.001,
+          "other": 0.007
+        },
+        "outputTokens": 361,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      }
+    },
+    {
+      "caseId": "SSD-F14-16",
+      "baseline": {
+        "seconds": 10.79,
+        "phaseSeconds": {
+          "retrieval": 0.426,
+          "draft": 0,
+          "review": 10.353,
+          "other": 0.007
+        },
+        "outputTokens": 231,
+        "toolTurns": 1,
+        "completed": true,
+        "transportWarning": false
+      },
+      "candidate": {
+        "seconds": 16.92,
+        "phaseSeconds": {
+          "retrieval": 0.474,
+          "draft": 0,
+          "review": 16.435,
+          "other": 0.008
+        },
+        "outputTokens": 340,
+        "toolTurns": 2,
+        "completed": true,
+        "transportWarning": false
+      }
+    }
+  ]
+}

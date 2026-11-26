@@ -1,0 +1,32 @@
+{"sheet": "0391758dba", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，说明了 DUW 的单位、向上取整和范围，并要求核对同一累计边界的主机数据账本、排除元数据后达到目标值。", "other_error": ""}
+{"sheet": "0dc06c252a", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝同条件重试并区分当前与旧 CQE；引用了当前状态字段，但未说明后续应等待相关条件经核实改变后再决定重提。", "other_error": ""}
+{"sheet": "1331db2b20", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓联合签发，保留 A 的现有证据，并要求将 B 的同次目标 TLP 与 R41 实际 CPU7 落点关联。", "other_error": ""}
+{"sheet": "304e4bfeb4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒收低位被修改的 MSI-X 消息，并给出同 Function、表项及地址和完整数据的复验门槛。", "other_error": ""}
+{"sheet": "380f804414", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确阻止断电，并给出完成后重新提交同 NSID Flush 的路径；但未要求记录 Write 完成、新 Flush 提交及对应成功 CQE 三个时点。", "other_error": ""}
+{"sheet": "3827165767", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确通过；对应传感器达到上阈值包含等号，并将匹配的 04h 结果与同次 SMART 读数和 TTC 对应。", "other_error": ""}
+{"sheet": "38f3f34138", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确阻止按现有记录断电，并要求在 Write 完成后提交同 NSID 的 Flush，核对匹配的成功 CQE。", "other_error": ""}
+{"sheet": "458c5c4990", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确排除旧相位成功记录，识别本轮匹配完成的失败状态，并给出排查及重发成功的验收条件。", "other_error": ""}
+{"sheet": "45c3712696", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "限定本次控制器和断电事件，区分两条递增路径，并核对状态、管理记录及前后 UPL。", "other_error": ""}
+{"sheet": "48ba6c6f1e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝同条件重试，区分当前与旧 CQE，并要求核实状态及相关条件变化后再决定。", "other_error": ""}
+{"sheet": "4ace924d80", "usability": "no_answer", "criteria": {}, "reject_hits": [], "reason": "未在本次运行中交卷。", "other_error": ""}
+{"sheet": "4d02fe2e4b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "按 VF 03 本次请求的实测 TH 和 ST 签发，并区分了同地址的 VF 02。", "other_error": ""}
+{"sheet": "621f997756", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准指定范围，并按单个 32 位操作数核对访问区间及 2 DW 长度。", "other_error": ""}
+{"sheet": "6294257da5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并说明取整范围及同一累计边界的精确账本验收条件。", "other_error": ""}
+{"sheet": "6e4659370a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分两份操作数的载荷长度与单份操作数的访存范围，并用实际地址和长度完成边界核验。", "other_error": ""}
+{"sheet": "729d57746f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确按对应传感器达到上阈值且 TTC 置位通过，并对应了同轮特性值和 SMART 样本。", "other_error": ""}
+{"sheet": "94ed783d12", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，区分两类写入及其 PRP，并给出指定 QID 的事务复验条件。", "other_error": ""}
+{"sheet": "94f0c9377e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，按相位和 SQID/CID 定位失败完成项，未将状态码误判为确定的地址根因；重提验收证据和成功门槛明确。", "other_error": ""}
+{"sheet": "9aa91b7360", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确按单个 64 位操作数检查 8 字节对齐，并核对实际 CAS 的 Length=4 DW。", "other_error": ""}
+{"sheet": "9cec7fede8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签发指定范围，引用了配对完成记录、先后顺序及匹配的成功 Flush CQE。", "other_error": ""}
+{"sheet": "b05249f2bc", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，区分两类写入及其 PRP，并要求结合成功配置记录核对 QID=12 的事务和对应槽位。", "other_error": ""}
+{"sheet": "b87f6555f2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝放行，区分了两条命令成功与目标 LBA 回读哈希不符，并给出对应的放行条件。", "other_error": ""}
+{"sheet": "bb12a777cd", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓联合签署，保留 A 的证据，并要求补齐与 R41 下 B 的目标 TLP 关联的 CPU7 落点证据。", "other_error": ""}
+{"sheet": "c2065bca2b", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "覆盖范围和签署决定正确，也引用了现场配对及成功状态；但未要求归档三条写的成功 CQE、Flush SQE 和匹配的成功 CQE。", "other_error": ""}
+{"sheet": "c8528c0738", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，分别确认两条命令成功和指定 LBA 回读哈希不符，并给出 H9 验收条件。", "other_error": ""}
+{"sheet": "cf26d49307", "usability": "misleading", "criteria": {"C1": 0, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "IDLP 换算正确，但错误地把描述符典型功耗的测量起点要求套用于工单的实测窗口，否定题面已给出的合规 30 秒均值，导致本可签发的工单被搁置并要求补验。", "other_error": "错误要求实测窗口必须从空闲满 10 秒后开始。"}
+{"sheet": "d25ea9cf0e", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "以分析仪区分出的 VF 03 报文验收，TH 和 ST 均符合工单，未混用 VF 02。", "other_error": ""}
+{"sheet": "d455440cd7", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，并明确 MSI-X 不得修改所选表项数据低位；复测对象、地址及完整数据门槛齐全。", "other_error": ""}
+{"sheet": "d6d6ea9b45", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "按单个 64 位操作数要求 8 字节对齐，并核对实际地址和 4 DW 长度，签发正确。", "other_error": ""}
+{"sheet": "d7bc103073", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确签发本次目标表项用例，说明了屏蔽置位、解屏蔽发送和清除 PBA 的次序，并核对了对应 Function、完整地址和数据。", "other_error": ""}
+{"sheet": "dfc7045c71", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "签发范围限于本次轨迹，并核对了掩蔽、PBA、解掩后的发送顺序及完整地址和数据。", "other_error": ""}
+{"sheet": "e55ed451d5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "验收范围、关机状态与例外条件均正确，并引用同一控制器的断电轨迹、管理记录及前后 UPL。", "other_error": ""}

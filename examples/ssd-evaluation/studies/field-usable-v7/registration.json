@@ -1,0 +1,90 @@
+{
+  "questions_sha256": "3d8bb7199c137a48b22e7f2b90f83c0f957e5acf5a0216a42447f701347b0d80",
+  "bank_sha256": "f15f0f8aab6cb4a87fd0191ae941a7a86a460438d7629f8fbdc731d641912b99",
+  "code": {
+    "pi_trial.py": "53d9df06b3eb2a7697f2b0658c9cbd9c38acb2c8243336a319014f4e658c2b30",
+    "retrieval_trial.py": "ac3b32a7449ecc630e620a935811be1699553c8674e609f026c439786c32c555",
+    "evidence_mcp.py": "5092e2beb7ed8cbdd70877a47ee97ff4dc9a44b55e1166daa92425524a81297b",
+    "evidence_timeline_mcp.py": "71585852aec96d058af990431541fadc239232f9c9211cd9366846b9d099b082",
+    "handoff_review.py": "7991c2ade247dc6004de1cc297cab01e80a6e14feabfd6d48350747d36d71403",
+    "evidence_conditions_mcp.py": "916e122efd5e3ed89078e21c1ac9de6f0810b7a8e82a83e0ff5bf89fd8565437",
+    "condition_review.py": "436399b971b1d376bf90321dd4a85dd928be9a93bd8e5ec6eb6c66ddc93cc219",
+    "skills/timeline/ssd-field-decisions/SKILL.md": "6b9aa5acff66a7885741aa9a2f95452bf88fbcaa1e4561050c424dd1e59cecca",
+    "skills/conditions/ssd-field-decisions/SKILL.md": "d8ed9c262e4dc0b67d3e7a1734c2eee401829df8d7dbec44b1b67972584d8ef1"
+  },
+  "source_pdfs": {
+    "nvme": "4e31f826dd7ceaee311f93b74eef5c05ac32afe4ef45436534dfcfd6a40dc746",
+    "pcie": "b863834e2ecd4240d033299f4d782478b870076ff84e9e6826e37ec495c5d004"
+  },
+  "validation": {
+    "scenarios": 16,
+    "criteria": 48,
+    "anchors": {
+      "nvme": 19,
+      "pcie": 16
+    },
+    "verified_pdfs": [
+      "nvme",
+      "pcie"
+    ]
+  },
+  "old_case_count": 110,
+  "old_family_count": 96,
+  "evaluation_slices": {
+    "gate": 7,
+    "branches": 6,
+    "history": 3
+  },
+  "order_seed": "ssd-field-usable-v7-paired",
+  "baseline_first_ids": [
+    "SSD-F7-05",
+    "SSD-F7-11",
+    "SSD-F7-12",
+    "SSD-F7-14",
+    "SSD-F7-02",
+    "SSD-F7-07",
+    "SSD-F7-01",
+    "SSD-F7-08"
+  ],
+  "configuration": {
+    "provider": "magpie",
+    "model": "auto/deepseek-v4.1-flash",
+    "mode": "domain",
+    "calls": 8,
+    "timeout": 120
+  },
+  "prefetch": true,
+  "thinking": "off",
+  "arms": {
+    "baseline": "decision",
+    "candidate": "decision"
+  },
+  "styles": {
+    "baseline": "timeline",
+    "candidate": "conditions"
+  },
+  "skills": {
+    "baseline": "timeline",
+    "candidate": "conditions"
+  },
+  "candidate_review_model": "codex/gpt-6.2-sol",
+  "grading": {
+    "raters": [
+      "codex/gpt-6.1-terra",
+      "opencode-go/beam-free"
+    ],
+    "adjudicator": "codex/gpt-6.2-astra",
+    "condition_endpoint": "C2 full credit per planned question",
+    "slices": {
+      "gate": "Admission or recovery conditions",
+      "branches": "Different applicable outcomes or scopes",
+      "history": "Past and current states"
+    }
+  },
+  "metrics": [
+    "ready/planned",
+    "misleading/completed",
+    "misleading/planned",
+    "misleading on both-completed pairs"
+  ]
+}

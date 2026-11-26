@@ -1,0 +1,24 @@
+{"sheet": "01ab214ace", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓r8上线，区分平台映射与应用批准，要求r8两流落点与负责人确认。", "other_error": ""}
+{"sheet": "0560a61913", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "按合同范围签通过；批准人、m5版本、两条请求映射与实测资源均对应。", "other_error": ""}
+{"sheet": "0df6981e34", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝两类都归 UR，区分架构长度非法与设备不支持，并要求核对原始 TLP、Completer 能力与结果。", "other_error": ""}
+{"sheet": "203274c8db", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "证据不足，按 Transaction ID 与原始 TLP 核验后再判定。", "other_error": ""}
+{"sheet": "24e9977cb5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓；DNR/ACRE/CRD 选 CRDT2，区分规范 should 与工单 200 ms 门槛，并指出缺 CQE 收到时标。", "other_error": ""}
+{"sheet": "25a442dee2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓 r8 发布并区分平台映射与应用批准，现场验收覆盖 r8 启用、应用确认及两流落点。", "other_error": ""}
+{"sheet": "2ff9ac91e6", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓归因并保留 Switch 内合并的必要证据与反向可能。", "other_error": ""}
+{"sheet": "4872ff0fa2", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝以 PBA=0 签发，覆盖消息发出后清除与掩蔽期间事件被处理两条路径，并要求同一表项实际 DWORD Write 匹配。", "other_error": ""}
+{"sheet": "49bd550413", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂不签署，区分规范 should 与工单门槛并要求 CQE 收到时标。", "other_error": ""}
+{"sheet": "4dbed718c3", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒绝当前5秒+10秒窗口，要求先空闲10秒再测30秒并保留无活动轨迹与工程门槛。", "other_error": ""}
+{"sheet": "55849ee482", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "技术条件满足但授权过期，暂缓写入。", "other_error": ""}
+{"sheet": "567c15a46a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "采样窗口不满足 IDLP 定义，需按空闲 10 秒后测 30 秒。", "other_error": ""}
+{"sheet": "8725c81e8f", "usability": "no_answer", "criteria": {}, "reject_hits": [], "reason": "未在本次运行中交卷。", "other_error": ""}
+{"sheet": "8b882dfde4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓生产改写，保留实验范围，要求生产审批、目标对象与有效掩蔽核验。", "other_error": ""}
+{"sheet": "8c5dbdbe96", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓漏写判定；CQ6 读值无证明力，明确需 CQ5 同条目 EventIdx 与 [3,7) 门槛。", "other_error": ""}
+{"sheet": "918bdb1b33", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确暂缓生产 MSI-X 改写，明确实验证据不等于生产批准；核验与规范依据完整。", "other_error": ""}
+{"sheet": "a19b1d5182", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂缓写入，技术条件与过期授权区分准确，验收要求新窗口及同一控制器读回和 PRP 配置。", "other_error": ""}
+{"sheet": "a1db4098e8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "结论、版本、批准人、两条实测资源与逐流核对均满足工单。", "other_error": ""}
+{"sheet": "a666d017f8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确不签署状态组合合规，保留两条原始状态，并指出次命令失败时首条状态由适用命令集定义。", "other_error": ""}
+{"sheet": "a8642d95a8", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "暂不归因漏写，保留 CQ5 自身 EventIdx 与门铃记录的必要核验。", "other_error": ""}
+{"sheet": "b1c6da6c92", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝以 PBA=0 签发消息字段，区分发送后清除与掩蔽期间事件已被处理，并要求实际 DWORD Memory Write 匹配 A2/D2。", "other_error": ""}
+{"sheet": "c0b9166f68", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "普通TPH发包验收通过；区分8位header tag与扩展前缀，并按同次Memory Write逐条匹配。", "other_error": ""}
+{"sheet": "d65b257245", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "两条有效CQE未签组合合规，保留次命令自身失败分支与适用命令集版本核验。", "other_error": ""}
+{"sheet": "e571fe2e19", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "批准普通 TPH 发包验收，正确区分 8 位 header ST 与可选扩展前缀，并逐条对应两路 Memory Write。", "other_error": ""}

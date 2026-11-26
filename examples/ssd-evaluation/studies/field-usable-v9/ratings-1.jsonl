@@ -1,0 +1,32 @@
+{"sheet": "0175fb2338", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签并指出状态冲突，也要求核对两条 CQE；但未明确要求保留两条状态记录及核对适用命令集的含义。", "other_error": ""}
+{"sheet": "026b777bd5", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝直接推定，并区分两种失败路径；但未明确要求恢复首条对应 CQE，只有在需要具体完成码且无法由条款唯一确定时才要求取得。", "other_error": ""}
+{"sheet": "02cf6feb08", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝当前恢复，计算正文及实际槽位边界，并要求修正布局后重配及核验本次成功 CQE。", "other_error": ""}
+{"sheet": "0b410a835f", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确撤销两项脚本判据，区分传输模型，并依据同一连接上两条 CID 对应完成及成功状态验收。", "other_error": ""}
+{"sheet": "12b9d69c09", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "拒签及两页的字节边界计算正确，保留了重配和增大页尺寸的处置条件。", "other_error": ""}
+{"sheet": "13c8aab584", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，以 SQID 和 CID 区分共享 CQ 中的完成记录，并要求核验 SQ3/CID22 的有效完成及成功状态。", "other_error": ""}
+{"sheet": "1a03b73e38", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝不受支持的 16 KiB 在线变更，给出受支持尺寸、PRP 方案及修改前的授权和状态条件。", "other_error": ""}
+{"sheet": "2193217607", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签全范围，计算和越界判断正确；但变更后只要求核对配置及页内边界，未明确复测最远条目。", "other_error": ""}
+{"sheet": "3507243f92", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分向量与 ST 表范围，列出三种允许行为，并说明向量 1 的位置及向量 6 所需的行为证据。", "other_error": ""}
+{"sheet": "35b65605e3", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确撤销两项门槛，并按消息型顺序提交及同连接 CID、完成状态核验。", "other_error": ""}
+{"sheet": "4f5f38448b", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签并算出两页的最高槽位越界，也给出调整门槛；但只要求核对变更后的范围，未要求复测最远条目。", "other_error": ""}
+{"sheet": "5021415919", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "未倒推首条失败，且正确区分两种失败路径；但找到首条 CQE 的路径未要求核对适用命令集规则。", "other_error": ""}
+{"sheet": "55b8ad85fe", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，指出 PRP2 未对齐及预期状态，并要求修正后以本次 Admin CQE 核验。", "other_error": ""}
+{"sheet": "5f2c52531d", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝未掩蔽写入，并给出有效掩蔽及解掩刷新顺序；但验收缺少核对更新后的 Address/Data 和消息。", "other_error": ""}
+{"sheet": "615647e67a", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "两页的基址、容量条件及最大槽位末字节均正确，签发范围限于槽位边界。", "other_error": ""}
+{"sheet": "69610aaa4b", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒绝在线写入和不受支持的 16 KiB，也说明了授权及禁用条件；但未要求变更尺寸后、重新初始化前准备匹配尺寸的 PRP。", "other_error": ""}
+{"sheet": "6a7936fecc", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "正确拒签并指出首条失败与次条成功的冲突，要求核对配对命令和完成状态；未明确要求保留记录或按适用命令集核对状态含义。", "other_error": ""}
+{"sheet": "83d86c26d6", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，分别算出正文容量、SQ 和 CQ 字节边界，并对两个缓冲区提出可执行的重新核验路径。", "other_error": ""}
+{"sheet": "89d5808a27", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝整 16 位覆盖和扩展 tag，并给出保留其余位的低字节更新；但放行更新前未要求确认应用能使用较短 tag，否则应保持阻断。", "other_error": ""}
+{"sheet": "8e61cfee7b", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确批准向量 3，并核对 MSI、表项范围及扩展支持；字节、位段和保留位处置均正确。", "other_error": ""}
+{"sheet": "990fcef1f4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确确认 MSI 路径可用合并表、向量和表项范围，并给出保留其他位的字段写法。", "other_error": ""}
+{"sheet": "aa16bb942c", "usability": "revise", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确阻断整字段覆盖和扩展 tag，并要求保留其他位；但直接允许写入低字节，缺少确认应用能使用较短 tag 的处置前提。", "other_error": ""}
+{"sheet": "aa966f6553", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝写 MSI-X 表，按 Location=01b 选取能力结构内的表项 2，仅更新低字节并保留高字节。", "other_error": ""}
+{"sheet": "adbdfeacf4", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "两页分别以各自 PRP 为基址，槽位末字节及页内判定正确，签发范围限于槽位边界。", "other_error": ""}
+{"sheet": "b642227966", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒绝写 MSI-X Vector Control，按 Location=01b 选择能力结构内的表，并限定只修改索引 2 的低字节。", "other_error": ""}
+{"sheet": "c5cff2af93", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确判断回绕跨越 EventIdx，计算 X=2、Y=6，并要求更新同一 SQ 的实际 Tail Doorbell 为 2。", "other_error": ""}
+{"sheet": "e07d753ef1", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分向量范围与表项范围，列全三种允许行为，并指出向量 1 的写入位置及向量 6 的设备证据要求。", "other_error": ""}
+{"sheet": "eb2ca484f8", "usability": "misleading", "criteria": {"C1": 1, "C2": 1, "C3": 0.5}, "reject_hits": [], "reason": "目标表项的掩蔽、更新和解掩路径正确，但验收未明确核对写入值和变更后的消息。另将掩蔽所有保留旧值的表项说成唯一保证方式，可能导致现场不必要地屏蔽其他中断。", "other_error": "错误断言必须掩蔽所有保留旧 Address/Data 的表项，忽略其他可阻止相关消息发送的方式。"}
+{"sheet": "ee628f4de5", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确拒签，指出 PRP2 未对齐及预期状态，并要求修正后核验本次成功完成项。", "other_error": ""}
+{"sheet": "f847d885fb", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确计入回绕，算出 X=2、Y=6，并要求向同一 SQ 的实际门铃写入 2。", "other_error": ""}
+{"sheet": "fc771a27d0", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分复位前后配置，算出当前容量和槽位边界，并要求修正后重配及核验成功完成项。", "other_error": ""}
+{"sheet": "fcfd532193", "usability": "ready", "criteria": {"C1": 1, "C2": 1, "C3": 1}, "reject_hits": [], "reason": "正确区分共享 CQ 中的 SQID 和 CID，要求等待并核验 SQ3 的第二条成功完成。", "other_error": ""}

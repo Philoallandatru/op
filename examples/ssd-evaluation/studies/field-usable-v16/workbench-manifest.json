@@ -1,0 +1,39 @@
+{
+  "title": "现场验收记录与同题耗时 · 第十六轮 16 道独立新题",
+  "conditionMetric": {
+    "criterionId": "C2",
+    "label": "处置条件完整 / 计划"
+  },
+  "acceptanceMetric": {
+    "criterionId": "C3",
+    "label": "验收可执行 / 计划"
+  },
+  "latencyMetric": {
+    "label": "交卷耗时中位数",
+    "stages": {
+      "retrieval": "检索",
+      "draft": "独立起草",
+      "review": "签发",
+      "other": "其他"
+    }
+  },
+  "pairedLatencyLimit": 2.5,
+  "history": "../iteration-history.json",
+  "iteration": "field-usable-v16",
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第九轮 · 核对边界与验收记录",
+      "config": "Codex Sol · 单次核验签发 · 120 秒 · 8 次取证含预取",
+      "plan": "questions.jsonl",
+      "reviews": "baseline-reviewed.jsonl"
+    },
+    {
+      "id": "candidate",
+      "label": "第十六轮 · 同次验收证据",
+      "config": "同模型、语料及预算 · 保留配对原始记录 · 核对同次事件",
+      "plan": "questions.jsonl",
+      "reviews": "candidate-reviewed.jsonl"
+    }
+  ]
+}

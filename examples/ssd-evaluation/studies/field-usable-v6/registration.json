@@ -1,0 +1,85 @@
+{
+  "questions_sha256": "f135e2e33fcb2a8abb9c44246767157f679f379b9057a1f875b37a4675bd96d2",
+  "bank_sha256": "00b282c9ccf272bcdab8a33fdc97615dfdb85216926c5b98eb7fd3f0ba1a36c3",
+  "code": {
+    "pi_trial.py": "c9549a9b49b347d726aaa2057edf3009fe77ee1c9a0c936cb0b5bcd884f8777b",
+    "retrieval_trial.py": "ac3b32a7449ecc630e620a935811be1699553c8674e609f026c439786c32c555",
+    "evidence_mcp.py": "5092e2beb7ed8cbdd70877a47ee97ff4dc9a44b55e1166daa92425524a81297b",
+    "evidence_timeline_mcp.py": "71585852aec96d058af990431541fadc239232f9c9211cd9366846b9d099b082",
+    "handoff_review.py": "5af23446aa5c823632ecc56583d02bdb22dfb1d50314098e365f7319d7fe0a2c",
+    "skills/closure/ssd-field-decisions/SKILL.md": "d510f0a8f9776d81e8ec0325cadb1fb82aada99f8f753596eff0133e917da973",
+    "skills/timeline/ssd-field-decisions/SKILL.md": "6b9aa5acff66a7885741aa9a2f95452bf88fbcaa1e4561050c424dd1e59cecca"
+  },
+  "source_pdfs": {
+    "nvme": "4e31f826dd7ceaee311f93b74eef5c05ac32afe4ef45436534dfcfd6a40dc746",
+    "pcie": "b863834e2ecd4240d033299f4d782478b870076ff84e9e6826e37ec495c5d004"
+  },
+  "validation": {
+    "scenarios": 16,
+    "criteria": 48,
+    "anchors": {
+      "nvme": 16,
+      "pcie": 16
+    },
+    "verified_pdfs": [
+      "nvme",
+      "pcie"
+    ]
+  },
+  "old_case_count": 94,
+  "old_family_count": 80,
+  "evaluation_slices": {
+    "history": 10,
+    "control": 6
+  },
+  "order_seed": "ssd-field-usable-v6-paired",
+  "baseline_first_ids": [
+    "SSD-F6-02",
+    "SSD-F6-08",
+    "SSD-F6-14",
+    "SSD-F6-04",
+    "SSD-F6-15",
+    "SSD-F6-09",
+    "SSD-F6-16",
+    "SSD-F6-10"
+  ],
+  "configuration": {
+    "provider": "magpie",
+    "model": "auto/deepseek-v4.1-flash",
+    "mode": "domain",
+    "calls": 8,
+    "timeout": 120
+  },
+  "prefetch": true,
+  "thinking": "off",
+  "arms": {
+    "baseline": "decision",
+    "candidate": "decision"
+  },
+  "styles": {
+    "baseline": "scoped",
+    "candidate": "timeline"
+  },
+  "skills": {
+    "baseline": "closure",
+    "candidate": "timeline"
+  },
+  "candidate_review_model": "codex/gpt-6.2-sol",
+  "grading": {
+    "raters": [
+      "codex/gpt-6.1-terra",
+      "opencode-go/beam-free"
+    ],
+    "adjudicator": "codex/gpt-6.2-astra",
+    "slices": {
+      "history": "Claims about earlier events or intervals",
+      "control": "Contemporaneous evidence or present disposition"
+    }
+  },
+  "metrics": [
+    "ready/planned",
+    "misleading/completed",
+    "misleading/planned",
+    "misleading on both-completed pairs"
+  ]
+}

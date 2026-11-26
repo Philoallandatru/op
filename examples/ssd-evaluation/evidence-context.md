@@ -38,3 +38,30 @@ python -X utf8 -m unittest discover -s examples/ssd-evaluation -p test_evidence_
 例如 NVMe Base 2.1 PDF 第 240 页第二个表中，5h 行延续到“未完成”，6h 和 7h 行延续到失败段是否已知的说明。第一个表的 2h 表示长测类型。PCIe Base 5.0 PDF 第 154 页的 Table 2-35 只列出四个 Completion Status 编码；工具保留原始二进制写法。贯穿多页的表、图内文字和版式不明的编码需要结合邻页或视觉原件复核。
 
 运行 `python -X utf8 -m unittest discover -s examples/ssd-evaluation -p "test_*evidence*.py"` 可复测行号、同页字段隔离、跨页边界、条件句、预算和两个旧视图的兼容性。
+## 决策核对视图
+
+`decision` 保留 `outcomes` 的搜索、整页和结果表，并增加 `read_spec_context(protocol, pdf_page, cue)`。用一个英文命令字段名或短语从候选页及前后相邻页取带页号、行号和章节位置的原文。术语按英文词逐词命中，允许原文跨行。用它核对寄存器所有者、位段、条件和结果表续页。范围包含原文上下文，可能有同名字段或邻近字段，需要结合表名核对。
+
+返回 `matches` 和 `pages_examined`。空结果只代表这几页没找到同一短语。该调用消耗一次原有预算，审计记录保存匹配到的页和行范围。
+
+## 时序证据复核
+
+`pi_trial.py --answer-style timeline --evidence-view decision` 在同一个 MCP 上增加 `read_spec_transition`。给定一份规范、候选页、触发和状态的英文字面短语，工具分别返回三个邻近页内命中的原文和行号。两个命中可能属于不同对象或过程，需要从原文核对。工具不读取现场日志，也不生成事件时间。
+
+工具会话先产生草稿。第二次模型调用在同一时限内接收题面、草稿和实际返回过的规范片段，不开启工具，也不读取评审题库。最终输出包含当前处置、直接依据和可选必要核验。超时或结构无效会作为未交卷保留，草稿仍在本地原始运行档案中。
+
+## 完整处置条件
+
+`pi_trial.py --answer-style conditions --evidence-view decision` 增加 `read_spec_conditions(protocol, field, pdf_page, top_k)`，按字面字段定位同页和相邻页的原文。命中在页尾时附随后的续行，便于核对并列前提、备选结果和恢复门槛。仍需核对具体对象及规则方向。
+
+`--answer-style fast-conditions` 增加 `find_spec_conditions(protocol, query)`。一次调用按关键英文字段定位两个候选文件页，返回带行号的原文窗口，并在窗口碰到页边界时附相邻页原文。候选内容需核对字段、对象、时间和适用条件。需要补证时仍可读取字面命中、整页或时序原文。同一个签发模型完成补证、条件核对和结构化交付。独立草稿时间为零，最终作答计入签发时间。
+
+`--answer-style verified-conditions` 保留一次签发会话，并将匹配的门铃、Fused、Steering Tag 原文窗口并入预取。对数值化的门铃布局，`check_doorbell_layout` 接受当前 CC.MPS、CAP.DSTRD、NSQA、NCQA 的原始编码和可选的计划最大 SQID/CQID。它分别报告正文公式、Figure 486 的布局范围和实际 ID 对应槽位。返回末字节为含端点的偏移，落页要求末字节严格小于页大小。缺少实际 ID 时对应的计划结果为未知，页对齐和命令完成单独核验。
+
+`--answer-style acceptance` 将必需的验收写成对象、记录和通过条件三项。涉及 MSI-X Message Address/Data 时，预取包含发送、有效掩蔽和解掩更新缓存的条款。取证仍使用同一会话和门铃边界核验。题面只要求解释或限定范围时，核验只覆盖当前工单。
+
+`--answer-style concise-acceptance` 同样以一个会话完成取证和签发，复用验收三项，并将各项事实放在首次使用的位置。预取对 IDLP 和 Completion 合并定位到对应规范段落。配合 `skills/concise-fieldproof/ssd-field-decisions/SKILL.md`，验收记录保留同次失败 CQE 的状态字段和工单要求的数据校验。在现有记录足以覆盖工单时可以按实测范围签发。
+
+`--answer-style field-acceptance --skill examples/ssd-evaluation/skills/concise-witnesses/ssd-field-decisions/SKILL.md` 继续使用同一个取证和签发会话。预取匹配 Flush 覆盖时序和作用域、DNR 状态含义，以及 IDLP 换算和测量起点。答卷区分已有证据的留存记录和待验项目的重新评估门槛，配对原始提交与完成，并核对日志是否来自同次事件。
+
+复核输入将搜索结果拆成带页号的完整摘录，优先装入字段读取，并保留实际返回的预取结果。输出把关键条件逐项列在处置下方。只有同期证据或可核实的区间覆盖支持历史结论。

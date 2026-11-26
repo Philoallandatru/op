@@ -6,8 +6,8 @@
 
 | 数据 | 数量 | 内容 |
 | --- | ---: | --- |
-| [工程盲题册](scenarios/engineering-questions.md) | 74 道 | 8 道启停试跑题、54 道首批扩展题、12 道新故障族工单。只显示问题和首次观测。 |
-| [工程评审题库](scenarios/) | 74 条记录 | 参考答案、加权判据、否决项和规范定位。18 题另有两种预设补充观测，同一题的分支仍属于同一故障族。 |
+| [工程盲题册](scenarios/engineering-questions.md) | 266 道 | 启停试跑、扩展题和多个留出轮次，只显示问题和首次观测。 |
+| [工程评审题库](scenarios/) | 266 条记录 | 参考答案、加权判据、否决项和规范定位。18 题另有两种预设补充观测，同一题的分支仍属于同一故障族。 |
 | [PCIe 检索题](bank/pcie.jsonl) · [NVMe 检索题](bank/nvme.jsonl) | 170 道 | 逐问的规范证据、回答断言及一种改写。两种问法找全证据的成绩单独计算。 |
 | [早期 NVMe 题](eval_queries.jsonl) | 30 道 | 此前的金标和检索探针，保留原数据格式。 |
 
@@ -15,20 +15,32 @@
 
 ## 在前端查看
 
-打开 **设置 → 智能体 → 智能体评估**，在空白工作台点击 **打开 SSD 示例**。已有报告时，也可以通过 **导入报告** 打开下方链接中的第三轮 JSON。页面先显示基线和候选两轮的原样可用、误导、通过及交卷数据。选一道题后逐栏显示原答、评判理由、实际读过的页，展开参考答案能看到证据定位和判据。窄屏可横向滚动指标表，并纵向阅读两份回答。选择候选轮次后，**导出盲测题目**只输出该轮实际计划的题面与观测。
+打开 **设置 → 智能体 → 智能体评估**，在空白工作台点击 **打开 SSD 示例**，即可查看最新一轮独立新题的同题对照。页面显示原样可用、误导、处置条件完整、验收可执行和交卷耗时。验收可执行以该题预先定义的测量对象、记录与通过标准为准。耗时图显示每道同题的增减和各阶段的耗时，点选柱条可查看原答、评判理由和取证页。展开迭代历史可查看各轮的方法、进展和下一步。**导出盲测题目**输出当前对照轮的题面与观测。
 
-建议先在示例中切到 **SSD-F3-01**，对照两份回答分别依据哪条完成记录决定是否归还缓冲，再展开评审理由。这个例子有同题两份原答、原样可用标签和证据页。
+第七轮从第六轮六份需修改的答卷出发，检验复核能否保留处置门槛和替代路径。[六份答卷复盘](studies/field-usable-v7/six-answer-audit.md) · [第七轮](studies/field-usable-v7/README.md)
 
-旧轮次通过 **导入报告** 打开。[八题试跑](reports/pilot.json) · [六题改进实验](reports/iteration-study.json) · [两道迁移题](reports/iteration-transfer.json) · [第二轮 12 题](reports/field-usable-v2.json) · [内置的第三轮报告](../../packages/app/src/components/evaluations/ssd-example-report.json)
+第八轮拆解耗时，将取证与签发合并到一次模型会话，再用新题对照响应时间和交付质量。[第八轮](studies/field-usable-v8/README.md)
 
-从仓库根目录执行下列 PowerShell 命令，可以把 74 道题作为一个尚未作答的轮次导入工作台。生成和浏览这份报告只需要 Python 3.11 或更新版本。
+第九轮补齐槽位末字节、各命令完成项和 Steering Tag 写入字段。[第九轮](studies/field-usable-v9/README.md)
+
+第十轮逐题复盘第九轮四份需修改答卷，补齐该测什么、核对哪条现场记录、什么结果才算通过。[四份答卷复盘](studies/field-usable-v10/four-answer-audit.md) · [第十轮](studies/field-usable-v10/README.md)
+
+第十一轮复测同一记录里的审批和实测能否分别作为正确的放行条件。[第十一轮](studies/field-usable-v11/README.md)
+
+第十二至十四轮把同题耗时拆成检索、起草、签发和其他开销。去掉签发中的重复表述，并逐轮补回现场验收的关键证据。[逐题耗时诊断](studies/field-usable-v12/latency-diagnosis.md) · [第十二轮](studies/field-usable-v12/README.md) · [第十三轮](studies/field-usable-v13/README.md) · [第十四轮](studies/field-usable-v14/README.md)
+
+第十五轮增加通过项留存记录与待验项复验门槛，并在原预取预算内提供 Flush、DNR 和 IDLP 条款。第十六轮配对门铃配置的原始提交与完成，要求错误日志关联同次事件。[第十五轮](studies/field-usable-v15/README.md) · [第十六轮](studies/field-usable-v16/README.md)
+
+各轮也可通过 **导入报告** 打开。[八题试跑](reports/pilot.json) · [六题改进实验](reports/iteration-study.json) · [两道迁移题](reports/iteration-transfer.json) · [第二轮](reports/field-usable-v2.json) · [第三轮](reports/field-usable-v3.json) · [第四轮](reports/field-usable-v4.json) · [第五轮](reports/field-usable-v5.json) · [第六轮](reports/field-usable-v6.json) · [第七轮](reports/field-usable-v7.json) · [第八轮](reports/field-usable-v8.json) · [第九轮](reports/field-usable-v9.json) · [第十轮](reports/field-usable-v10.json) · [第十一轮](reports/field-usable-v11.json) · [第十二轮](reports/field-usable-v12.json) · [第十三轮](reports/field-usable-v13.json) · [第十四轮](reports/field-usable-v14.json) · [第十五轮](reports/field-usable-v15.json) · [最新内置示例](../../packages/app/src/components/evaluations/ssd-example-report.json)
+
+从仓库根目录执行下列 PowerShell 命令，可以把全部工程题作为一个尚未作答的轮次导入工作台。生成和浏览这份报告只需要 Python 3.11 或更新版本。
 
 ```powershell
 $kit = 'examples/ssd-evaluation'
 $scratch = "$kit/.local"
 python -X utf8 "$kit/scenario_eval.py" blind --suite all --output "$scratch/questions.jsonl"
 @'
-{"title":"SSD 工程题库","rounds":[{"id":"planned","label":"计划提问","config":"74 道工程首问","plan":"questions.jsonl"}]}
+{"title":"SSD 工程题库","rounds":[{"id":"planned","label":"计划提问","config":"工程首问","plan":"questions.jsonl"}]}
 '@ | Set-Content -Encoding utf8 "$scratch/plan.json"
 python -X utf8 "$kit/export_workbench.py" "$scratch/plan.json" --output "$scratch/question-bank.json"
 ```

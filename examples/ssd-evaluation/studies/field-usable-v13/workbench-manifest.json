@@ -1,0 +1,13 @@
+{
+  "title": "精简签发与质量守门 · 第十三轮 16 道独立新题",
+  "conditionMetric": {"criterionId": "C2", "label": "处置条件完整 / 计划"},
+  "acceptanceMetric": {"criterionId": "C3", "label": "验收可执行 / 计划"},
+  "latencyMetric": {"label": "交卷耗时中位数", "stages": {"retrieval": "检索", "draft": "独立起草", "review": "签发", "other": "其他"}},
+  "pairedLatencyLimit": 2.5,
+  "history": "../iteration-history.json",
+  "iteration": "field-usable-v13",
+  "rounds": [
+    {"id": "baseline", "label": "第九轮 · 核对边界与验收记录", "config": "Codex Sol · 单次核验签发 · 120 秒 · 8 次取证含预取", "plan": "questions.jsonl", "reviews": "baseline-reviewed.jsonl"},
+    {"id": "candidate", "label": "第十三轮 · 保留验收证据的精简签发", "config": "同模型、语料及预算 · 精简去重 · 保留完成项、真实发包及可执行验收 · 批准与实测分别核对", "plan": "questions.jsonl", "reviews": "candidate-reviewed.jsonl"}
+  ]
+}

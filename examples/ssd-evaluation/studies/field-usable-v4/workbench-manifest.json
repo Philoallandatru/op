@@ -1,0 +1,19 @@
+{
+  "title": "证据与处置核验 · 第四轮 12 道留出题",
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第三轮配置 · 逐项处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证（含双协议预取）· outcomes + v3 skill",
+      "plan": "questions.jsonl",
+      "reviews": "baseline-reviewed.jsonl"
+    },
+    {
+      "id": "candidate",
+      "label": "第四轮配置 · 证据与处置核验",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证（含双协议预取）· decision + v4 skill",
+      "plan": "questions.jsonl",
+      "reviews": "candidate-reviewed.jsonl"
+    }
+  ]
+}

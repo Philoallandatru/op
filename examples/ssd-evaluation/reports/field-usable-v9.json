@@ -1,0 +1,2291 @@
+{
+  "schemaVersion": 1,
+  "title": "门铃边界与验收核对 · 第九轮 16 道留出题",
+  "cases": [
+    {
+      "family": "steering-msix-upper-unadvertised-preserve",
+      "split": "challenge",
+      "question": "设备支持合并表，能用一次全 16 位写把 0xA519 填到这个 Steering Tag 吗？",
+      "observations": [
+        "同一 Function 实现 TPH Requester Capability 且 ST Table Location=10b。目标向量在当前 MSI-X 和 ST 表范围内；Extended TPH Requester Supported=0。",
+        "脚本打算在 MSI-X 表该向量对应的 Vector Control 同时覆盖 bits 31:16，还声称能发扩展 tag。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝承诺扩展 tag 与整 16 位字段覆盖。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "按位置 10b 指向正确 Vector Control，划分 Lower [23:16] 与 Upper [31:24] 和 Extended TPH 门槛。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "执行受控的低字节 RMW，保留上字节及其它位，或保持阻断。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["以合并表位置为由直接写 ST Upper 或向设备承诺扩展 TPH。"],
+      "id": "SSD-F9-11",
+      "referenceAnswer": "不放行 16 位改写或扩展 tag。该 Function 的 ST Lower [23:16] 是 RW，可按需求写入低字节 0x19。Extended TPH 未支持时 ST Upper [31:24] 可能是保留字段，应保持原值；同时保持 mask 等其他字段。确认应用能使用较短 tag，否则保留阻断。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 789,
+          "section": "§7.7.2.8 MSI-X Vector Control",
+          "anchor": "contains the lower 8 bits of a Steering Tag"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 789,
+          "section": "§7.7.2.8 MSI-X Vector Control",
+          "anchor": "Extended TPH Requester Supported bit is Set"
+        }
+      ]
+    },
+    {
+      "family": "dbbuf-cq-only-crosses-page",
+      "split": "challenge",
+      "question": "这个 Doorbell Buffer Config 的现有页面能签给计划中的 CQ 吗？请核定字节边界。",
+      "observations": [
+        "CC.MPS=0，CAP.DSTRD=1，NSQA/NCQA 原始值分别是 63/256。PRP1、PRP2 分别指向独立对齐的 4 KiB 单页。",
+        "计划访问的最大 SQID=32，最大 CQID=256。测试员看到正文容量公式通过，打算放行。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝按当前两页放行。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "独立算出正文 2056 字节通过，SQ Tail 与 CQ Head 末字节 515 和 4107，并用严格小于 4096 判定。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "区分能用的 SQ 槽位与越界的 CQ 槽位，重新核验两个缓冲区。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["仅凭正文容量公式通过签发。", "以 SQ Tail 的步长位置代替 CQ Head。"],
+      "id": "SSD-F9-01",
+      "referenceAnswer": "拒签。每页有效偏移 0–4095，stride=8。正文左边 2056 字节，满足正文条件。每页 SQ32 Tail 的末字节 515 在页内，CQ256 Head 的末字节 4107 越界。实际 CQID=256 所在条目禁止在这两页访问，修改布局或容量后重新核对；纯数值不证明配置已成功。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 445,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "Completion Queue y Head Doorbell or EventIdx"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 446,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "offsets in Start and End are referenced"
+        }
+      ]
+    },
+    {
+      "family": "msix-address-data-cached-on-unmask",
+      "split": "challenge",
+      "question": "能按现在的顺序给 MSI-X 表项换一个 Message Address 并验收吗？",
+      "observations": [
+        "目标表项当前 Vector Mask=0，Function Mask=0。脚本拟直接写新 Message Address 和 Data，然后保持解掩。",
+        "其他表项无变更。验收需要避免设备继续使用缓存中的旧 Address/Data。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝未掩蔽直接写。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明未掩蔽写入结果未定义，解掩时设备必须更新缓存，依据有效掩蔽状态。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "按掩蔽、更新、解掩核对和验收。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["允许保持未掩蔽直接改写或以为只改 Data 就可跳过掩蔽。"],
+      "id": "SSD-F9-15",
+      "referenceAnswer": "拒绝在条目未掩蔽时修改 Address/Data，此时结果未定义。先将目标表项有效掩蔽，改完并确认它的 Address/Data，再从掩蔽变为解掩。设备允许缓存未掩蔽条目，但软件解除条目或 Function 掩蔽而使该条目解掩时，必须更新此前缓存的 Address/Data。核对目标表项和变更后的消息。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 501,
+          "section": "§6.1.4 MSI-X Address/Data caching",
+          "anchor": "changes the Address or Data value"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 501,
+          "section": "§6.1.4 MSI-X Address/Data caching",
+          "anchor": "must update any Address or Data values"
+        }
+      ]
+    },
+    {
+      "family": "dbbuf-new-page-size-invalidates-prior-bound",
+      "split": "challenge",
+      "question": "旧页上成功过，可否批准本次复位后按更小的页尺寸恢复？仅签容量与生效门槛。",
+      "observations": [
+        "旧会话 CC.MPS=1 时 Doorbell Buffer Config 的 Admin CQE 成功；本次 Controller Level Reset 后已按支持设置 CC.MPS=0。",
+        "当前 CAP.DSTRD=2，NSQA=128、NCQA=127（原始值）。实际最大 SQID=128、CQID=127。新页都对齐，控制器已就绪，但未重配。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝按当前 4 KiB 页恢复。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C2",
+          "text": "区分旧成功与复位后失效，给出当前正文通过、SQ128 末字节 4099 越界与 CQ127 在页内。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C3",
+          "text": "修正布局后，重新提交并验证本次 Admin CQE 成功。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2", "P3"]
+        }
+      ],
+      "reject": ["以复位前成功完成替代本次边界检查或重新配置。"],
+      "id": "SSD-F9-06",
+      "referenceAnswer": "不能。旧成功属于旧纪元，设置在 Controller Level Reset 后失效。新页每页 4096，stride=16；正文 16×129=2064 通过，SQ128 的末字节为 4099 越界，CQ127 的末字节为 4083 在页内。先修正容量与槽位布局，再重发 Doorbell Buffer Config，以对应成功 Admin CQE 放行。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 445,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "settings are not retained across a Controller Level Reset"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 445,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "Submission Queue y Tail Doorbell or EventIdx"
+        },
+        {
+          "id": "P3",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 446,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "posts a completion queue entry to the Admin"
+        }
+      ]
+    },
+    {
+      "family": "eventidx-crossing-across-wrap",
+      "split": "challenge",
+      "question": "这一次环尾回绕只写 Shadow Doorbell 就算正确交付了吗？",
+      "observations": [
+        "支持 Doorbell Buffer Config 的控制器已成功完成配置，同一 SQ 的深度为 16。",
+        "同一时点用于判断的旧 Shadow Tail=12，新的 Tail=2，EventIdx=0，按向前推进方向从 12 回绕到 2。驱动只更新了 Shadow 表项。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "该次必须补充写对应实际控制器门铃。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "识别 EventIdx 跨越，比较考虑深度回绕，给出 X=2、Y=6 或等价顺序。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "使用同一 SQ、同一新的 Tail=2。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["直接比较旧值 12 大于 EventIdx 0 而放行只写 Shadow。"],
+      "id": "SSD-F9-05",
+      "referenceAnswer": "不算。按深度 16 计算 X=(2−0) mod16=2，Y=(2−12) mod16=6。X≤Y，推进跨过 EventIdx；除了更新 Shadow，还应写同一 SQ 的实际控制器门铃为 2。核查这一笔写和环绕比较，不用重新配置已经成功的命令。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 702,
+          "section": "§B.5.1 Shadow Doorbell Buffer Overview",
+          "anchor": "Queue wrap conditions shall be taken into account"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 702,
+          "section": "§B.5.2 Example Algorithm",
+          "anchor": "new doorbell value minus the corresponding EventIdx"
+        }
+      ]
+    },
+    {
+      "family": "steering-vector-without-st-entry-outcomes",
+      "split": "challenge",
+      "question": "向量 6 可发 MSI，能要求它固定使用合并表里的第 6 项 tag 吗？",
+      "observations": [
+        "Interrupt Vector Mode，MSI 已分配 0–7；Function 实现 TPH 和 MSI-X，声明 Location=10b。",
+        "ST Table Size 的原始读数为 3，因此实际表项是 0–3。提案按向量 6 硬取表项，另有向量 1 正常路径需要核验写入位置。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝读取表项 6。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分 MSI 0–7 与 ST 表 0–3，并完整说明三种允许的不足范围行为。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "说明向量 1 的正确 Vector Control 位置，对向量 6 取得设备行为证据。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["承诺一律 tag 0，或把表不足当成 MSI 向量 6 未分配。"],
+      "id": "SSD-F9-14",
+      "referenceAnswer": "拒绝强制第 6 项。向量有效和 ST 表项存在是两个门槛。ST 表不足时可对部分事务不用 TPH、使用 tag 0，或按实现定义机制从现有表选取。确定具体设备实际行为后才签向量 6 的路径。向量 1 可索引已声明的合并表，其 tag 位于对应 MSI-X 表项 Vector Control 的 ST 字段。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 608,
+          "section": "§6.17.3 ST Modes",
+          "anchor": "If the ST Table Size is smaller"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 607,
+          "section": "§6.17.2 Steering Tags",
+          "anchor": "significant bytes of the Vector Control register"
+        }
+      ]
+    },
+    {
+      "family": "fused-second-failure-first-status-specific",
+      "split": "challenge",
+      "question": "第二条已经确认失败，能直接归档首条的完成码也必须是失败吗？",
+      "observations": [
+        "支持该 fused operation 的控制器上，已经核对两条命令正确配对。确认第二条 CQE 非成功。",
+        "第一条完成记录缺失，现有验收材料只有 Base Specification，还没有该命令集的 fused 执行规则。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝推定首条失败状态。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分首条失败时次条中止，与次条失败时首条状态由命令集定义。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "要求首条对应 CQE 和适用命令集规则。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["倒用首条失败规则自动标记首条失败或整个 pair 成功。"],
+      "id": "SSD-F9-09",
+      "referenceAnswer": "整对不能签成功，也不能用次条失败推定首条 CQE 的具体状态。Base 规定遇到错误终止；第二条失败时第一条状态由适用 I/O Command Set 的具体序列规定。恢复首条对应的 CQE，并核对该命令集定义后再记录首条状态。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 120,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "completion status of the first command is sequence"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 121,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "for each of the commands"
+        }
+      ]
+    },
+    {
+      "family": "dbbuf-exact-last-byte-admission",
+      "split": "challenge",
+      "question": "这次只签 Shadow Doorbell 和 EventIdx 的槽位边界，最大 ID 对应的条目都在页内吗？",
+      "observations": [
+        "两块分别是页对齐的单独物理页。CC.MPS=0，CAP.DSTRD=0，NSQA 和 NCQA 的原始编码均是 511。",
+        "计划访问的最大 SQID 和 CQID 均是 511，支持性及其他命令前提另行验收。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "确认两个缓冲区的计划槽位可以放下。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "页和步长正确，并分别得到 SQ 末字节 4091、CQ 末字节 4095，说明为何 4095 合法。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "分别以 PRP1/PRP2 为基址，签字限于布局。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["用末字节等于 4095 当成越界。"],
+      "id": "SSD-F9-02",
+      "referenceAnswer": "可以签槽位边界。每页 4096 字节，stride=4，正文条件占 2048 字节。SQ511 Tail 占 4088–4091，CQ511 Head 占 4092–4095，最后一字节合法。两个页相同的偏移从各自 PRP 基址算起。签字只覆盖槽位边界。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 445,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "Submission Queue y Tail Doorbell or EventIdx"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 446,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "value of y is equal to max"
+        }
+      ]
+    },
+    {
+      "family": "steering-vector-entry-full-width-rmw",
+      "split": "challenge",
+      "question": "能在当前 MSI 路径给向量 3 安装 16 位 Steering Tag 0x9B2D 吗？限定表项配置。",
+      "observations": [
+        "Function 同时实现 MSI/MSI-X，使用 MSI，MSI-X 未启用。Interrupt Vector Mode，MSI Multiple Message Enable=2，已分配向量 0–3。",
+        "ST Table Location=10b，ST Table Size 原始值是 3，MSI-X 表至少四项；Extended TPH Requester Supported=1，所需使能已核验。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "批准已确认范围内向量 3 的字段写。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C2",
+          "text": "认可 MSI active 时可用合并表，ST 编码为 N−1，具备 Extended TPH 支持，两路范围均覆盖向量。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C3",
+          "text": "列明具体 Vector Control 表项、两个字节及其位段并保留其他位。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2", "P3"]
+        }
+      ],
+      "reject": ["因 MSI-X 未启用改写其他表。", "交换两个字节或覆盖 Vector Control 其他位。"],
+      "id": "SSD-F9-12",
+      "referenceAnswer": "可对有效向量 3 的合并表项编程。MSI 0–3 和四项 ST 范围同时覆盖 3，MSI-X 禁用时只要 MSI 启用仍可用该合并表。对该 MSI-X 表项 Vector Control 做受控修改，把 0x2D 写到 ST Lower [23:16]，0x9B 写到 ST Upper [31:24]，保留其余位。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 607,
+          "section": "§6.17.2 Steering Tags",
+          "anchor": "even when MSI-X is disabled"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 789,
+          "section": "§7.7.2.8 MSI-X Vector Control",
+          "anchor": "upper 8 bits of a Steering Tag"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 948,
+          "section": "ST Table Size",
+          "anchor": "which is encoded as N-1"
+        }
+      ]
+    },
+    {
+      "family": "dbbuf-allocated-envelope-small-spotcheck",
+      "split": "challenge",
+      "question": "只测过低编号门铃，能据此签 Figure 486 的整个分配范围吗？",
+      "observations": [
+        "CC.MPS=1，每页 8192 字节。CAP.DSTRD=2，NSQA、NCQA 均为未经加一解码的 511。",
+        "两块页的低编号 SQ/CQ 验证成功，没有对高编号做任何访问；报告声称正文不等式等号成立，整个分配窗口可用。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "不能把已测低编号外推到整个分配范围。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "明确 8192 的正文计算通过，按图分别使用 SQ/CQ 端点或给出 CQ 最大字节 16371，指出最大图示范围越界。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "复测变更后最远条目，区分低编号的试验范围。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["仅凭等号或低编号访问放行全范围。"],
+      "id": "SSD-F9-03",
+      "referenceAnswer": "拒绝签全范围。正文条件 16×512=8192，但 Figure 486 的 y=511；SQ Tail 与 CQ Head 的尾字节分别 16355 和 16371，超出两个页的有效范围。低编号通过只证明那批实际测到的槽位。要签全范围需调整配置，使 Figure 486 规定的最远条目在页内。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 445,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "Each buffer supplied with the Doorbell Buffer Config"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 446,
+          "section": "Figure 486 Doorbell Buffer Config",
+          "anchor": "value of y is equal to max"
+        }
+      ]
+    },
+    {
+      "family": "cc-mps-unsupported-live-resize",
+      "split": "challenge",
+      "question": "可以现在把控制器 CC.MPS 写成 2 给新的 PRP 页大小吗？",
+      "observations": [
+        "同一个非 Discovery 控制器 MPSMIN=0、MPSMAX=1，当前 CC.MPS=0，CC.EN=1。新的方案要求 16 KiB 页。",
+        "维护窗口还未授权控制器禁用或重配；本单只签方案。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "不放行当前 16 KiB 在线变更。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "从编码和范围看出 16 KiB 不受支持，另外满足 CC.EN=0 才能改受支持值。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "给出可用尺寸、对应 PRP 以及授权窗口，不触发现场禁用。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["等待 CC.EN=0 后仍允许写 MPS=2。", "允许当前 CC.EN=1 期间写改。"],
+      "id": "SSD-F9-16",
+      "referenceAnswer": "拒绝。16 KiB 对应 MPS=2，已超出这台设备的 MPSMIN/MPSMAX。即便改成受支持的 4 或 8 KiB，修改 CC.MPS 也只能在 CC.EN=0 时进行，须另行授权变更并在重新初始化前按受支持尺寸准备匹配 PRP。当前继续使用已配置的 4 KiB。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 80,
+          "section": "CC.MPS Memory Page Size",
+          "anchor": "CAP.MPSMAX and CAP.MPSMIN fields"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 80,
+          "section": "CC.MPS Memory Page Size",
+          "anchor": "only be modified when CC.EN is cleared"
+        }
+      ]
+    },
+    {
+      "family": "dbbuf-prp2-nonaligned-after-geometry-pass",
+      "split": "challenge",
+      "question": "容量计算合格后，值班人员可以签这次 Doorbell Buffer Config 生效吗？",
+      "observations": [
+        "当前 CC.MPS=0，两个缓冲区的实际用到的槽位末端均在页内，正文条件已通过。PRP1=0x100000，PRP2=0x200080，都是各自分配好的页地址区域。",
+        "命令还没发，工程师想先签快速路径通过。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝以容量合格签当前配置。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "两个 PRP 都按 4 KiB 对齐，PRP2 的 0x80 偏移违反条件，并给出预期的 Invalid Field in Command。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "改成合规 PRP2 后按对应 Admin CQE 核验；识别 PRP2 的用途。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把 PRP2 当页内普通偏移地址使用或提前批准快速路径。"],
+      "id": "SSD-F9-04",
+      "referenceAnswer": "不放行。PRP1 Shadow Doorbell 与 PRP2 EventIdx 都需要按 CC.MPS 页对齐，各占独立单物理页。4 KiB 页下 PRP2 偏移 0x80，地址无效应报 Invalid Field in Command。修正 PRP2，核对其仍指向控制器更新的 EventIdx，并用对应 Admin CQE 成功作为配置生效证据。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 446,
+          "section": "PRP2 EventIdx",
+          "anchor": "buffer shall be memory page aligned"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 446,
+          "section": "Doorbell Buffer Config Command Completion",
+          "anchor": "status code of Invalid Field in Command"
+        }
+      ]
+    },
+    {
+      "family": "fused-message-transport-cqe-identification",
+      "split": "challenge",
+      "question": "能用 PCIe 的单次 SQ Tail 和 CQE.SQID 作为这条消息型链路的验收门槛吗？",
+      "observations": [
+        "NVMe-oF 消息型传输，I/O Command Set 的此 fused operation 已确认支持。成对的 I/O capsule 是同一队列相邻且按 first、second 顺序提交。",
+        "两条 I/O 完成到达同一连接，记录含两条对应的 CID 和成功状态。验收脚本现在要求一笔 MMIO 门铃，并因 CQE.SQID 为 0 拒绝。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "正确否决脚本门铃和 CQE.SQID 判据。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分内存型的一次门铃、消息型按序 capsule 与 NVMe-oF SQID 保留。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "同一连接核验各 CID 的两条 CQE 和状态。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["要求 NVMe-oF 发布 MMIO 门铃或用保留的 SQID 作为完成归因。"],
+      "id": "SSD-F9-10",
+      "referenceAnswer": "撤销这两项失败判据。一次 SQ Tail 更新属于内存队列，消息型要求两 capsule 按序提交。NVMe-oF 的 CQE.SQID 是保留字段。在该连接以相应 CID 独立匹配两条 CQE 并确认成功，才验收该 pair。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 121,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "command capsules shall be submitted in-order"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 160,
+          "section": "Figure 97 CQE Dword 2",
+          "anchor": "reserved field in NVMe over Fabrics implementations"
+        }
+      ]
+    },
+    {
+      "family": "steering-capability-table-location-beats-msix",
+      "split": "challenge",
+      "question": "MSI-X 正在使用，可以直接把向量 2 的低字节 Steering Tag 写进 MSI-X Vector Control 吗？",
+      "observations": [
+        "Function 处于 Interrupt Vector Mode，ST Table Location=01b，ST 表四项，向量 2 已核实在 MSI-X 启用范围内。",
+        "此次只改 8 位 tag 的低部分。脚本发现 MSI-X 已启用就写 MSI-X 表。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝因启用 MSI-X 就写 MSI-X 表。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C2",
+          "text": "Location=01b 的唯一位置与当前中断方式分开，向量 2 仍可用于索引能力表。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C3",
+          "text": "给出能力结构内索引 2 的 ST Entry 与 Lower [7:0]，只改低字段。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2", "P3"]
+        }
+      ],
+      "reject": ["写入 MSI-X Vector Control 或把两处表视作镜像。"],
+      "id": "SSD-F9-13",
+      "referenceAnswer": "拒绝改 MSI-X Vector Control。Location=01b 明确选择 TPH Requester Extended Capability 内的唯一 ST Table，当前使用的中断方式不切换实际位置。对能力内索引 2 的 16 位 ST Entry，只修改 ST Lower [7:0]；保留其他字段。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 607,
+          "section": "§6.17.2 Steering Tags",
+          "anchor": "not in both locations for a given Function"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 949,
+          "section": "§7.9.13.4 TPH ST Table",
+          "anchor": "Each implemented ST Entry is"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 949,
+          "section": "Table 7-197 ST Table Entry",
+          "anchor": "contains the lower 8 bits of a Steering Tag"
+        }
+      ]
+    },
+    {
+      "family": "fused-cqe-cid-collision-shared-cq",
+      "split": "challenge",
+      "question": "两条成功 CQE 都已到这一个 CQ，可以签 SQ3 上的 fused pair 执行成功吗？",
+      "observations": [
+        "PCIe 内存队列已按同一 SQ 相邻、单次 Tail 发布完成。SQ3 的 fused first CID=21、second CID=22。SQ3 和 SQ7 共用同一 CQ。",
+        "有效的新 CQE 为 (SQID=3,CID=21,Success) 与 (SQID=7,CID=22,Success)。没有其他完成记录。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝把两条 CQE 当成该 pair 已成功。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "利用同一 CQ 下的 SQID+CID 分别匹配，清楚标明 SQ7 的条目与目标无关。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "要求目标 SQ3/CID22 的有效完成及状态。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["只按 CID 匹配并批准。"],
+      "id": "SSD-F9-07",
+      "referenceAnswer": "不能签整对成功。PCIe 共享 CQ 用 SQID 与 CID 一起匹配命令。第一个属于 SQ3 的首条；第二个属于 SQ7。等待并核验 SQID=3/CID=22 的本次有效 CQE 及状态。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 121,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "completion queue entry is posted by the controller"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 160,
+          "section": "Figure 97 CQE Dword 2",
+          "anchor": "in combination with the Command Identifier"
+        }
+      ]
+    },
+    {
+      "family": "fused-first-failure-second-success-conflict",
+      "split": "challenge",
+      "question": "首条报失败、第二条报成功，能按“第二条已完成”签 fused 验收吗？",
+      "observations": [
+        "同一个支持该操作的 PCIe 控制器，I/O SQ5 中相邻且单次门铃提交。两条新的 CQE 通过 SQID 和 CID 匹配到该 pair。",
+        "第一条返回非成功，第二条返回 Successful Completion。没有复位或其他提交混入。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝把该状态组合作为成功验收。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "首条失败时次条必须中止，与次条成功冲突；两条各有 CQE。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "保留并核对同一 pair 两条状态及命令集含义。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["据第二条成功签整个 pair 已成功。"],
+      "id": "SSD-F9-08",
+      "referenceAnswer": "拒签。fused 在任一命令报错处结束，首条失败则第二条必须中止。即使分别有两条 CQE，当前状态组合也不符合该规则。保留与 pair 匹配的两条状态记录，据命令集核对细节，不据第二个成功码确认整个操作成功或直接重跑。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 120,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "second command in the sequence shall be aborted"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 121,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "for each of the commands"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第八轮 · 取证后直接签发",
+      "config": "Codex Sol 单次取证与签发 · 120 秒 · 8 次取证含预取 · 双规范同一语料",
+      "results": [
+        {
+          "caseId": "SSD-F9-11",
+          "status": "completed",
+          "answer": "**处置** 拒绝覆盖 bits 31:16 和发送扩展 Steering Tag，允许仅更新 ST Lower\n\n**判定条件**\n- ST Lower（bits 23:16）在同一 Function 实现 TPH Requester Extended Capability 且 ST Table Location=10b 时必须可读写。现场满足这两个条件，目标向量也在两表范围内，可写入 0x19。（PCIe PDF p.789、947–948）\n- ST Upper（bits 31:24）还要求 Extended TPH Requester Supported=1，才是必须可读写的 Steering Tag 高字节。现场为 0，该字段可实现为 RW 或 RsvdP，但修改其他 Vector Control 位时必须保留其现值，否则结果未定义。默认值 00h 不替代现值。（PCIe PDF p.789）\n- 独立 ST 表仅在 ST Table Location=01b 时实现，与 MSI-X 合并表互斥。独立表的 ST Upper 同样要求 Extended TPH Requester Supported=1，否则为 RsvdP。现场为 10b，无法改走独立表。（PCIe PDF p.607、947、949–950）\n- 发送扩展 Steering Tag 要求 Function 支持生成带 TPH TLP Prefix 的请求，且 TPH Requester Enable=11b。现场支持位为 0，发送条件不成立。Enable 的默认值 00b 禁止两类 TPH 请求，01b 仅允许普通 TPH，10b 保留。（PCIe PDF p.947–949）\n\n**必要核验** 执行前核验脚本只将目标项的 bits 23:16 更新为 0x19，并保留其余 Vector Control 位的现值。若仍要求在合并表写入完整 0xA519，须由同一 Function 报告 Extended TPH Requester Supported=1，并满足上述发送门槛后才可发送扩展 Steering Tag。（PCIe PDF p.789、947–949）",
+          "seconds": 31.67,
+          "toolCalls": 7,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝整 16 位覆盖和扩展 tag，按位置 10b 找到目标 Vector Control，准确区分上下字节及扩展支持门槛。只改低字节并保留其余位满足 C3，但字段可写不足以证明应用接受 0x19。采用短 tag 前仍须确认这一点，否则应维持阻断。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.505,
+            "draft": 0,
+            "review": 31.161,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 950
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 788
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-01",
+          "status": "completed",
+          "answer": "**处置** 拒绝将现有两页签给计划中的 CQ256\n\n**判定条件**\n- 每个缓冲区必须各占一个由 CC.MPS 定义的物理页并按页对齐。PRP1 指向 Shadow Doorbell，PRP2 指向 EventIdx。现有两页分别满足对齐和单页要求，各自的有效字节偏移为 0–4095（NVMe PDF pp.445–446）。\n- 正文要求 (4 << CAP.DSTRD) × (max(NSQA, NCQA) + 1) ≤ 2^(12+CC.MPS)。代入原始值为 8 × (256 + 1) = 2056 ≤ 4096，公式通过。图 486 还要求按 SQ 的 2y 或 CQ 的 2y+1 乘以步长定位，末字节为起始偏移加 3，且布局覆盖至 y = max(NSQA, NCQA) = 256（NVMe PDF pp.445–446）。\n- 以各自的 PRP 为基址，计划最大 SQID 32 的条目占偏移 512–515，两页均可容纳。CQID 256 的条目占偏移 4104–4107，两页均越界，每页至少需要覆盖 4108 字节（NVMe PDF pp.445–446）。\n\n**必要核验** 保留当前页大小和步长时，须将 max(NSQA, NCQA) 原始值降至 255 或以下，并确认计划队列 ID 均在重新配置后的范围内。若保留 CQID 256，则须确认控制器支持能让图 486 完整布局落在各自单页内的配置，例如在当前步长下使用 8 KiB 页，并提供两个各自按页对齐的单页。任一路径均须复核正文公式和图 486 的末字节，再核验 Doorbell Buffer Config 的 Admin CQ 完成状态。任一缓冲区地址无效时，规范要求返回 Invalid Field in Command（NVMe PDF pp.445–446）。",
+          "seconds": 28.45,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，分别算出正文容量、SQ 和 CQ 字节边界，并对两个缓冲区提出可执行的重新核验路径。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.392,
+            "draft": 0,
+            "review": 28.052,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-15",
+          "status": "completed",
+          "answer": "**处置** 拒绝按现有顺序执行及验收\n\n**判定条件**\n- 目标表项的 Vector Mask 和 Function Mask 当前均为 0，表项处于解掩状态。此时修改 Message Address 或 Data，结果未定义。（PCIe PDF p.501）\n- 先将目标表项的 Vector Mask 置 1，再在掩码生效期间完成 Address 和 Data 写入，随后清除 Vector Mask，以在 Function Mask=0 时解除掩码。设备可以缓存解掩表项的 Address 和 Data，但在该表项由掩码转为解掩时，必须更新该表项已缓存的 Address 或 Data。（PCIe PDF pp.500–501）\n- 也可先将 Function Mask 置 1，使该 Function 的所有表项均按掩码状态处理，无论各自的 Vector Mask 取值。写入完成后清除 Function Mask 时，目标表项须为 Vector Mask=0 才会随之解掩并触发缓存更新。（PCIe PDF pp.500–501）\n- 掩码期间设备不得发送关联消息，原本需要发送时必须置 Pending。解掩时若 Pending 已置位，设备必须调度发送，并在消息发出后立即清除 Pending。（PCIe PDF p.500）\n- 若验收还要求整个 Function 不再用旧 Address/Data 对发送消息，须核对其他表项是否使用同一对值。只要仍有表项保留旧值，就必须将这些表项全部保持掩码，才能保证该 Function 不使用这对值发送消息。（PCIe PDF p.500）\n\n**必要核验** 核验目标表项在写入前已有效掩码、两项写入均在掩码期间完成，且写入完成后表项确实转为解掩，再验收该表项的缓存更新。",
+          "seconds": 13.77,
+          "toolCalls": 2,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝解掩时直接写入，并说明了有效掩蔽、修改和解掩触发缓存更新的顺序。验收只核对写入时序和掩蔽状态，未明确核对目标表项的新值及解掩后实际消息的 Address/Data。其他表项的掩蔽要求明确限于整个 Function 禁用旧值的附加目标，不会要求本次屏蔽无关中断。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.231,
+            "draft": 0,
+            "review": 13.535,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F9-06",
+          "status": "completed",
+          "answer": "**处置** 拒签当前 4 KiB Doorbell Buffer 恢复\n\n**判定条件**\n- 每个缓冲区须各占一个由 CC.MPS 定义的物理页，PRP1 和 PRP2 均须页对齐。新页已对齐，按 NSQA、NCQA 原始值代入，公式门槛 16 × (128 + 1) = 2064 ≤ 4096 字节成立。（NVMe PDF p.445–446）\n- 图 486 的表项也须落在各自页内。实际 SQID 128 的表项占字节 4096–4099，越出 4 KiB 页。CQID 127 的表项占字节 4080–4083，仍在页内。（NVMe PDF p.445–446）\n- 若保留 4 KiB，须将图 486 的 y = max(NSQA, NCQA) 和实际最大 SQID、CQID 均限制在 127 以内。若采用受支持的 CC.MPS=1，8 KiB 可容纳当前布局，两条路径均须满足容量公式和两个缓冲区的单页对齐要求。（NVMe PDF p.445–446）\n- 规范规定配置不跨 Controller Level Reset 保留。旧会话的成功 CQE 只证明当时配置成功。本次控制器已就绪，但尚未重新配置。（NVMe PDF p.445–446）\n\n**必要核验** 核验本次页尺寸、队列参数、实际队列 ID 和两个缓冲区地址满足上述门槛，再重新提交 Doorbell Buffer Config。收到本次 Admin CQ 的成功完成项后方可使用 Shadow Doorbell。任一缓冲区地址无效时，命令须返回 Invalid Field in Command。（NVMe PDF p.445–446、702）",
+          "seconds": 31.82,
+          "toolCalls": 6,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分复位前后配置，算出当前容量和槽位边界，并要求修正后重配及核验成功完成项。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.415,
+            "draft": 0,
+            "review": 31.401,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 701
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-05",
+          "status": "completed",
+          "answer": "**处置** 拒绝签署，仅更新 Shadow Doorbell 不合规\n\n**判定条件**\n- 支持该功能的控制器已成功完成 Doorbell Buffer Config，主机提交命令时应更新同一 SQ 的 Shadow Tail 表项。NVMe PDF 第 445、702 页。\n- 比较时必须计入回绕。若旧 Shadow Tail ≤ 同一 SQ 的 EventIdx，且新 Tail > 该 EventIdx，主机还必须把控制器对应的 SQ Tail Doorbell 更新为新 Tail。只有未触发该门槛时，才可仅更新 Shadow 表项。NVMe PDF 第 702 页。\n- 本次深度为 16，Tail 从 12 向前回绕到 2，越过了同期 EventIdx=0。按规范示例，(2−0) mod 16 = 2 ≤ (2−12) mod 16 = 6，应同时将对应 SQ Tail Doorbell 写为 2，现场只写了 Shadow 表项。NVMe PDF 第 702 页。\n\n**必要核验** 核验纠正后，触发该门槛的提交已同步写入同一 SQ 的控制器 Tail Doorbell，且写入值与该次提交的新 Shadow Tail 一致。NVMe PDF 第 702 页。",
+          "seconds": 21.06,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确计入回绕，算出 X=2、Y=6，并要求向同一 SQ 的实际门铃写入 2。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.36,
+            "draft": 0,
+            "review": 20.696,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 701
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-14",
+          "status": "completed",
+          "answer": "**处置** 拒绝要求 MSI 向量 6 固定使用 ST 表项 6\n\n**判定条件**\n- Function 实现 TPH 和 MSI-X，ST Table Location=10b 指向 MSI-X 合并表。若同时实现 MSI 和 MSI-X，即使 MSI-X 禁用而 MSI 启用，仍允许使用该合并表。PCIe PDF p.607、pp.947–948。\n- Interrupt Vector Mode 下，MSI 的选择范围由 Multiple Message Enable 限定，启用 MSI-X 时则由 MSI-X Table Size 限定。ST Table Size 按 N−1 编码，原始值 3 仅提供表项 0–3。向量 6 虽在已分配的 MSI 0–7 内，仍无对应 ST 表项。PCIe PDF pp.607–608、p.948。\n- ST 表小于已启用的向量范围时，Function 可对某些事务不使用 TPH，或使用 TPH 并令 Steering Tag 为 0，或以实现定义的机制从现有 ST 表中选择 tag。现场证据未确定采用哪条路径。PCIe PDF p.608。\n- 向量 1 落在已启用的 MSI 范围和 ST 表范围内，直接索引路径使用 MSI-X 表项 1 的 Vector Control。具备 TPH Requester Extended Capability 且 Location=10b 时，ST Lower[23:16] 可读写。ST Upper[31:24] 还要求 Extended TPH Requester Supported 置位，否则修改其他 Vector Control 位时须保留该字段。PCIe PDF pp.607–608、p.789。\n\n**必要核验** 若要放行向量 6 直接索引，须确认同一 Function 的 MSI 启用范围仍覆盖向量 6，且有效 ST Table Size 原始值至少为 6。若采用实现定义的选取路径，须核实实际映射。写入向量 1 前，核对 MSI-X 表项 1 的 Vector Control 及 Extended TPH Requester Supported 位。PCIe PDF pp.607–608、p.789、p.948。",
+          "seconds": 25.91,
+          "toolCalls": 6,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分向量与 ST 表范围，列出三种允许行为，并说明向量 1 的位置及向量 6 所需的行为证据。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.438,
+            "draft": 0,
+            "review": 25.466,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-09",
+          "status": "completed",
+          "answer": "**处置** 拒绝将首条完成码归档为必然失败\n\n**判定条件**\n- 已确认控制器支持该 fused operation，且两条命令正确配对。两条命令按顺序作为原子单元执行，任一条遇错即结束操作。（NVMe PDF p.120）\n- 若首条失败，第二条必须中止。若执行到第二条时失败，首条完成状态由适用 I/O Command Set 的 Fused Operation 条款按该序列定义。（NVMe PDF p.120）\n- 现场仅确认第二条 CQE 非成功。若其状态为 Command Aborted due to Failed Fused Command，则该状态表示同一操作的另一条命令失败。控制器为两条命令分别发布 CQE。（NVMe PDF pp.121、163）\n\n**必要核验** 核对同一次配对的第二条 CQE 完整状态码。若该码确认第二条因首条失败而中止，可归档首条失败。若确认第二条自身失败，须查适用命令集对该序列的规定，只有该规定要求首条失败时才可据此归档。若归档要求具体完成码，须取得同次首条 CQE 或由适用条款唯一确定该码。",
+          "seconds": 15.91,
+          "toolCalls": 3,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝从次条非成功直接推定首条失败，也区分了次条因首条失败而中止和次条自身失败两种情形。专用中止码可证明首条失败，但不能给出首条的具体完成码。原答允许以唯一确定该码的条款代替首条 CQE，未完整要求恢复同次首条 CQE 并核对适用规则。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.347,
+            "draft": 0,
+            "review": 15.56,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 163
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 164
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-02",
+          "status": "completed",
+          "answer": "**处置** 签发：两块缓冲区的最大 ID 条目均在各自页内\n\n**判定条件**\n- 每块缓冲区须占一个物理内存页并按页对齐。现场两块均满足，CC.MPS=0 对应每页 4096 字节，有效偏移为 0x000–0xFFF。Shadow Doorbell 以 PRP1 为基址，EventIdx 以 PRP2 为基址（NVMe PDF p.445–446）。\n- 控制器须满足 (4 << CAP.DSTRD) × (max(NSQA, NCQA)+1) ≤ 2^(12+CC.MPS)。代入原始编码 511 和 CAP.DSTRD=0，得 2048 ≤ 4096（NVMe PDF p.445）。\n- Figure 486 取 y=max(NSQA, NCQA)=511，步长为 4 字节。两块缓冲区内，SQID 511 的尾槽偏移为 0xFF8–0xFFB，CQID 511 的头槽偏移为 0xFFC–0xFFF，末字节均在页内（NVMe PDF p.445–446）。",
+          "seconds": 15.28,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "两页分别以各自 PRP 为基址，槽位末字节及页内判定正确，签发范围限于槽位边界。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.322,
+            "draft": 0,
+            "review": 14.952,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-12",
+          "status": "completed",
+          "answer": "**处置** 允许配置向量 3 的 16 位 Steering Tag 0x9B2D\n\n**判定条件**\n- Function 同时实现 MSI 和 MSI-X，且 ST Table Location=10b。规范允许在 MSI 已启用、MSI-X 已禁用时使用合并在 MSI-X 表中的 ST Table。（PCIe PDF p.607、948）\n- Interrupt Vector Mode 按当前启用的 MSI 向量号索引。Multiple Message Enable=2 对应 4 个已分配向量，向量 3 在 0–3 范围内。ST Table Size 按 N−1 编码，原始值 3 对应 4 项，且 MSI-X 表至少有 4 项，因此向量 3 有对应表项。（PCIe PDF p.607–608、777、948）\n- 已实现 TPH Requester Extended Capability 且 ST Table Location=10b，ST Lower 必须可读写。Extended TPH Requester Supported=1 进一步满足 ST Upper 必须可读写的条件，所需使能也已核验。（PCIe PDF p.789）\n- 仅配置 MSI-X 表中索引 3 的 Vector Control 标签字段。将 ST Lower [23:16] 写为 0x2D，将 ST Upper [31:24] 写为 0x9B，保留其余位。（PCIe PDF p.607、789）",
+          "seconds": 31.78,
+          "toolCalls": 8,
+          "review": {
+            "usability": "ready",
+            "reason": "正确批准向量 3，并核对 MSI、表项范围及扩展支持；字节、位段和保留位处置均正确。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.239,
+            "draft": 0,
+            "review": 31.531,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 776
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 777
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-03",
+          "status": "completed",
+          "answer": "**处置** 拒签 Figure 486 整个分配范围\n\n**判定条件**\n- 正文要求每个缓冲区各占一个由 CC.MPS 定义的物理页，且控制器须满足 (4 << CAP.DSTRD) × (max(NSQA, NCQA) + 1) ≤ 2^(12 + CC.MPS)。现场代入为 16 × 512 = 8192 字节，等号成立（NVMe PDF p.445）。\n- Figure 486 在 PRP1 指向的 Shadow Doorbell 页和 PRP2 指向的 EventIdx 页上分别使用相同的偏移规则，最高 y 取原始字段值 max(NSQA, NCQA) = 511。SQ y 和 CQ y 的槽位分别从 2y × 16 和 (2y + 1) × 16 开始，各占 4 字节（NVMe PDF pp.445–446）。\n- 两页的有效字节偏移均为 0–8191，SQ 511 占 16352–16355，CQ 511 占 16368–16371，均超出单页。低编号 SQ/CQ 的成功记录仅覆盖已测槽位，现场没有高编号访问记录（NVMe PDF pp.445–446）。\n\n**必要核验** 放行前须同时满足正文不等式，并核对两页中 Figure 486 的最高 SQ 和 CQ 槽位末字节均小于页大小。若保持 8192 字节页和 16 字节步长，原始 max(NSQA, NCQA) 须不超过 255。若保持原始值 511 和 16 字节步长，须核验控制器支持且实际配置了至少 16384 字节的页，并确认两个缓冲区各占一个相应物理页且页对齐（NVMe PDF pp.445–446）。",
+          "seconds": 19.04,
+          "toolCalls": 3,
+          "review": {
+            "usability": "revise",
+            "reason": "拒签正确。正文计算等于 8192，但最高 SQ、CQ 槽位的末字节分别为 16355、16371，均已越界。原答明确限定了低编号试验的覆盖范围，也给出了调整门槛，但只要求核算变更后的端点，未要求实际复测两页的最远条目。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.346,
+            "draft": 0,
+            "review": 18.681,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-16",
+          "status": "completed",
+          "answer": "**处置** 拒绝写入 CC.MPS=2，维持 CC.MPS=0\n\n**判定条件**\n- NVMe 规定 CC.MPS 仅可在 CC.EN 清为 0 时修改，且写入值必须受 CAP 支持。当前 CC.EN=1，维护窗口也未授权禁用或重配。〔NVMe PDF p.80〕\n- 页大小为 2^(12+MPS) 字节。16 KiB 要求 CC.MPS=2，但本控制器的 MPSMIN=0、MPSMAX=1 仅允许 4 KiB 或 8 KiB。即使获准禁用，当前控制器仍不能配置 16 KiB。〔NVMe PDF pp.75, 80〕\n- PRP 页大小和偏移位宽由 CC.MPS 决定，当前使用 4 KiB。PCIe SR-IOV System Page Size 用于 VF 地址映射和 BAR 对齐，无法放宽 NVMe 的 CAP 限制。〔NVMe PDF pp.80, 173；PCIe PDF pp.1112, 1134〕\n\n**必要核验** 若保留 16 KiB 要求，须确认目标控制器满足 MPSMIN ≤ 2 ≤ MPSMAX。若沿用当前控制器，须把方案改为 4 KiB 或 8 KiB，沿用当前 4 KiB 无需写入。任何实际变更均须先获维护授权，并在确认目标控制器 CC.EN=0 后写入。〔NVMe PDF pp.75, 80〕",
+          "seconds": 17.42,
+          "toolCalls": 3,
+          "review": {
+            "usability": "revise",
+            "reason": "16 KiB 对应的 MPS=2 超出范围，原答正确拒写，并保留了维护授权和 CC.EN=0 两项条件。它说明了 PRP 页大小随 MPS 变化，但若方案改用 8 KiB，仍漏写重新初始化前准备匹配尺寸 PRP 的步骤。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.389,
+            "draft": 0,
+            "review": 17.025,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 173
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 174
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 80
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 81
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-04",
+          "status": "completed",
+          "answer": "**处置** 拒绝签发生效\n\n**判定条件**\n- 每个缓冲区须各占一个由 CC.MPS 定义的物理页，且须满足 (4 << CAP.DSTRD) × (max(NSQA, NCQA) + 1) ≤ 2^(12 + CC.MPS)。题面已确认容量条件通过，CC.MPS=0 对应 4 KiB 页（NVMe PDF p.445）。\n- PRP1 指向 Shadow Doorbell，PRP2 指向 EventIdx，两者的基址均须页对齐。PRP1=0x100000 已对齐，PRP2=0x200080 偏离页首 0x80。槽位均在页内仍须满足基址对齐条件（NVMe PDF p.446）。\n- 任一缓冲区地址无效时，控制器须返回 Invalid Field in Command。命令完成时，控制器在 Admin Completion Queue 发布状态。现场尚未发命令，尚无实际完成状态（NVMe PDF p.446）。\n- Identify Controller 的 OACS.DBCS=1 表示支持该命令，=0 表示不支持。题面尚未提供该位的读数（NVMe PDF p.330）。\n\n**必要核验** 确认当前控制器 OACS.DBCS=1，将 PRP2 改为有效 EventIdx 物理页的 4 KiB 对齐基址，复核两缓冲区各占一页且容量条件仍满足，再提交命令。收到该命令的 Admin Completion Queue 成功完成项后方可签发生效（NVMe PDF pp.330、445–446）。",
+          "seconds": 22.5,
+          "toolCalls": 6,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，指出 PRP2 未对齐及预期状态，并要求修正后核验本次成功完成项。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.366,
+            "draft": 0,
+            "review": 22.127,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-10",
+          "status": "completed",
+          "answer": "**处置** 拒用现有门槛，本次记录符合消息型验收条件\n\n**判定条件**\n- 单次 SQ Tail 门铃更新仅适用于 PCIe 等内存型队列，且同一次更新必须覆盖两条 fused 命令。现场为 NVMe-oF 消息型传输，适用按序提交 capsule 的路径，无需 MMIO 门铃。（NVMe PDF p.59、121）\n- fused 命令须在同一 SQ 相邻提交，FUSE 依次为 first（01b）和 second（10b），若首条位于队尾则第二条位于队首。违反配对条件时，控制器须以 Missing Fused Command 中止相应的非零 FUSE 命令。现场已确认支持该操作，且两条 capsule 同队列、相邻、按序提交。（NVMe PDF p.120–121）\n- CQE.SQID 在 NVMe-oF 中是保留字段，值为 0 不构成拒收理由。多个 SQ 共享一个 CQ 且 SQID 适用时，才用 SQID 与 CID 联合识别完成项。（NVMe PDF p.160–161）\n- 控制器须为两条命令各返回一条完成。现场同一连接上的两条完成均有对应 CID 和成功状态，满足本次完成验收。若传输在同一连接上承载多个队列，须结合该传输的队列归属与 CID 确认对应关系。（NVMe PDF p.114、121、161）",
+          "seconds": 33.75,
+          "toolCalls": 8,
+          "review": {
+            "usability": "ready",
+            "reason": "正确撤销两项门槛，并按消息型顺序提交及同连接 CID、完成状态核验。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.457,
+            "draft": 0,
+            "review": 33.279,
+            "other": 0.01
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 161
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 117
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 162
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 114
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-13",
+          "status": "completed",
+          "answer": "**处置** 拒绝写入 MSI-X Vector Control，改写 TPH ST 表\n\n**判定条件**\n- Interrupt Vector Mode 用有效的 MSI/MSI-X 向量号索引 ST 表。向量 2 已核实在 MSI-X 启用范围内，也落在四项 ST 表的索引 0–3 内。（PCIe PDF p.607–608、p.948）\n- 现场 ST Table Location=01b，ST 表位于 TPH Requester Extended Capability。写向量 2 对应表项的 ST Lower[7:0]，保留该 16 位表项的高字节。（PCIe PDF p.947–950）\n- 只有 Function 实现 TPH Requester Extended Capability 且 ST Table Location=10b，MSI-X Vector Control[23:16] 才是可读写的 ST Lower。现场为 01b，MSI-X 已启用也不能放行这条路径。修改 Vector Control 的其他位时须保留该字段，否则结果未定义。（PCIe PDF p.789、p.947–948）\n\n**必要核验** 执行前确认脚本按 ST Table Location 选择目标，并将本次写入限定为 TPH ST 表索引 2 的低 8 位。（PCIe PDF p.949–950）",
+          "seconds": 21.13,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝写 MSI-X Vector Control，按 Location=01b 选择能力结构内的表，并限定只修改索引 2 的低字节。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.451,
+            "draft": 0,
+            "review": 20.67,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 788
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 950
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-07",
+          "status": "completed",
+          "answer": "**处置** 拒签 SQ3 fused pair 执行成功\n\n**判定条件**\n- 内存队列要求两条命令在同一 SQ 相邻提交，若首条在队尾则次条回绕至队首，且一次 SQ Tail 门铃更新必须同时发布两条。现场已满足提交条件。（NVMe PDF pp.120–121）\n- 共享 CQ 用 SQID 与 CID 的组合唯一识别已完成命令，控制器为 fused pair 的每条命令分别发布 CQE。现有 Success 分别属于 (3,21) 和 (7,22)，SQ3 的 (3,22) 尚无完成记录。（NVMe PDF pp.121,160）\n- 两条命令须按顺序作为原子单元执行，任一条遇错即结束。首条失败时次条须中止，次条失败时首条状态由适用 I/O Command Set 定义。因此首条 Success 仍允许次条失败的可能。（NVMe PDF p.120）\n\n**必要核验** 核验同一次 SQ3 提交的有效新 CQE (SQID=3,CID=22)，确认其状态为 Success 后，与已有的 (3,21,Success) 一并签发。（NVMe PDF pp.29,120–121,160）",
+          "seconds": 16.15,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分共享 CQ 中的 SQID 和 CID，要求等待并核验 SQ3 的第二条成功完成。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.356,
+            "draft": 0,
+            "review": 15.785,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 163
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 164
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-08",
+          "status": "completed",
+          "answer": "**处置** 拒签 fused 验收\n\n**判定条件**\n- 有效 fused pair 要求控制器支持该组合，两条 SQE 按 FUSE=01b、10b 的顺序在同一 SQ 相邻，跨尾时首尾相接，并由一次 SQ Tail 门铃更新同时提交。题面已满足支持、SQ5 相邻和单次门铃，仍需核对当次 SQE 的 FUSE。NVMe PDF pp.120–121。\n- 有效 pair 必须按顺序作为原子单元执行，任一条出错即停止。若首条失败，第二条必须中止，对应 Command Aborted due to Failed Fused Command。现场第二条报 Successful Completion，与该路径冲突。若实际是第二条失败，首条状态由适用 I/O Command Set 规定。NVMe PDF pp.120、163。\n- 控制器若处理了缺少正确相邻搭档的 fused 命令，必须以 Command Aborted due to Missing Fused Command 中止 FUSE 非零的命令。若第二条实际为 FUSE=00b，其成功只适用于普通命令。两条新 CQE 经 SQID 和 CID 匹配，仍需用当次 SQE 确认配对。NVMe PDF pp.120–121、163。\n\n**必要核验** 核对本次门铃对应的原始 SQE 的操作码、FUSE 和队列位置，以及匹配 CQE 的原始 SCT/SC。若确认是有效 pair 且首条失败、第二条报成功，维持拒签。复验时，首条失败须对应第二条因另一条失败而中止，才能通过该失败用例。若要签两条均成功，须取得同一有效 pair 的两条成功 CQE。NVMe PDF pp.120–121、163。",
+          "seconds": 24.48,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "拒签正确。两条命令各有匹配的 CQE，首条失败要求次条中止，与实测次条成功冲突。原答要求核对原始状态码，也提及适用命令集，但未明确将两条状态关联留存。补查当次 SQE 不影响拒签。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.334,
+            "draft": 0,
+            "review": 24.141,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 163
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 164
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "第九轮 · 核对边界与验收记录",
+      "config": "相同模型、语料与预算 · 预取门铃/Fused/Steering Tag 核验条款 · 按字节检查门铃布局 · 单次签发",
+      "results": [
+        {
+          "caseId": "SSD-F9-11",
+          "status": "completed",
+          "answer": "**处置** 拒绝全 16 位写入及发送 Extended TPH\n\n**判定条件**\n- 同一 Function 实现 TPH Requester Extended Capability，且 ST Table Location=10b、目标向量在 MSI-X 和 ST 表范围内，因此目标字段位于该向量的 MSI-X Vector Control。ST Lower[23:16] 必须可读写，可单独写入 0x19 并保留其余位。（PCIe PDF pp. 607、789、947–948）\n- ST Upper[31:24] 只有在实现该 Capability、ST Table Location=10b 且 Extended TPH Requester Supported=1 时才是保证可读写的标签高字节。现场支持位为 0，该字段允许为 RW 或 RsvdP，修改其他位时必须保留 RsvdP 的原值，因此拒绝用 0xA5 覆盖高字节。Location=01b 才使用 Capability 内的独立 ST 表，当前 Function 的合并表没有该备选写入位置。（PCIe PDF pp. 607、789、947、949）\n- Extended TPH 请求需要支持位为 1 且 TPH Requester Enable=11b。现场支持位为 0，不能发送带 TPH TLP Prefix 的扩展请求。Enable 默认 00b，禁止两类 TPH 请求，01b 仅允许普通 TPH，10b 为保留编码。（PCIe PDF pp. 947–949）\n- 普通 TPH 使用 8 位标签。要让请求从该向量表项取值，Function 须支持并选中 Interrupt Vector Mode（ST Mode Select=001b），且按当前启用的 MSI-X 表大小或 MSI Multiple Message Enable 核对向量范围，目标也须在 ST 表内。No ST Mode（默认 000b）使用全零标签，Device Specific Mode 可从设备特定机制选取标签。（PCIe PDF pp. 133、607–608、947–948）\n\n**必要核验** 放行低字节更新前，将脚本改为仅更新该向量 Vector Control[23:16]=0x19，并保留高字节及其余位。若还要验证普通 TPH 请求使用该表项，核对该 Function 的 TPH Requester Enable=01b、Interrupt Vector Mode Supported=1、ST Mode Select=001b 和当前启用的向量范围，并确认 Requester、Completer 及所有中间路由元素支持相应 TPH 能力。（PCIe PDF pp. 608、789、947–949）",
+          "seconds": 29.32,
+          "toolCalls": 7,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝整 16 位覆盖和扩展 tag，准确定位 Lower/Upper 字段，并要求只更新低字节、保留其余位。低字节更新满足 C3，但放行前漏核应用能否接受 0x19 替代 0xA519；普通 TPH 能力和模式检查无法回答这一点。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.371,
+            "draft": 0,
+            "review": 28.943,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 82
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 81
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 133
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 134
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-01",
+          "status": "completed",
+          "answer": "**处置** 拒绝签发现有页面供 CQID 256 使用\n\n**判定条件**\n- 正文要求每个缓冲区各占一个 CC.MPS 定义的物理页，且 (4 << CAP.DSTRD) × (max(NSQA, NCQA) + 1) ≤ 2^(12+CC.MPS)。现场 PRP1、PRP2 各指向一个独立对齐的 4096 字节页，步长为 8 字节，正文公式 2056 ≤ 4096 成立（NVMe PDF p.445–446）。\n- Figure 486 对两个缓冲页分别按各自 PRP 基址计偏移，SQ Tail 从 2q×8 起，CQ Head 从 (2q+1)×8 起，末字节均为起点加 3，必须小于 4096。图示全范围 y=max(63,256)=256，其 SQ Tail 占 4096–4099，CQ Head 占 4104–4107，均越界（NVMe PDF p.445–446）。\n- 计划实际触及的 SQID 32 Tail 占 512–515，两页均容纳。CQID 256 Head 占 4104–4107，两页均越界，正文公式通过仍无法放行（NVMe PDF p.445–446）。\n- 维持 4 KiB 页和 8 字节步长时，放行须使重配后的 y≤255，且计划实际访问的 SQID、CQID 均在配置范围内并逐项满足页内边界。若保留 CQID 256，则须采用控制器支持且能覆盖图示全范围及计划条目的更大 CC.MPS，并重新核验正文公式和两页边界（NVMe PDF p.445–446）。\n\n**必要核验** 重配后核对 CC.MPS、CAP.DSTRD、NSQA/NCQA 和实际最大 SQID/CQID。核实 PRP1 指向独立对齐的 Shadow Doorbell 单页并由主机更新，PRP2 指向独立对齐的 EventIdx 单页并由半虚拟化控制器更新。取得本次 Doorbell Buffer Config 的 Admin CQE 成功状态后方可放行，任一缓冲区地址无效时规范要求返回 Invalid Field in Command（NVMe PDF p.445–446）。",
+          "seconds": 21.9,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "拒签及两页的字节边界计算正确，保留了重配和增大页尺寸的处置条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.187,
+            "draft": 0,
+            "review": 21.702,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-15",
+          "status": "completed",
+          "answer": "**处置** 拒签当前顺序，改序后可验收\n\n**判定条件**\n- 目标表项当前 Vector Mask=0 且 Function Mask=0，处于解掩状态。此时修改 Message Address 或 Message Data 的结果未定义，直接写入后保持解掩无法保证旧缓存被刷新。PCIe PDF p.501\n- 写入前可将目标表项的 Vector Mask 置 1，仅屏蔽该表项。另一条路径是将 Function Mask 置 1，使该 Function 的所有表项无论各自 Vector Mask 取值如何都处于屏蔽状态。PCIe PDF p.500\n- 在目标表项保持屏蔽期间完成计划中的 Address 和 Data 写入，再通过清除实际生效的掩码使其从屏蔽转为解掩。发生该转换时，Function 必须更新该表项已缓存的 Address 或 Data。PCIe PDF p.501\n- 屏蔽期间，Function 禁止发送关联消息，并须在原本会发送时置对应 Pending 位。解掩时若 Pending=1，Function 必须安排发送该消息，并在发出后立即清除 Pending 位。若验收还要求整个 Function 停止使用旧 Address/Data 对，则所有仍配置该对的表项都必须屏蔽。PCIe PDF p.500\n\n**必要核验** 采用目标表项的 Vector Mask 路径。验收记录须确认同一表项在首次写入前已屏蔽，两项写入均在屏蔽期间完成，随后在 Function Mask=0 时清除 Vector Mask，使目标表项实际解掩。PCIe PDF pp.500–501",
+          "seconds": 13.33,
+          "toolCalls": 2,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝解掩时直接写，说明了结果未定义、两种有效掩蔽路径及实际解掩时必须更新缓存。验收记录只核对写入时序，未核对目标表项的新 Address/Data，也未验证解掩后的消息使用新值。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.229,
+            "draft": 0,
+            "review": 13.09,
+            "other": 0.009
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F9-06",
+          "status": "completed",
+          "answer": "**处置** 拒绝按 4 KiB 页恢复\n\n**判定条件**\n- 每个缓冲区都必须是一个由 CC.MPS 定义的物理页。当前 CC.MPS=0，每页 4096 字节，CAP.DSTRD=2，步长为 16 字节。正文容量公式为 16×(max(128,127)+1)=2064≤4096，满足该门槛（NVMe PDF p.445）。\n- 图 486 规定 y=max(NSQA,NCQA)=128。两页各自的条目末字节必须小于 4096，但全范围的 SQ 128 Tail 和 CQ 128 Head 分别占用偏移 4096–4099 和 4112–4115，均越界（NVMe PDF pp.445–446）。\n- 按计划实际访问的最大 ID 复核，每页的 CQ 127 Head 占用偏移 4080–4083，页内可容纳。SQ 128 Tail 占用偏移 4096–4099，仍越界，因此仅将实际 CQID 限制为 127 无法放行（NVMe PDF pp.445–446）。\n- Controller Level Reset 不保留 Doorbell Buffer Config 设置。旧会话的成功 CQE 仅证明旧命令完成成功。当前两页已对齐且控制器已就绪，仍须重新提交命令并取得本次 Admin CQE 成功。PRP1 指向由主机更新的 Shadow Doorbell，PRP2 指向由半虚拟化控制器更新的 EventIdx，两页均须按所选页尺寸对齐。任一缓冲区地址无效时，命令须返回 Invalid Field in Command（NVMe PDF pp.445–446、702）。\n\n**必要核验** 可在控制器支持并正确设置 CC.MPS=1 时使用两个各自对齐的 8192 字节页，当前分配与计划访问均可容纳。若保留 CC.MPS=0，则须使原始 NSQA、NCQA 均不超过 127，并确认实际最大 SQID、CQID 均不超过 127 且属于分配范围。任一路径均须按最终参数通过正文容量公式和图 486 页界核验，并在控制器就绪后提交 Doorbell Buffer Config，收到本次 Admin CQE 成功方可启用（NVMe PDF pp.445–446、702）。",
+          "seconds": 21.05,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝当前恢复，计算正文及实际槽位边界，并要求修正布局后重配及核验本次成功 CQE。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.161,
+            "draft": 0,
+            "review": 20.88,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-05",
+          "status": "completed",
+          "answer": "**处置** 拒绝签署\n\n**判定条件**\n- 控制器支持 Doorbell Buffer Config 且已成功完成配置，因此主机提交命令时应先更新同一 SQ 的 Shadow Tail 表项。NVMe PDF 文件页 702，B.5.1。\n- 计入环尾回绕后，旧 Tail=12 沿提交方向先到达 EventIdx=0，再推进至新 Tail=2，满足“从小于或等于 EventIdx 变为大于 EventIdx”，因此还必须把同一 SQ 的控制器 Tail Doorbell 写为 2。现场仅更新了 Shadow Tail。NVMe PDF 文件页 702，B.5.1。\n- 按队列深度 16 取模，X=(2−0) mod 16=2，Y=(2−12) mod 16=6。示例算法在 X≤Y 时要求更新控制器门铃，只有 X>Y 时才可仅写 Shadow。控制器可随时更新 EventIdx，本次判定采用同期读数。NVMe PDF 文件页 702，B.5.1–B.5.2。\n\n**必要核验** 复验放行时，核对同一 SQ 在同期旧 Shadow Tail=12、新 Tail=2、EventIdx=0 的回绕条件下，先将 Shadow Tail 更新为 2，再将控制器的 SQ Tail Doorbell 写为 2。NVMe PDF 文件页 702，B.5.1。",
+          "seconds": 11.94,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确判断回绕跨越 EventIdx，计算 X=2、Y=6，并要求更新同一 SQ 的实际 Tail Doorbell 为 2。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.148,
+            "draft": 0,
+            "review": 11.79,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-14",
+          "status": "completed",
+          "answer": "**处置** 拒绝要求向量 6 固定使用第 6 项；允许按字段权限配置向量 1\n\n**判定条件**\n- 该 Function 实现 TPH 和 MSI-X，Location=10b 指向合并在 MSI-X 表中的 ST Table。规范允许在 MSI 已启用、MSI-X 已禁用时继续使用该合并表。〔PCIe PDF p.607、947–948〕\n- Interrupt Vector Mode 按 MSI/MSI-X 向量号索引 ST Table。向量 6 在 MSI 已启用的 0–7 范围内，但 ST Table Size 按 N−1 编码，原始值 3 只提供表项 0–3。按向量 6 直接取第 6 项须同时满足 MSI 启用范围覆盖 6 且 ST Table Size 原始值至少为 6。〔PCIe PDF p.607–608、948〕\n- ST Table 小于已启用向量范围时，规范允许对某些事务省略 TPH、使用 TPH 且 Steering Tag 为 0，或按实现定义的机制从现有 ST Table 选 tag。现场证据尚未确定该 Function 采用哪条路径。〔PCIe PDF p.608〕\n- 向量 1 同时落在 MSI 已启用范围和 ST Table 范围内。写 MSI-X Table 表项 1 的 Vector Control：ST Lower[23:16] 可读写，ST Upper[31:24] 在 Extended TPH Requester Supported 置位时才有规范保证可作为 tag 高字节写入；否则保留高字节，且每次写入均保留其余字段。〔PCIe PDF p.607–608、789〕\n\n**必要核验** 向量 1 如需写高字节，先读 TPH Requester Capability 的 Extended TPH Requester Supported 位并确认置位。若验收实际发出的带 tag 请求，还须核对 TPH Requester Enable，普通 TPH 允许 01b 或 11b，Extended TPH 须为 11b。若拟接受向量 6 通过实现定义机制固定选用某个现有表项，须取得该 Function 针对向量 6 的映射依据。〔PCIe PDF p.608、789、947–949〕",
+          "seconds": 28.96,
+          "toolCalls": 6,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分向量范围与表项范围，列全三种允许行为，并指出向量 1 的写入位置及向量 6 的设备证据要求。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.316,
+            "draft": 0,
+            "review": 28.637,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-09",
+          "status": "completed",
+          "answer": "**处置** 暂缓归档首条完成码\n\n**判定条件**\n- 现场已确认控制器支持该 fused operation，且两条命令正确配对。规范要求同一 SQ 相邻提交，跨队尾时从末槽接首槽。内存型传输须用一次 SQ Tail doorbell 更新涵盖两条命令，消息型传输须按序提交两个 capsule。NVMe PDF 第 120–121 页。\n- 两条命令按顺序作为原子单元执行，遇到任一命令出错即结束。若首条失败，第二条必须被中止。第二条 CQE 非成功与这一路径相容，现有记录不足以确认该路径已发生。NVMe PDF 第 120 页。\n- 若第二条在执行中失败，首条完成状态取决于该序列，由适用 I/O Command Set 规范的 Fused Operation 章节定义。现场缺少该规则，不能据第二条 CQE 非成功断定首条必为失败。NVMe PDF 第 120 页。\n- 控制器为两条命令分别发布 CQE。PCIe 下多个 SQ 共享 CQ 时，按 SQID 和 CID 匹配首条 CQE。NVMe-oF 的 CQE.SQID 为保留字段。NVMe PDF 第 121、160 页。\n\n**必要核验** 找回同次操作首条命令的 CQE，匹配后按其 Status 归档。若首条 CQE 无法找回，核对适用命令集的 Fused Operation 规则及同次操作第二条 CQE 的具体 Status。仅当规则与同期证据共同唯一确定首条完成码时，才按推导结果归档。",
+          "seconds": 13.0,
+          "toolCalls": 2,
+          "review": {
+            "usability": "revise",
+            "reason": "暂缓归档正确，也区分了次条被中止与次条执行失败。原答仅在找不回首条 CQE 时要求核对命令集规则；找回后便按 Status 归档，漏了对该完成码在此序列中含义的核对。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.145,
+            "draft": 0,
+            "review": 12.853,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-02",
+          "status": "completed",
+          "answer": "**处置** 签发槽位边界核验，两页的最大 ID 条目均在页内\n\n**判定条件**\n- Shadow Doorbell（PRP1）与 EventIdx（PRP2）各自占用一个页对齐的物理页。CC.MPS=0 对应每页 4096 字节，Figure 486 的偏移分别从各自页基址起算（NVMe PDF p.445–446）。\n- 正文要求 (4 << CAP.DSTRD) × (max(NSQA, NCQA)+1) ≤ 2^(12+CC.MPS)。代入原始编码得 4 × 512 = 2048 ≤ 4096，满足正文容量条件（NVMe PDF p.445）。\n- Figure 486 定义 y=max(NSQA, NCQA)=511，现场计划的最大 SQID 和 CQID 也均为 511。按 4 字节步长和含末字节的偏移计算，两页各自的 SQ 511 Tail 占 4088–4091，CQ 511 Head 占 4092–4095，均在 0–4095 的页内范围（NVMe PDF p.445–446）。",
+          "seconds": 14.35,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "两页的基址、容量条件及最大槽位末字节均正确，签发范围限于槽位边界。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.157,
+            "draft": 0,
+            "review": 14.182,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-12",
+          "status": "completed",
+          "answer": "**处置** 批准在当前 MSI 路径为向量 3 配置 0x9B2D\n\n**判定条件**\n- PCIe 允许同时实现 MSI 和 MSI-X 的 Function 在 MSI 启用且 MSI-X 禁用时使用合并表。ST Table Location=10b 指向 MSI-X 表，符合当前路径（PCIe PDF p.607、947–948）。\n- Interrupt Vector Mode 按有效向量号索引 ST 表。当前 MSI 的 Multiple Message Enable=2（010b）允许四个向量，现场已分配 0–3。ST Table Size 按 N−1 编码，原始值 3 表示四项，且 MSI-X 表至少四项，因此向量 3 和表项索引 3 均在范围内（PCIe PDF p.500、607–608、948）。\n- TPH Requester Extended Capability 的 ST Table Location=10b 使 ST Lower 可读写，Extended TPH Requester Supported=1 进一步使 ST Upper 可读写，所需使能已核验。对 MSI-X 表索引 3（第 4 项）的 Vector Control 执行读改写，将 ST Lower[23:16] 写为 0x2D、ST Upper[31:24] 写为 0x9B，保留其余位（PCIe PDF p.788–789）。",
+          "seconds": 25.12,
+          "toolCalls": 7,
+          "review": {
+            "usability": "ready",
+            "reason": "正确确认 MSI 路径可用合并表、向量和表项范围，并给出保留其他位的字段写法。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.381,
+            "draft": 0,
+            "review": 24.735,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 788
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-03",
+          "status": "completed",
+          "answer": "**处置** 拒签 Figure 486 全分配范围\n\n**判定条件**\n- 正文要求每个缓冲区各占一个由 CC.MPS 定义的物理页，并满足 (4 << CAP.DSTRD) × (max(NSQA, NCQA) + 1) ≤ 2^(12 + CC.MPS)。现场代入得 16 × 512 = 8192 字节，等号成立（NVMe PDF p.445）。\n- Figure 486 规定 y = max(NSQA, NCQA) = 511。以 Shadow Doorbell 的 PRP1 和 EventIdx 的 PRP2 各自为基址，SQ Tail 与 CQ Head 的末字节偏移分别为 2q × 16 + 3 和 (2q + 1) × 16 + 3，均须小于 8192。q = 511 时分别为 16355 和 16371，两项在两页中均越界（NVMe PDF pp.445–446）。\n- 低编号实测只覆盖已访问的条目。若另行限定实际使用范围，当前布局中 SQ 和 CQ 的实际最大 ID 必须各自不超过 255，此时两类条目的末字节偏移分别为 8163 和 8179（NVMe PDF pp.445–446）。\n\n**必要核验** 全范围签发前，读取拟采用配置的 CC.MPS、CAP.DSTRD 和原始 NSQA、NCQA 编码，确认正文不等式成立，且 Figure 486 在 y = max(NSQA, NCQA) 处的 SQ Tail 和 CQ Head 末字节均落在各自页内。若只验收受限使用范围，核对计划实际访问的最大 SQID 和 CQID（NVMe PDF pp.445–446）。",
+          "seconds": 22.07,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "正确限定了低编号测试的证明范围。正文计算为 8192，图中 y=511 的 SQ/CQ 末字节分别为 16355 和 16371，均越界。变更后的验收只要求按配置复算边界，缺少对新配置最远条目的实际复测。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.392,
+            "draft": 0,
+            "review": 21.671,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-16",
+          "status": "completed",
+          "answer": "**处置** 拒签 CC.MPS=2 写入方案\n\n**判定条件**\n- NVMe 2.1 PDF 文件第 75、80 页规定，PRP 使用的内存页大小由 CC.MPS 按 2^(12+MPS) 决定，且编码必须在 CAP.MPSMIN 与 CAP.MPSMAX 之间。本控制器仅支持编码 0 至 1（4 至 8 KiB），方案所需的编码 2（16 KiB）超出上限，即使禁用控制器也不可写入。\n- NVMe 2.1 PDF 文件第 80 页规定，只有 CC.EN=0 才能修改 CC.MPS。现场 CC.EN=1，且本工单仅审方案，尚未授权禁用或重配控制器。\n- PCIe 5.0 PDF 文件第 1112、1134 页的 SR-IOV System Page Size 用于 VF 地址映射及 BAR 对齐。即使该字段支持 16 KiB，也无法改变 NVMe PRP 页大小或放宽 CAP.MPSMAX。\n\n**必要核验** 若保留 16 KiB 要求，须在拟用控制器上确认 CAP.MPSMIN≤2≤CAP.MPSMAX。若沿用当前控制器，须将 PRP 方案改为 4 或 8 KiB。只有确需修改 CC.MPS 时，才须另获禁用和重配授权，并在写入前确认 CC.EN=0、CSTS.RDY=0，重新启用后等到 CSTS.RDY=1 再提交命令（NVMe 2.1 PDF 文件第 75、80、124 页）。",
+          "seconds": 22.23,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝不受支持的 16 KiB 在线变更，给出受支持尺寸、PRP 方案及修改前的授权和状态条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.393,
+            "draft": 0,
+            "review": 21.826,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 80
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 81
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 124
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 125
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-04",
+          "status": "completed",
+          "answer": "**处置** 拒签生效，暂缓切换\n\n**判定条件**\n- 两块缓冲区均须各占一个 CC.MPS 定义的物理页。正文容量公式和计划实际使用的槽位末端已通过。图 486 的全范围还须按 y=max(NSQA, NCQA) 核对，两页的最末 CQ Head 字节偏移 (2y+1)×(4<<CAP.DSTRD)+3 均须小于 4096（NVMe PDF 第 445–446 页）。\n- PRP1 指向由主机更新的 Shadow Doorbell，PRP2 指向由半虚拟化控制器更新的 EventIdx。两者均须按 4 KiB 对齐。PRP1=0x100000 已对齐，PRP2=0x200080 的页内偏移为 0x80。任一缓冲区地址无效时，控制器须返回 Invalid Field in Command（NVMe PDF 第 445–446 页）。\n- 启用须由支持该命令的控制器完成配置，并在 Admin Completion Queue 中返回成功 CQE。当前命令尚未提交，无成功完成记录。配置在 Controller Level Reset 后不保留（NVMe PDF 第 445–446、702 页）。\n- 成功完成前继续使用控制器门铃。启用后主机更新 Shadow Doorbell，若更新使门铃值从小于或等于对应 EventIdx 变为大于该值，还须把同一新值写入控制器门铃，比较时须考虑队列回绕（NVMe PDF 第 702 页）。\n\n**必要核验** 确认控制器支持 Doorbell Buffer Config，读取 CAP.DSTRD 和已分配队列数的 NSQA、NCQA 编码，核对图 486 在两页内的完整范围。将 PRP2 改为 EventIdx 专用物理页的 4 KiB 对齐基址，确认两页及各自写入方符合要求，再提交命令。核对该命令的 Admin CQE 状态为成功后签发生效。",
+          "seconds": 16.21,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，指出 PRP2 未对齐及预期状态，并要求修正后以本次 Admin CQE 核验。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.151,
+            "draft": 0,
+            "review": 16.053,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-10",
+          "status": "completed",
+          "answer": "**处置** 通过本次 NVMe-oF fused operation 验收，撤销脚本的 MMIO 门铃和 CQE.SQID 拒绝判定。\n\n**判定条件**\n- 该 I/O Command Set 的 fused operation 已确认受支持。规范要求两条命令在同一 SQ 相邻，消息型传输还要求 capsule 按序提交。现场记录满足同一 SQ 相邻且 first、second 依序提交的条件。（NVMe PDF 第 120–121 页）\n- 单次 SQ Tail doorbell 更新须同时涵盖两条命令，这一要求适用于基于内存的传输队列模型。当前消息型 NVMe-oF 链路以 capsule 按序提交为门槛。（NVMe PDF 第 121 页）\n- 控制器须为两条命令各发布一条 CQE。现场同一连接的两条完成记录分别匹配对应的 CID，且状态均为成功。（NVMe PDF 第 121、160 页）\n- 多个 SQ 共享一个 CQ 时，普通 CQE 用 SQID 与 CID 组合识别命令。NVMe-oF 的 CQE.SQID 为保留字段，现场读到 0 不构成拒绝条件。（NVMe PDF 第 160 页）",
+          "seconds": 12.39,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确撤销两项脚本判据，区分传输模型，并依据同一连接上两条 CID 对应完成及成功状态验收。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.161,
+            "draft": 0,
+            "review": 12.22,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-13",
+          "status": "completed",
+          "answer": "**处置** 拒签 MSI-X Vector Control 写入，放行 TPH 能力结构写入\n\n**判定条件**\n- 规范规定 ST 表对同一 Function 只能位于一处。现场 ST Table Location=01b，ST 表必须位于 TPH Requester Extended Capability 内，MSI-X 已启用不改变表位置。（PCIe PDF p.607、p.947–949）\n- Interrupt Vector Mode 按有效中断向量号索引 ST 表。现场向量 2 已核实在 MSI-X 启用范围内，且落在四项 ST 表的索引 0–3 内。（PCIe PDF p.607–608、p.948–949）\n- 合并表路径要求 Function 实现 TPH Requester Extended Capability 且 ST Table Location=10b，此时对应 MSI-X 表项的 Vector Control.ST Lower[23:16] 必须可读写。现场为 01b，该字段可为 RW 或 RsvdP，不能用作本次 Steering Tag 的写入目标。（PCIe PDF p.789、p.947–948）\n- 独立 ST 表每项 16 位，ST Lower[7:0] 为 RW。只更新低 8 位，保留 ST Upper[15:8]。Extended TPH Requester Supported 置位时该高字节承载 tag 高 8 位，否则为 RsvdP。（PCIe PDF p.949–950）\n\n**必要核验** 修正脚本，按该 Function 的 ST Table Location 选址。此次确认目标为 TPH Requester Extended Capability 基址 + 0x10（0x0C + 2×2）的 ST Entry 2，只写 ST Lower[7:0]。（PCIe PDF p.949–950）",
+          "seconds": 20.05,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝写 MSI-X 表，按 Location=01b 选取能力结构内的表项 2，仅更新低字节并保留高字节。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.322,
+            "draft": 0,
+            "review": 19.724,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 950
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 948
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 947
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-07",
+          "status": "completed",
+          "answer": "**处置** 拒签 SQ3 fused pair 执行成功\n\n**判定条件**\n- PCIe 内存队列要求两条 fused 命令在同一 SQ 相邻（允许环回），并由一次 SQ Tail 门铃更新同时发布。现场 SQ3 已满足这两项提交条件。（NVMe PDF pp.120–121）\n- 控制器须为两条命令各发布一条 CQE。SQ3 和 SQ7 共享 CQ，须用 SQID 和 CID 联合匹配。现有 (3,21,Success) 确认 SQ3 的 first 成功，(7,22,Success) 对应 SQ7，SQ3 的 second 仍缺完成记录。（NVMe PDF pp.121、160）\n- 任一命令出错即结束 fused 操作。first 失败时 second 须中止。second 失败时 first 的完成状态由适用 I/O Command Set 对该序列的规定决定，因此 first 的 Success 单独不足以签发。（NVMe PDF p.120）\n\n**必要核验** 核对同一次提交中 SQ3 的 second 是否有有效 CQE (SQID=3,CID=22)，并确认其状态为 Success。与已确认的 (3,21,Success) 配对后方可签发。（NVMe PDF pp.121、160）",
+          "seconds": 11.5,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒签，以 SQID 和 CID 区分共享 CQ 中的完成记录，并要求核验 SQ3/CID22 的有效完成及成功状态。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.148,
+            "draft": 0,
+            "review": 11.343,
+            "other": 0.007
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F9-08",
+          "status": "completed",
+          "answer": "**处置** 拒签 fused 验收\n\n**判定条件**\n- 该 PCIe 控制器支持此操作，两条命令在同一 I/O SQ5 相邻，且一次 SQ Tail 门铃更新覆盖两条，满足内存型传输的提交要求。（NVMe PDF p.120–121）\n- 控制器须为两条命令各发布一条 CQE。现场已用 SQID 和 CID 将两条新 CQE 分别匹配到该命令对。（NVMe PDF p.121、160）\n- 两条命令须按顺序作为一个原子单元执行，任一条遇错即结束。首条失败时，第二条必须中止，对应 Command Aborted due to Failed Fused Command（09h）。现场首条返回非成功而第二条返回 Successful Completion，与该规则冲突。（NVMe PDF p.120、163）\n- 若失败发生在第二条，首条的完成状态由适用 I/O Command Set 的 Fused Operation 条款规定。该路径要求第二条失败，现场第二条报成功。（NVMe PDF p.120）\n\n**必要核验** 复核同一次 SQ5 提交的原始 SQE（CDW0.FUSE 首条 01b、第二条 10b）及两条配对 CQE 的 SQID、CID、SCT 和 SC。若确认首条失败且第二条报成功，维持拒签。首条失败路径的复验须看到第二条返回 Command Aborted due to Failed Fused Command（09h）。按 fused 成功验收须有同一次有效提交中两条命令各自报成功的 CQE。（NVMe PDF p.120–121、160、163）",
+          "seconds": 19.77,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "两条 CQE 已分别匹配，首条失败要求次条中止，次条报成功足以拒签。原答要求复核配对记录及状态字段，但未明确留存两条记录。此缺口不影响当前拒签。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.304,
+            "draft": 0,
+            "review": 19.46,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 163
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 164
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "conditionMetric": {
+    "criterionId": "C2",
+    "label": "处置条件完整 / 计划"
+  },
+  "latencyMetric": {
+    "label": "交卷耗时中位数",
+    "stages": {
+      "retrieval": "检索",
+      "draft": "独立起草",
+      "review": "签发",
+      "other": "其他"
+    }
+  },
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

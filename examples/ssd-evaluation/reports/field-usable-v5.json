@@ -1,0 +1,942 @@
+{
+  "schemaVersion": 1,
+  "title": "现场处置交接 · 第五轮 8 道留出题",
+  "cases": [
+    {
+      "family": "frs-overflow-count-provenance",
+      "split": "challenge",
+      "question": "根据 FRS Message Overflow=1，能否把这一时间段内未被采集的 FRS 通知数登记为恰好一条？",
+      "observations": [
+        "Snapshot 来自某 Root Port 的 FRS Queueing Status；未留存逐条消息或上次清状态的时间。",
+        "该位目前为 1，除这份快照外没有别的采集。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝登记恰好一条。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "解释队列满且又遇到一条的置位条件。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "区分粘滞状态与当前时段计数，必要时查时间化记录。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["用 Overflow bit 直接当作丢失条数或本统计窗口的唯一事件。"],
+      "id": "SSD-F5-06",
+      "referenceAnswer": "不能。Overflow 表示队列满时遇到新的 FRS Message，不提供累计丢失条数，也不能把触发锁定到当前统计时间段。保留快照，需计数时核对同端口带时间的消息与采集记录。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 876,
+          "section": "§7.8.9.3",
+          "anchor": "the FRS Message queue is full"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 876,
+          "section": "§7.8.9.3",
+          "anchor": "a new FRS Message is received"
+        }
+      ]
+    },
+    {
+      "family": "resizable-bar-capability-vs-selection",
+      "split": "challenge",
+      "question": "系统清单看到某 BAR 的 Resizable BAR Capability 支持 16 MB，就把当前窗口记成 16 MB。这里可以签当前分配值吗？",
+      "observations": [
+        "功能确实支持该 BAR 的 16 MB 选项。记录未保留对应 Control 的 BAR Size 或系统资源分配。",
+        "本轮只读核对，不允许重新分配 BAR。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝凭能力位签当前分配。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "将 16 MB 描述为支持选项。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "只读查同一 BAR 的实际控制或分配记录。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把能力位直接当作现有映射，或要求在线改 BAR 来确认。"],
+      "id": "SSD-F5-08",
+      "referenceAnswer": "不能。Capability 只说明支持 16 MB，不能证明当前选择。只读核对同一 BAR 的 BAR Size 控制值及系统资源映射再记录。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 865,
+          "section": "§7.8.6.2",
+          "anchor": "Function supports 16 MB BAR"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 865,
+          "section": "§7.8.6.2",
+          "anchor": "supports operating with the BAR"
+        }
+      ]
+    },
+    {
+      "family": "arbitration-burst-special-value",
+      "split": "challenge",
+      "question": "看到 Arbitration Feature 的 AB=111b，验收员准备把每个提交队列每轮最多抓取 128 条当成规范保证。可以签吗？",
+      "observations": [
+        "采集器把 AB 按 2 的幂计算。当前工单只验证 AB 这个字段。",
+        "既没有本控制器执行上限的厂商约定，也没有单次抓取的测量。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝 128 条上限承诺。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "指出 111b 是 no limit。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "把字段范围限定为从特定提交队列的单次抓取。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把 111b 解成 128，或把无 AB 限制写成对吞吐量的保证。"],
+      "id": "SSD-F5-04",
+      "referenceAnswer": "不能签。AB 的 111b 是无 AB 上限的特例，不能按 2^7 解码为 128。AB 约束单次从特定提交队列抓取的数量，不能凭这一字段推出实际执行速率。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 396,
+          "section": "§5.1.25.1.1, Figure 386",
+          "anchor": "from a particular Submission Queue"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 396,
+          "section": "§5.1.25.1.1, Figure 386",
+          "anchor": "A value of 111b indicates no limit"
+        }
+      ]
+    },
+    {
+      "family": "predictable-latency-window-proof",
+      "split": "challenge",
+      "question": "成功开启某个 NVM Set 的 Predictable Latency Mode 后，性能验收要把紧接着的流量记作确定性窗口样本。可以直接入账吗？",
+      "observations": [
+        "只保留了 Predictable Latency Mode Config 启用的成功完成记录。",
+        "没有单独的 window 设置或同一时间段的 window 观测。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝直接入账。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "说明成功完成后处于 Non-Deterministic Window。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "区分功能已开启和目标窗口被证实。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["用启用完成替代实际确定性窗口证据。"],
+      "id": "SSD-F5-03",
+      "referenceAnswer": "不可以。模式启用成功后的初始窗口由规范定义为 Non-Deterministic。需要同一 NVM Set 实际处于确定性窗口的证据，才能在合适的时间范围内记账。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 406,
+          "section": "§5.1.25.1.12",
+          "anchor": "Upon successful completion of this command"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 406,
+          "section": "§5.1.25.1.12",
+          "anchor": "be in the Non-Deterministic Window"
+        }
+      ]
+    },
+    {
+      "family": "log-offset-addressing-units",
+      "split": "challenge",
+      "question": "某支持索引读取的 NVMe 日志有等长 64 字节记录。工具要读取索引 3，拟在 OT=1 时把 LPO 填 192。能这么填吗？",
+      "observations": [
+        "该日志支持结构索引，记录起点没有额外头部。索引按从零开始解释。",
+        "本次只校验读取目标与 LPO 单位，没要求改日志的其他参数。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝在 OT=1 时填 192。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "明确 OT=1 取索引，正确值为 3。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "区分 OT=0 字节偏移与当前选择。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把 192 作为 OT=1 的 index 3，或说 OT=0 和 OT=1 都按字节。"],
+      "id": "SSD-F5-02",
+      "referenceAnswer": "不能。OT=1 时上下半段 LPO 表示结构索引，应填 3。若另用 OT=0 且确知该日志的字节布局，192 才是索引 3 对应的字节偏移。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 225,
+          "section": "§5.1.12, Figure 201",
+          "anchor": "specify the index into the list"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 225,
+          "section": "§5.1.12, Figure 201",
+          "anchor": "specify the byte"
+        }
+      ]
+    },
+    {
+      "family": "aer-capacity-accounting",
+      "split": "challenge",
+      "question": "监控要再投一条 Asynchronous Event Request 保活。可以现在提交吗？",
+      "observations": [
+        "同一控制器已经挂有两个尚未完成的 AER。驱动已确认该控制器允许同时挂起的上限为两个。",
+        "目前没有任何一条 AER 的完成记录，监控流程还在消费事件。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "当前不提交。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "把上限用于同一控制器的在途数。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "等到明确的完成后才能按限额补投。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["因命令属于不同监控任务、等了一段时间或没有事件，就再提交超限。"],
+      "id": "SSD-F5-01",
+      "referenceAnswer": "本次先不投。限制的是同一控制器尚未完成的 AER 总数，已有两条达上限。等一条完成并更新在途计数后，再按既有流程补投一条。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 196,
+          "section": "§5.1.2",
+          "anchor": "total number of simultaneously outstanding"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 196,
+          "section": "§5.1.2",
+          "anchor": "is limited by the value indicated"
+        }
+      ]
+    },
+    {
+      "family": "msi-dma-ordering-attributes",
+      "split": "challenge",
+      "question": "SSD 的 MSI-X 通知 TLP 抓包中同时看到 RO=1，验证脚本采用“数据流可以 Relaxed Ordering，所以通知也可用”的规则。能通过吗？",
+      "observations": [
+        "抓包已经确认这条 Memory Write 为该 Function 发出的 MSI-X 通知，位段解码已复核。",
+        "本次只验收该条通知的 PCIe 属性。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝放行这条已确认 MSI-X 通知。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "准确指出 RO 与 No Snoop 必须为 0。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "区分通知事务和普通数据流的规则。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把普通数据流可能合法的 RO=1 放宽到 MSI-X 通知。"],
+      "id": "SSD-F5-07",
+      "referenceAnswer": "不能通过。MSI/MSI-X 事务的 No Snoop 和 Relaxed Ordering 都必须为 0。报告这条通知属性不符；普通数据 TLP 的属性策略不能放宽该要求。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 497,
+          "section": "§6.1.4",
+          "anchor": "must set the No Snoop and Relaxed Ordering"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 497,
+          "section": "§6.1.4",
+          "anchor": "Descriptor to 0b"
+        }
+      ]
+    },
+    {
+      "family": "margining-function-ownership",
+      "split": "challenge",
+      "question": "多功能 SSD 的 F1 配置空间没找到 Lane Margining Extended Capability，验收员拟仅凭这一点判整端口缺功能。成立吗？",
+      "observations": [
+        "这是多功能设备的 Upstream Port，Supported Link Speeds Vector 包含 16 GT/s。",
+        "读 F1 的配置空间操作本身成功。本轮还没有读 F0 的能力链。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝从 F1 缺项判端口故障。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "指出多功能 Upstream Port 及速度前提下只在 F0 查。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "检查同端口同设备 F0，不要求写 F1 或重训。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["以 F1 不见能力为故障证据，或下达在 F1 使能 margining 的操作。"],
+      "id": "SSD-F5-05",
+      "referenceAnswer": "不成立。该多功能 Upstream Port 对应的 Lane Margining 能力查 F0，F1 的缺项不能用于端口判定。只读核查同一设备 F0 的扩展能力链。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 817,
+          "section": "§7.7.7",
+          "anchor": "Function 0 (and only Function 0)"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 817,
+          "section": "§7.7.7",
+          "anchor": "associated with an Upstream Port"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第三轮配置 · 逐项处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证 · outcomes + decision-audit",
+      "results": [
+        {
+          "caseId": "SSD-F5-06",
+          "status": "completed",
+          "answer": "**结论：不能登记为\"恰好一条\"。当前可判定的是\"至少一条 FRS 通知被丢弃、条数未知\"，且不能确定该丢弃就发生在你所说的这段时间内。**\n\n依据（PCIe Base 5.0 v1.0）：\n- §6.23.3 FRS Queuing（PDF p.639）：队列满时收到或内部产生的 FRS Message \"must be discarded\"，同时 FRS Message Overflow 置 1b，原有队列保持不变。\n- §7.8.9.3 FRS Queueing Status（PDF p.876）：bit1 Overflow、bit0 Received 均为 RW1C；Root Port 须在 Link DL_Down 时清零。\n\n为何不是恰好一条：\n1. 该位是粘滞状态位而非计数器——多次丢弃都只呈现为 1。\n2. 唯一的清零点是软件 W1C 或 DL_Down，本次未留存清零时刻，故溢出的时间窗边界无法重建（单张快照也给出边界）。\n3. 规范未提供\"已丢弃条数\"计数器。\n\n下一步（最具区分力，一次做完）：\n① 在有明确时间戳的时刻写 1 清 08h 两位，回读确认确为 0，确认端口进入可观测状态；\n② 同一窗口内持续读 0Ch FRS Message Queue Register（写 byte 0 弹出最旧消息），记录入队条数及最旧消息的 Function ID/Reason；\n③取得窗口内 FRS 消息产生侧（Requester/RCEC）的计数 N。\n- N = 弹出数且 Overflow 未再置 1 → 本窗口无丢失，此前那条 Overflow 不可归属，记录改为\"历史溢出，条数不可考\"；\n- N > 弹出数且 Overflow 再置 1 → 丢失数 = N − 弹出数，此时方可登记确切条数；\n- 取不到 N → 仍只能写\"至少一条，条数未知\"。\n\n仍待确认：0Ch 当前队列深度与最旧消息（p.877）、04h FRS Queue Max Depth（p.875）、DL_Down 时刻。",
+          "seconds": 32.24,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝登记恰好一条，也解释了置位条件和时间归属限制，但后续差值法会把队列边界上的积压误算为丢失，甚至可能误报零丢失。",
+            "otherError": "清状态不清空队列。差值法遗漏窗口首尾的队列深度，也未处理 DL_Down 清位或验证产生侧计数与该端口的入队范围一致。第二点括号还误写单张快照能给出时间边界。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 876
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 877
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 875
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 874
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 639
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-08",
+          "status": "completed",
+          "answer": "**结论:不能签。** Resizable BAR Capability 只声明\"可支持\",不代表已编程、已分配;当前记录应改为\"具备 16 MB 能力,当前窗口未核实\"。\n\n**依据(PCIe Base 5.0 v1.0)**\n- §7.8.6.2 Table 7-116(p.865):bit8 RO \"Function supports 16 MB BAR\" — 是硬件向软件声明可协商尺寸的只读位,不是状态位。\n- §7.8.6.3 Table 7-117(p.868):当前尺寸由 Resizable BAR Control 的 BAR Size 字段(13:8,RW)决定,编程后立即反映到对应 BAR 的只读位;该字段默认值等于 BAR 只读位所请求的默认尺寸,且必须在 0–19 内(即默认窗口不超过 2^19 bytes)。§7.8.6(p.862):尺寸由软件写该字段回硬件。\n\n**下一步(只读,不动分配)**:读该设备配置空间,取 Resizable BAR Control 的 BAR Index 与 BAR Size(16 MB 对应 2^24 编码),再解码对应 BAR 的只读位数得已编程尺寸,与 OS 实际分配的资源区间长度比对。\n- 三者一致为 16 MB → 可签当前分配值。\n- Control/BAR 只读位显示其他尺寸 → 按实测尺寸改记录,Capability 位不作依据。\n- BAR 尺寸与 OS 区间不符 → 不签,按 OS 实际值记录并报差异。\n- 字段读不出/保留编码 → 记\"未核实\",只保留能力结论。\n\n**仍待确认**:本轮未留存 Control 的 BAR Size 与系统资源分配,需补读后再签。若该 BAR 还承载 NVMe CMBS/PMR,可用缓冲区大小受 BAR 长度限制(NVMe 2.1 p.87 §3.1.4.12),同样要先定 BAR 长度。",
+          "seconds": 33.74,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒签和按同一 BAR 只读核对的方向正确，但把 16 MB 的字段编码写错，并把普通 BAR 读值当作独立的尺寸证据，可能误判一致性或签错窗口。",
+            "otherError": "16 MB 的 BAR Size 编码是 4，2^24 是字节数。编码 0–19 也不表示默认窗口至多 2^19 字节。普通 BAR 读值不能可靠区分固定零位与基址中的零位。不一致时也不能把 OS 资源长度直接记成硬件当前窗口。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 866
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 865
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 867
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 868
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-04",
+          "status": "completed",
+          "answer": "**结论：不能签。** AB=111b 是\"无限制\"转义值，不是 2^7=128。\n\n依据（NVM Express Base 2.1，PDF p.395 §5.1.25.1.1 \"Arbitration (Feature Identifier 01h)\"，字段表在 p.396 Figure 386 Command Dword 11：AB 位于 bits 02:00，\"A value of 111b indicates no limit\"）：采集器\"按 2 的幂\"换算只对 000b–110b 成立，111b 单独含义即无上限；因此 128 来自解码器，不来自规范。另有两处语义错误：AB 是\"控制器可从某 SQ 一次最多抓取的命令数\"（配置/能力上限），不是\"每轮\"——每轮由 HPW/MPW/LPW 定义；也不是主机可依赖的行为保证。现场既无厂商约定也无实测，本项无可签依据。（PCIe p.877/p.796 片段与本判据无关。）\n\n最有区分力的下一步：发 Get Features 读 Arbitration (FID 01h)，取 Command Dword 11 bits 02:00 原始位：\n- 原始位=111b：删除 128 判据，验收只能依据实测或厂商书面约定（当前均无），并把该上限记为\"规范未定义\"。\n- 原始位≠111b：采集器取错 Dword/位偏移或解码缺陷，先修解码器（111b 单独分支）再重测。\n\n两分支都不支持签 128。仍待确认：实际抓取数属设备实际状态，配置一致不等于行为一致，须由抓取测量或追踪给出证据。",
+          "seconds": 21.5,
+          "toolCalls": 2,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒签 128 条保证，并指出 111b 表示无 AB 上限，适用范围是从特定 SQ 单次抓取。但建议读取错误的字段载体，还会把读数差异直接归咎于采集器。",
+            "otherError": "Get Features 应从完成项 DW0 的 bits 02:00 读取 AB，原答却指向命令 CDW11，可能读错对象。回读不等于 111b 也不能单凭这一点认定采集器故障，配置变化同样可能造成差异。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F5-03",
+          "status": "completed",
+          "answer": "**结论：不能入账。** 13h 成功完成时控制器必在非确定性窗口，紧随其后的流量按定义不是确定性窗口样本。\n\n**理由**：NVM Express 2.1 §5.1.25.1.12 明文 \"Upon successful completion of this command, the controller shall be in the Non-Deterministic Window.\"（PDF p.406，规范页 384）。窗口归属由主机用 14h 选择（WSEL 001b=DTWIN），或控制器自主切换（PDF p.562，规范页 540）。现场仅保留 13h 成功记录、无 14h 设置、无同期 window 观测——不仅缺 DTWIN 证据，现有记录还反证当时不在 DTWIN。\n\n**最有区分力的下一步**\n1. Set Features 14h：Dword 11=NVMSETID，Dword 12 WSEL=001b；该命令成功完成才算切换完成，NDWIN 最小时间未满足时完成会被延迟（PDF p.407，规范页 385；NDWIN Time Minimum 见 0Ah 日志字节 56–71）。\n2. 切换后立即取证窗口状态：Get Features 14h 的 Dword 0 WSEL，或读 Predictable Latency Per NVM Set 日志（0Ah）字节 0 的 PLMW（001b=DTWIN、010b=NDWIN、000b=未启用，PDF p.249，规范页 227）；同时留存 0Ah 的 ETYP（DEAT/MVEAT）与 Predictable Latency Event Aggregate 日志，判别是否发生自主 DTWIN→NDWIN。注意 0Ah 以 Retain Asynchronous Event=0 读取会清事件，须先存后清（同页）。\n\n**分支与动作**\n- PLMW/WSEL=001b 且无自主转换事件：仅此刻起至 DTWIN Time Maximum 或事件发生前的流量可作确定性窗口样本，此前流量作废。\n- =010b 或见 DEAT/MVEAT：已离开确定性窗口，该段不入账；按 8.1.18.1 的 typical/max 约束修正负载，重做 14h 后在 DTWIN 内重测。\n\n**待确认**：NDWIN 最小时间是否已满足、期间有无自主转换。确定性 QoS 属性仅限 NVM 子系统内、不含 PCIe/链路（PDF p.561，规范页 539）；PCIe 5.0 的 AtomicOps、LTR 片段与此无关，不作依据。",
+          "seconds": 30.57,
+          "toolCalls": 9,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝直接入账，指出启用成功时处于非确定性窗口，并要求另取窗口证据。附加的样本归属规则可能造成误记。",
+            "otherError": "启用完成只证明该时点处于非确定性窗口，不能断定随后整段流量的窗口归属。单次窗口快照加当时无转换事件，也不能证明后续样本直到最大窗口时间都处于确定性窗口，可能把实际转换后的流量入账。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 406
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 407
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 249
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-02",
+          "status": "completed",
+          "answer": "**结论：不能这么填。OT=1 时 LPO 表示条目序号，不是字节偏移。**\n\n依据（NVMe 2.1）：\n- Figure 201（p.225，Command Dword 14 bit 23 = OT）：OT=1 时 LPOL/LPOU 为“日志页内条目列表的索引”；OT=0 才是字节偏移。\n- Figure 199（p.225，Command Dword 12 = LPOL）OT=1 分支：索引大于条目数、或该 LID 的 IOS=0 时，控制器须以 **Invalid Field in Command** 中止。\n- Figure 204（p.228）：IOS = Index Offset Supported；IOS=0 时 OT 只能为 0（p.223）。\n\n所以 OT=1 + LPO=192 实为“第 193 个条目”，等长 64 B 记录必然越界——工具把字节数当序号用了。\n\n**可用的两种填法**（记录从 0 起、无头部 ⇒ 索引 3 = 字节 3×64 = 192 = 0xC0）：\n1. OT=0：LPOL=192、LPOU=0。字节偏移对所有日志页都支持（p.223，且控制器需支持 Log Page Offset）；192 已 dword 对齐，前提是 192 < 页大小且记录 3 存在，否则 Invalid Field in Command（Figure 199 OT=0 c）。\n2. OT=1：LPOL=3、LPOU=0。仅当该 LID 的 IOS=1 且该日志页章节自行定义条目索引（Figure 199 OT=1 d）；此类日志常是“索引 1 = 条目 0”（如 Discovery，p.307），不能想当然按 0 基。\n\n**最有区分力的下一步**：读 Supported Log Pages（LID 00h）查该 LID 的 IOS；再发两条 Get Log Page（OT=1/LPOL=3 与 OT=0/LPOL=192，各取 16 dword）比对 64 字节。两者相同→用 OT=0 更省事；OT=1 返回别的记录→索引非 0 基，改字节偏移；OT=1 以 Invalid Field in Command 中止→IOS=0 或索引越界，只能用字节偏移。\n\n**仍待确认**：该日志的 LID 及其自身对索引条目的定义、记录数 ≥ 4、192 是否落在页大小内。",
+          "seconds": 50.57,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝 OT=1 填 192，给出索引 3，并区分 OT=0 的 192 字节偏移。附加诊断会误判索引基准。",
+            "otherError": "64 字节是记录长度，不能据此断言索引 192 必然越界。两次读取的内容相同不能证明读到同一条记录，内容不同也不能推翻题设已确认的零基索引。按该分支诊断可能误判索引基准并切换读取方式。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 225
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 226
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-01",
+          "status": "completed",
+          "answer": "**结论：现在不要投第三条；而且“再投一条保活”这个理由本身不成立。**\n\n依据（NVMe 2.1）：\n- §5.1.2（p.195–196）：AER 命令**无超时**，主机可投多条；同时挂起的 AER 总数受 Identify Controller 的 AERL 字段限制。\n- Figure 312（p.331，字节 260）：AERL 是 **0 基值**，字段值 N 表示允许 N+1 条并发挂起。\n- Figure 146（p.197）：超限时该命令以状态码 **05h Asynchronous Event Request Limit Exceeded** 完成。\n- 无 AER 挂起时控制器会保留 pending 事件，并在下一条 AER 到达时上报（p.197）——不需要靠追加 AER 维持监视。PCIe 的 SFI ERR_COR / AER 与本问题无关。\n\n所以能否现在投，取决于驱动说的“上限两个”是否已按 0 基解码：\n- AERL 原始值 = 1 → 上限 2：现在投会超限，控制器把这条以 05h 完成（可见错误，不影响已挂起的两条）。\n- AERL 原始值 = 2 → 上限 3：现在投合规，但因 AER 无超时，仍无保活必要。\n\n**最有区分力的下一步**：读 Identify Controller 第 260 字节 AERL 的原始值，按 +1 解码，再与当前挂起计数 2 对照。\n\n**仍待确认**：两条 AER 至今无完成记录，而监控称仍在消费事件——若消费的是控制器上报的异步事件，本应出现 CQE；需分清监控消费的是轮询值还是 AER 上报，以及这两条命令是否确实挂起未完成。",
+          "seconds": 37.82,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "开头要求暂不提交，随后却给出“现在投合规”的分支，当前决定仅部分正确。答卷正确按同一控制器统计在途总数，但未说明须等一条明确完成、更新计数后再补投。",
+            "otherError": "驱动已确认实际上限为两条，答卷仍将“两条”解释为可能尚未解码的 AERL 原始值。据此放行第三条会超过已确认的限额，导致该命令以超限状态完成。",
+            "credits": {
+              "C1": 0.5,
+              "C2": 1,
+              "C3": 0
+            },
+            "rejectHits": [],
+            "score": 50.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 195
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 196
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 331
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-07",
+          "status": "completed",
+          "answer": "**结论：本条不通过；脚本规则必须驳回。**\n\n**依据（PCIe 5.0）**\n- §6.1.4（PDF p.497）：\"The Requester of an MSI/MSI-X transaction must set the No Snoop and Relaxed Ordering attributes of the Transaction Descriptor to 0b.\" MSI-X 通知的 RO 必须为 0，本条 RO=1 即属性不合格。\n- Table 2-9（PDF p.126）：Attr[1] 对 MSI/MSI-X 形式的 Memory Request \"not applicable and must be Clear\"；Attr[2](IDO) 对 MSI/MSI-X 不为 Reserved，但 Requester 仅在 Device Control 2 的 IDO Request Enable=1 时才可置位（若本条 Attr[2]=1，需另行核对该位）。\n\n脚本把普通 Memory Request \"可选用 RO\" 外推到 MSI-X：RO 是逐 TLP 属性，MSI-X 被强制置 0，不存在\"数据流可以所以通知也可以\"。\n\n**尚不能认定**：RO=1 是 SSD 真实发出的，还是脚本按错误的头格式/位偏移解码所致（3DW 与 4DW 头的 Attr 位位置不同，见 p.125 Figure 2-16 及其引用的 Figure 2-17/2-18）。\n\n**最区分力的一步**：取该 Memory Write 原始 4 字节头，按 Fmt/Type 定 3DW/4DW 后定位 Attr，读 Attr[1]/[0]/[2]。\n- Attr[1]=1 且确认由该设备发出 → 判违反 §6.1.4，保留此 TLP 作失败证据报厂商整改；\n- 修正解码后 Attr[1]=0 → 本条通过，脚本改为\"MSI-X 通知 RO/NS 必须为 0\"。\n\n本次仅验收该条通知的 PCIe 属性，不涉其他项。",
+          "seconds": 51.86,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "开头正确拒绝放行，明确 RO 和 No Snoop 均须为 0，也正确区分了通知与普通数据流。但后续复核分支可能导致错误放行。",
+            "otherError": "题面已确认发出方并复核解码，原答却将解码错误作为待排原因，并误称 3DW 与 4DW 的 Attr 位位置不同，可能引导人员错读位段。其通过分支只检查 Attr[1]，即使 No Snoop 为 1 或 IDO 置位但未获使能，也会错误放行。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 125
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-05",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 120.03,
+          "toolCalls": 7,
+          "review": {
+            "usability": "no_answer",
+            "reason": "未在本次运行中交卷。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 819
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "第五轮配置 · 收束到当前处置",
+      "config": "Pi 1.5.2 · DeepSeek V4.1 Flash · thinking off · domain · 120 s · 8 次取证 · decision + scoped",
+      "results": [
+        {
+          "caseId": "SSD-F5-06",
+          "status": "completed",
+          "answer": "**处置**：不能登记为恰好一条。该位仅说明\"队列满时至少一条消息被丢弃\"，未采集条数应记为未知（≥1）。\n\n**依据**：PCIe 5.0 p.876 表7-126——bit1 FRS Message Overflow（RW1C），队列满且有新消息即置位；p.639 §6.23.3——队列满时该消息被丢弃并置位、原队列保留，多次丢弃不累加；p.877 表7-128——FRS Message Queue Depth 为当前队列内条数。\n\n**核验**：只读 FRS Message Queue Register（Offset 0Ch）的 FRS Message Queue Depth，取得快照时仍滞留队列、未被取走的条数（未采集数下界）。",
+          "seconds": 21.6,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝登记恰好一条，也说明了队列满时又收到或生成消息的置位条件。但将本时段漏采数登记为 ≥1，仍是直接用 Overflow 为本窗口计数，触发否决项 1。置位可能早于窗口，本时段漏采数可能为零。",
+            "otherError": "事后读取的队列深度只表示读取时的积压，不能还原原快照时的深度。把积压当作本时段漏采数下界，会将待处理消息误记为漏采。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0
+            },
+            "rejectHits": [1],
+            "score": 70.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 639
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 877
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 876
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 875
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-08",
+          "status": "completed",
+          "answer": "**1. 当前处置**\n拒签\"当前分配值 = 16 MB\"。该 BAR 当前大小按未知记录，只保留\"功能支持 16 MB\"这一能力事实；本轮不重分配 BAR。\n\n**2. 直接依据**\nPCI Express Base 5.0 v1.0，p.865 表 7-116：Resizable BAR Capability 位 8 为 RO，仅表示\"Function supports 16 MB BAR (2²⁴ bytes)\"，属支持能力。p.867 图 7-146/表 7-117 与 p.868：当前大小由 Resizable BAR Control 寄存器 BAR Size 字段（13:8，RW）决定，默认值等于 BAR 只读位所请求的默认空间，编程后立即反映为 BAR 中只读位编码的尺寸。故能力位不构成当前分配证据。\n\n**3. 必要的只读核验**\n只读读回该 BAR 对应的 Resizable BAR Control 寄存器 BAR Size 字段（13:8，BAR Index 指向该 BAR），确认当前编程值是否为 16 MB。",
+          "seconds": 29.82,
+          "toolCalls": 7,
+          "review": {
+            "usability": "ready",
+            "reason": "表 7-116 中 bit 8 对应 16 MB，位号无误。答卷拒签当前分配值，并通过 BAR Index 定位同一 BAR，只读核对 BAR Size。它将读回值限定为当前编程值，没有据此签认系统资源映射。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 866
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 867
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 868
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 864
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 865
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-04",
+          "status": "completed",
+          "answer": "**处置**：不可签字。AB=111b 不等于 128，规范定义为\"无上限\"；且 AB 只是主机配置的上限值，本身不是行为保证。每轮每 SQ 的候选条数还受 WRR 配额约束，故\"每轮每 SQ ≤128\"无法作为规范保证签署；采集器按 2⁷=128 解码 111b 亦为误译。\n\n**依据**\n- NVMe p.396，Fig.386（Command Dword 11，bits 02:00 AB）：值以 2 的幂表示（000b=1、011b=8），\"A value of 111b indicates no limit\"；110b 才对应 64。\n- NVMe p.121，§3.4.4：AB 给出控制器从该 SQ \"may start processing\" 的最大条数，即上限而非保证。\n- NVMe p.122，§3.4.4.2：每轮每 SQ 可启动的候选命令数取 AB 设置与剩余 WRR 配额之较小者。\n\n（以上两项即可结案：签不了，具体数值边界与本控制器抓取行为留给后续工单。）",
+          "seconds": 65.05,
+          "toolCalls": 7,
+          "review": {
+            "usability": "misleading",
+            "reason": "拒签正确，也正确识别 111b 表示无 AB 上限。答卷说到了特定 SQ，却把单次抓取写成每轮可启动处理的条数。WRR 断言还引入了错误的验收依据。",
+            "otherError": "答卷将剩余 WRR 配额当成每个 SQ 都适用的约束。现场未确认仲裁机制和服务类别，照此验收可能把正常抓取误判为超限。",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 396
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-03",
+          "status": "completed",
+          "answer": "**处置：不可直接入账。** PLM Config(13h) 的 LPE=1 只启用模式、不指定窗口；DTWIN 须另由 Predictable Latency Mode Window(14h) 以 WSEL=001b 选定，且窗口切换在 Set Features 成功完成时才算完成，紧随流量不能默认记为确定性窗口样本。\n\n**依据（NVMe Base 2.1）：** p.406（5.1.25.1.13，PLM 未启用则 abort）；p.407（Fig.406 WSEL 001b=DTWIN；\"transition … complete when the Set Features command completes successfully\"）；p.249（PL Per NVM Set Log 0Ah，PLMW 001b=DTWIN/010b=NDWIN）；p.562（超典型/最大值或 Deterministic Excursion 可自主转 NDWIN）。\n\n**必要只读核验：**读该 NVM Set 的 Predictable Latency Per NVM Set log(0Ah)，确认 PLMW=001b 且无 DEAT/MVEAT 自动转换——补足\"样本期确实处于 DTWIN\"这一前提。",
+          "seconds": 26.43,
+          "toolCalls": 6,
+          "review": {
+            "usability": "misleading",
+            "reason": "正确拒绝直接入账，也区分了启用与选窗，但漏掉启用成功后必处于 NDWIN。所提事后核验可能导致误记历史样本。",
+            "otherError": "事后读取 PLMW=001b 且未见 DEAT/MVEAT，只能提供读取时的状态，不能证明历史样本期处于 DTWIN。",
+            "credits": {
+              "C1": 1,
+              "C2": 0,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 70.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 407
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 249
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-02",
+          "status": "completed",
+          "answer": "**当前处置**：不能填 192。OT=1 时 LPO/LPOU 是“条目索引”，应填 LPOL=3、LPOU=0；192 是字节偏移，只有 OT=0 时才成立。\n\n**直接依据**：NVMe Base 2.1 PDF p.225 图201（Command Dword 14，bit 23 Offset Type）——OT=1 时 LPOL/LPOU 指定数据条目索引，OT=0 时才指定字节偏移；同页图199（Command Dword 12 LPOL）——OT=1 时该字段为索引，索引超过条目数时控制器以 Invalid Field in Command 中止，故填 192 会被解读为索引 192。适用前提：该 LID 的 IOS=1（p.228 图204），与现场“支持索引读取”一致。",
+          "seconds": 41.45,
+          "toolCalls": 6,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒绝在 OT=1 时填 192，明确 LPOL=3、LPOU=0，并指出按给定布局，192 是 OT=0 使用的字节偏移。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 224
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 225
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-01",
+          "status": "completed",
+          "answer": "**处置**：不可现在提交第三条 AER。两条 AER 无完成记录，仍占名额，已达该控制器确认的挂起上限（2）。\n\n**依据**：NVMe 2.1 §5.1.2（PDF p.196）：同时未完成 AER 的数量以 Identify Controller 的 Asynchronous Event Request Limit（AERL）字段为限（PDF p.331）。\n\n**只读核验**：AERL 原始值（Identify byte 259），按 0 基换算确认有效上限确为 2。",
+          "seconds": 42.0,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "正确按同一控制器的两条在途 AER 拒绝当前提交，但未说明应等一条明确完成并更新在途计数后再补投。只读复核 AERL 属冗余，不改变当前决定。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0
+            },
+            "rejectHits": [],
+            "score": 70.0,
+            "passed": false
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 196
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 197
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-07",
+          "status": "completed",
+          "answer": "**处置**：不通过。RO=1 的 MSI-X 通知违反 PCIe 规则，验证脚本\"数据流可用 RO ⇒ 通知也可用\"的推理无效，须拒收该条通知并修正规则（RO 在 MSI/MSI-X 上无许可）。\n\n**依据**（PCIe Base 5.0 v1.0）：\n- p.497 §6.1.4：「The Requester of an MSI/MSI-X transaction must set the No Snoop and Relaxed Ordering attributes of the Transaction Descriptor to 0b.」\n- p.126 §2.2.6.4 Table 2-9 后注：「Attribute bit [1] is not applicable and must be Clear for Configuration Requests, I/O Requests, Memory Requests that are Message Signaled Interrupts, and Message Requests (except where specifically permitted).」\n\n两者均为\"必须为 0\"，不存在数据流 RO 许可向 MSI/MSI-X 消息的延伸。\n\n（已核实抓包为该 Function 的 MSI-X 通知且位段解码无误，无需追加只读观测。）",
+          "seconds": 39.11,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确拒收已确认 RO=1 的 MSI-X 通知，明确 RO 和 No Snoop 均须为 0，普通数据流的 RO 许可不能沿用。现有抓包足以判定。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 497
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 126
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F5-05",
+          "status": "completed",
+          "answer": "**1. 当前处置**\n不成立。F1 未实现该能力是规范预期结果，不能据此判定整端口缺功能；判定对象应为 F0（多功能设备上游端口只在 Function 0 要求该能力）。\n\n**2. 直接依据**\nPCIe 5.0 §7.7.7 Lane Margining at the Receiver Extended Capability（p.817）：该能力\"必须实现在……多功能设备关联 Upstream Port 的 Function 0（且仅 Function 0）\"。§7.5.3.6 Link Capabilities Register（p.733）：\"Multi-Function Devices associated with an Upstream Port must report the same value in this field for all Functions\"，故 F1 观测到的 16 GT/s 同样适用 F0，前提已成立。\n\n**3. 必要的只读核验**\n读 F0 配置空间的扩展能力链，确认是否存在 Lane Margining at the Receiver Extended Capability（结构见 p.818–819）——这是判定该端口是否实现此能力的唯一有效观测点。",
+          "seconds": 23.53,
+          "toolCalls": 6,
+          "review": {
+            "usability": "revise",
+            "reason": "正确拒绝凭 F1 缺项判故障，并要求只读同设备 F0 的扩展能力链。引述的 Link Capabilities Register 条文不能证明 Link Capabilities 2 中的 Supported Link Speeds Vector 跨功能相同。题面已给出端口支持 16 GT/s，因此该引证错误不改变现场决定。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 817
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 815
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

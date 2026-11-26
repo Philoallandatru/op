@@ -1,0 +1,1668 @@
+{
+  "schemaVersion": 1,
+  "title": "现场验收与批准证据 · 独立复测 12 道新题",
+  "cases": [
+    {
+      "family": "msix-pba-clear-not-message-address-evidence",
+      "split": "challenge",
+      "question": "改址后 PBA 已清零，能签第一次消息使用新地址和数据了吗？",
+      "observations": [
+        "MSI-X 目标表项已在掩蔽时写入 (A2,D2) 并读回，随后实际解掩。解掩前曾看见 Pending=1，解掩后 PBA=0。",
+        "设备日志还指出掩蔽期间软件可能已服务该事件。测试没有保留发送事务。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝以 PBA=0 签发消息字段。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C2",
+          "text": "说明正常发送清除与事件掩蔽期间被满足两条路径。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2", "P3"]
+        },
+        {
+          "id": "C3",
+          "text": "同一表项及事件的解掩后实际 DWORD Memory Write 必须匹配 A2 和 D2。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2", "P3"]
+        }
+      ],
+      "reject": ["把 PBA=0 等同于已经以新字段发送。"],
+      "id": "SSD-F11-07",
+      "referenceAnswer": "不能。PBA 可在消息发出后清除，也可能因掩蔽期间事件已被处理而清除。按同一测试事件、Function 和表项关联解掩后的实际 DWORD Memory Write，确认地址 A2 与完整数据 D2 才签；缺真实事务时维持待验。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "§6.1.4 MSI-X",
+          "anchor": "Clear the Pending bit as soon"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "§6.1.4 MSI-X",
+          "anchor": "underlying interrupt events are somehow satisfied"
+        },
+        {
+          "id": "P3",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "§6.1.4 MSI-X",
+          "anchor": "without any modification to the low-order bits"
+        }
+      ]
+    },
+    {
+      "family": "tph-platform-owner-explicitly-approved-map",
+      "split": "challenge",
+      "question": "能按实验合同签两条短 Steering Tag 路径通过吗？",
+      "observations": [
+        "工单规定平台资源负责人是本次映射批准人，并已签署 m5。没有附加的应用签字条件。",
+        "台架同次记录能将两条已批准请求分别绑定到 m5 下的短 tag 和指定的处理资源。Requester 与链路支持已核对，配置与捕获均为 m5。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "可按限定范围签通过。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "映射版本、批准主体和实测对象一致，采用题面指定的责任方。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "核对签署记录、两条请求与平台资源逐一对应。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": [
+        "凭设备能力解释签通过但遗漏 m5 版本与逐流实测。",
+        "自行加一道应用签字阻断已满足的验收。"
+      ],
+      "id": "SSD-F11-02",
+      "referenceAnswer": "可签范围内通过。平台批准人、版本、两条实测资源都满足工单；在记录里关联负责人签署的 m5、各流的 TLP 和各自命中的资源。TPH 的平台特定映射由本工单给出的责任方确认。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 606,
+          "section": "§6.17 Steering Tags",
+          "anchor": "system-specific values used to identify a processing resource"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 608,
+          "section": "§6.17 Steering Tags",
+          "anchor": "all intermediate routing elements must support"
+        }
+      ]
+    },
+    {
+      "family": "pcie-completion-combine-display-vs-wire",
+      "split": "challenge",
+      "question": "分析器摘要把两个 Read 的 Completion 合在一行，能给 Switch 签违规合并吗？",
+      "observations": [
+        "日志 UI 按地址把来自两个 Transaction ID 的事件聚成一条摘要行。没有导出交换机端口的原始 TLP，未知实际线上有几个 Completion。",
+        "工单只给证据归因，未要求改设置。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "暂缓违规归因。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "不同请求的 Completion 禁合并，显示聚合并非线级证据。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "要求同观察点原始 TLP、Transaction ID 和数据关联，实证线级合并才判违规。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把一条 UI 汇总直接等同于一帧 Completion。"],
+      "id": "SSD-F11-12",
+      "referenceAnswer": "暂不能签违规。规范禁止合并不同请求及其 Completion，UI 的汇总行不能证明线上实际合并。取同一端口原始请求与 Completion TLP，按 Transaction ID、分段地址与实际 payload 还原。只有看到一个物理 Completion 归并两请求的数据才据此判违规；若实际分别发送则摘要聚合不构成此项。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 179,
+          "section": "Additional Transaction Ordering Rules",
+          "anchor": "Completions for different Requests is prohibited"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 179,
+          "section": "Additional Transaction Ordering Rules",
+          "anchor": "Completions with different Transaction IDs are permitted"
+        }
+      ]
+    },
+    {
+      "family": "pcie-atomicop-length-malformed-vs-unsupported-width",
+      "split": "challenge",
+      "question": "脚本把两类 AtomicOp 失败都归档成 Unsupported Request，可以验收吗？",
+      "observations": [
+        "接收端实现 AtomicOps，FetchAdd 只支持 32 位。故障注入 A 使用 FetchAdd Length=3 DW，B 使用 Length=2 DW 且其他字段合法对齐。",
+        "两种输入分别在隔离的验收记录里，当前脚本不区分架构长度合法性。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝脚本都归 UR。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分架构长度非法和架构长度合法但设备不支持的处理。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "核查注入的原始 TLP、该 Completer 支持位和对应结果，A Malformed、B UR。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["把 Length=3 DW 按 unsupported width 处理。"],
+      "id": "SSD-F11-10",
+      "referenceAnswer": "不能合并。FetchAdd 架构长度是 1 DW 或 2 DW，3 DW 应判 Malformed。2 DW 为架构允许的 64 位，超出该 Completer 支持，应判 UR。逐例核对请求 TLP Length/Type、对应 Completer 的能力和其结果记录。仅在两类分别匹配时通过。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 128,
+          "section": "Table 2-12 AtomicOp Length",
+          "anchor": "does not match an architected value"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 128,
+          "section": "Table 2-12 AtomicOp Length",
+          "anchor": "handle the TLP as an Unsupported Request"
+        }
+      ]
+    },
+    {
+      "family": "nvme-idle-power-measurement-window",
+      "split": "challenge",
+      "question": "静置 5 秒后只采样 10 秒，能按 Identify IDLP 定义签 idle power 实测吗？",
+      "observations": [
+        "IDLP 非零，对应 Idle Power Scale 也已读回。台架五秒前进入静置，以后无命令、属性访问或后台操作，取十秒平均值。",
+        "工单要求测量窗口与 IDLP 定义一致，并与工程目标比较。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝当前采样窗口。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "先空闲 10 秒，再测量 30 秒，需符合 idle 定义及使用 scale。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "保留状态与无活动轨迹、测量时间段和功耗，与工单门槛比较后才签。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["以 5 秒 + 10 秒称符合 IDLP 窗口。"],
+      "id": "SSD-F11-09",
+      "referenceAnswer": "不能按现记录签。IDLP 表示对应状态下空闲 10 秒之后开始的 30 秒典型空闲功耗，工程师应记录全程无活动的时间轴和状态、完整窗口电功率、IDLP 及 scale，按正确单位和工程门槛验收。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 352,
+          "section": "Identify Idle Power",
+          "anchor": "subsystem over 30 seconds"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 352,
+          "section": "Identify Idle Power",
+          "anchor": "subsystem has been idle for 10 seconds"
+        }
+      ]
+    },
+    {
+      "family": "msix-lab-trace-not-production-change-permit",
+      "split": "challenge",
+      "question": "实验机发包已对，能按这份证据直接执行生产机 MSI-X 地址替换吗？",
+      "observations": [
+        "实验机同一型号和配置上，目标 MSI-X 表项在有效掩蔽下改地址和数据，读回匹配，解掩后发包匹配。",
+        "生产发布单要求生产变更审批和生产 Function 对应的表项及版本复核。当前只有实验签字，无生产批准。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "拒绝现在执行生产改写，保留实验有效范围。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "实验记录证明技术方法，生产审批和对应对象是另一门槛。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "要求生产审批、对应目标和有效掩蔽的安排，写后通过须有表项和发包核对。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["称实验通过可直接在生产改写。"],
+      "id": "SSD-F11-03",
+      "referenceAnswer": "保留实验确认证据，暂缓生产操作。工单要求的生产批准与技术验收分别核对。确认由指定批准人授权对应上线对象和窗口，现场核对目标 Function/表项、当前版本、有效掩蔽时序，并按获准变更的生产验收范围检查读回与对应消息。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 500,
+          "section": "§6.1.4 MSI-X",
+          "anchor": "regardless of the per-entry Mask bit values"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 501,
+          "section": "§6.1.4 MSI-X",
+          "anchor": "changes the Address or Data value"
+        }
+      ]
+    },
+    {
+      "family": "nvme-retry-delay-log-missing-cqe-time-origin",
+      "split": "challenge",
+      "question": "这份 NVMe retry 日志可以签严格遵守 CRD 等待了吗？",
+      "observations": [
+        "同一控制器同期 ACRE=1，目标失败 CQE 的 DNR=0、CRD=10b，CRDT2 解析为 200 ms。工单规定按 CQE 收到时计算至少等待 200 ms。",
+        "日志只有原命令提交与重提时间，差 240 ms，原失败 CQE 的收到时标丢失。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "暂缓合格判定。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "DNR=0 和 ACRE=1 时 CRD=10b 选 CRDT2；区分工程门槛与规范 should。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "按同次 CQE 收到与重提时标核对差值≥200 ms。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["用原提交到重提间隔直接签通过。", "把较早重试一概定为协议错误。"],
+      "id": "SSD-F11-11",
+      "referenceAnswer": "暂不能签。此条件选择 CRDT2，工单从收到失败 CQE 起算。原提交到重试的 240 ms 含命令执行时间。取同次失败 CQE 到达、匹配的重试提交及时间戳，差值至少 200 ms 才符本单。规范为 should，早重试不自动构成协议错误。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 162,
+          "section": "CQE Command Retry Delay",
+          "anchor": "a 10b CRD value selects"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 162,
+          "section": "CQE Command Retry Delay",
+          "anchor": "not an error for the host to retry"
+        }
+      ]
+    },
+    {
+      "family": "tph-map-revision-approval-stale",
+      "split": "challenge",
+      "question": "能签映射版本 r8 在当前 SSD 端口可以上线吗？",
+      "observations": [
+        "平台已激活短 Steering Tag 映射 r8，两路测试请求在同轮实测命中预定资源。记录与 TLP 的短 tag 均可关联。",
+        "发布单要求应用负责人批准实际部署的映射版本。应用确认记录只列 r7；r8 虽复用相同的短 tag，平台的资源映射版本已变化。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "暂缓 r8 发布。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分平台 mapping 与应用批准，r7 不能替代 r8。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "同一 r8 的两流落点和应用负责人确认均到位。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["用平台现行映射或实测成功代替 r8 的应用批准。"],
+      "id": "SSD-F11-01",
+      "referenceAnswer": "暂不签发布。两路实测证明当前 r8 的技术落点，但批准绑定版本，r7 记录不授权 r8。核对同一版本 r8、两流到各自目标的实测记录及应用负责人对 r8 的确认，均齐全才通过。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 606,
+          "section": "§6.17 Steering Tags",
+          "anchor": "system-specific values used to identify a processing resource"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 607,
+          "section": "§6.17 Steering Tags",
+          "anchor": "association of each Request with an ST Table"
+        }
+      ]
+    },
+    {
+      "family": "fused-completed-state-missing-command-set-interpretation",
+      "split": "challenge",
+      "question": "首、次命令各有一条有效完成，能签它们的状态组合符合该 fused 命令集吗？",
+      "observations": [
+        "PCIe，pair 的 SQID/CID、Phase Tag 和本轮提交编号均一致。两条 CQE 的 SCT/SC 均已完整保存，确认是次命令本身报错而非被首条错误中止。",
+        "工单要签这一命令序列的状态组合是否符合其 I/O Command Set。日志没有命令集版本或该序列条款。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "不签组合合规，可保留实测两条原码。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "次命令自身执行失败时，首条状态由适用命令集定义。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "查同次命令集版本与操作码，比较已保存的两条状态是否为该序列允许组合。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["因为两条都已有效就签组合合规。"],
+      "id": "SSD-F11-06",
+      "referenceAnswer": "能归档两个原始状态，先别签状态组合合规。Base 对次命令失败时首命令的状态交给相应序列的命令集。查同次操作启用的命令集版本、具体操作码和规则，对已有的两条匹配 CQE 验证状态组合被允许才签。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 120,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "completion status of the first command is sequence"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 121,
+          "section": "§3.4.2 Fused Operations",
+          "anchor": "completion queue entry is posted by the controller"
+        }
+      ]
+    },
+    {
+      "family": "nvme-current-register-safe-but-permit-expired",
+      "split": "challenge",
+      "question": "页大小变更的技术门槛都齐了，能现在写 CC.MPS 吗？",
+      "observations": [
+        "该非 Discovery 控制器 CC.EN=0 已读回，CAP.MPSMIN=0、CAP.MPSMAX=1。拟从 MPS=0 改为 MPS=1，配套 8 KiB PRP 已准备。",
+        "本次只允许获准窗口内写控制器。记录显示批准窗口在 15 分钟前结束，尚无续批。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "暂缓当前写。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分当前硬件条件与过期授权，准确说明 CC.EN=0、MPSMIN/MAX、目标页尺寸。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "核准新窗口并在写入时确认同一对象的现场读回和配置目标。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["有过期批准但读数安全就执行。"],
+      "id": "SSD-F11-04",
+      "referenceAnswer": "现在暂缓写。当前 CC.EN=0、目标 MPS=1 受支持、PRP 已准备，满足技术前提；过期授权不覆盖本次。取得有效窗口后重新读取同一控制器的 CC.EN 和支持范围，核对 PRP，条件同时满足才执行并验收读回。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 80,
+          "section": "CC.MPS Memory Page Size",
+          "anchor": "CAP.MPSMAX and CAP.MPSMIN fields"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 80,
+          "section": "CC.MPS Memory Page Size",
+          "anchor": "only be modified when CC.EN is cleared"
+        }
+      ]
+    },
+    {
+      "family": "tph-ordinary-pass-specific-mapping-no-prefix-required",
+      "split": "challenge",
+      "question": "合同只验普通 TPH。当前两条都没带 TPH TLP Prefix，能判为通过吗？",
+      "observations": [
+        "应用为两条测试请求确认了普通 8 位 tag 分别为 0x2C、0x3D。Requester 已使能普通 TPH，链路接收方也支持。",
+        "同期抓包识别出两个同一 Function 的对应 Memory Write，TH=1，ST[7:0] 分别是对应确认值；范围只验发出的普通 tag。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "批准普通 TPH 发包验收。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "区分普通 8 位 header tag 与扩展前缀，按题面范围。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "把映射与两个同次 Memory Write 的 TH/ST 逐一对应。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["因缺扩展前缀拒绝本项普通 TPH，或外推平台实际资源。"],
+      "id": "SSD-F11-08",
+      "referenceAnswer": "可以按指定范围签。普通 header 中 ST[7:0] 已按同一 Function 和测试请求逐条匹配，扩展前缀不属于此项。保留应用映射版本和两条原始 tag 记录。该签字只覆盖普通 TPH 发包，不外推资源落点。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 133,
+          "section": "Figure 2-24 Steering Tag",
+          "anchor": "Location of ST[7:0] in the Memory Write"
+        },
+        {
+          "id": "P2",
+          "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+          "page": 947,
+          "section": "TPH Requester Capability",
+          "anchor": "Requests with a TPH TLP Prefix"
+        }
+      ]
+    },
+    {
+      "family": "shadow-head-stale-eventidx-sample-wrong-queue",
+      "split": "challenge",
+      "question": "CQ 5 的 Shadow Head 更新能按另一条队列的 EventIdx 直接断定漏写门铃吗？",
+      "observations": [
+        "同次成功配置，CQ5 无回绕从 3 更新到 7。日志在这段期间没见实际 CQ5 Head Doorbell 写。",
+        "唯一 EventIdx=5 的原始读数来自 CQ6；CQ5 对应条目在更新时没有捕获。"
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "text": "暂缓漏写判定。",
+          "weight": 4,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C2",
+          "text": "严格跨越且同一条目的条件，CQ6 的读值无证明力。",
+          "weight": 3,
+          "critical": true,
+          "evidence": ["P1", "P2"]
+        },
+        {
+          "id": "C3",
+          "text": "取 CQ5 对应的同期 EventIdx 和同一门铃记录，按 [3,7) 或等价门槛判是否必须写 7。",
+          "weight": 3,
+          "critical": false,
+          "evidence": ["P1", "P2"]
+        }
+      ],
+      "reject": ["按 CQ6=5 直接判 CQ5 漏写。"],
+      "id": "SSD-F11-05",
+      "referenceAnswer": "暂不归因漏写。需要 CQ5 的旧/新 Shadow 值与同次对应的 CQ5 EventIdx。若 CQ5 EventIdx 在 [3,7) 才必须写对应门铃为 7；否则 absence 本身不证明漏写。核对同一有效配置、槽位和同时段 MMIO 写。",
+      "evidence": [
+        {
+          "id": "P1",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 702,
+          "section": "§B.5 Shadow Doorbell",
+          "anchor": "value of the corresponding EventIdx buffer entry"
+        },
+        {
+          "id": "P2",
+          "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+          "page": 702,
+          "section": "§B.5 Shadow Doorbell",
+          "anchor": "the value of that entry in the Shadow"
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "baseline",
+      "label": "第九轮 · 核对边界与验收记录",
+      "config": "Codex Sol · 单次核验签发 · 120 秒 · 8 次取证含预取",
+      "results": [
+        {
+          "caseId": "SSD-F11-07",
+          "status": "completed",
+          "answer": "**处置** 暂不签署首次消息已使用 (A2,D2)\n\n**判定条件**\n- 目标表项已在掩蔽时写入并读回 (A2,D2)，随后实际解掩。清除表项 Mask 或 Function Mask 使该表项实际解掩时，Function 必须更新该表项中已缓存的地址和数据值。因此，若解掩后该表项发出了首条消息，就必须使用 (A2,D2)。（PCIe PDF p.501）\n- 掩蔽期间禁止发送该表项的消息，原本应发送时必须置 Pending。若实际解掩时 Pending 仍为 1，Function 必须调度发送，并在消息发出后立即清位。现场只在解掩前较早时刻见到 Pending=1，解掩后读到 PBA=0。（PCIe PDF pp.500、789）\n- 若 Pending=1 且底层中断事件在掩蔽期间已得到处理，Function 必须清位以免解掩后误发。若仍在掩蔽时又发生中断事件，则必须重新置位。日志只提示软件可能已处理事件，因此解掩后的 PBA=0 也与掩蔽期间清位相容。（PCIe PDF p.500）\n\n**必要核验** 补查能关联同一 Function、同一 MSI-X 表项并覆盖本次实际解掩至首发的同期发送记录。确认首条 MSI-X Memory Write 的完整地址和数据为 (A2,D2) 后签署。若无历史记录，带事务捕获的复测只能验收复测的首发。",
+          "seconds": 18.37,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "拒绝仅凭 PBA 清零签署，说明了发送后清位和掩蔽期间事件已处理两条路径，并要求关联本次解掩的实际消息核对地址和数据。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.485,
+            "draft": 0,
+            "review": 17.876,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 501
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-02",
+          "status": "completed",
+          "answer": "**处置** 签发通过（m5 两条短 Steering Tag 路径）\n\n**判定条件**\n- PCIe 将 Steering Tag 定义为系统特定的目标处理资源标识，由系统软件确定各 Function 的分配。实验合同指定的平台资源负责人已签署 m5，合同的映射批准条件已满足。（PCIe PDF p.606）\n- 短 Steering Tag 由请求 TLP 的 ST[7:0] 携带，全零表示无 Steering Tag 偏好。台架同次记录以 m5 配置和捕获，将两条已批准请求分别绑定到其短 Tag 和指定处理资源。（PCIe PDF pp.133、606–607）\n- TPH 用于以 Memory Space 为目标的请求，要求 Requester、Completer 和所有中间路由元素均支持相应能力，并由软件设置 TPH Requester Enable。现场已核对 Requester 与链路支持，并以同次 m5 配置和捕获验证两条路径。（PCIe PDF p.608）",
+          "seconds": 29.83,
+          "toolCalls": 7,
+          "review": {
+            "usability": "ready",
+            "reason": "按 m5 和题定批准人限定范围通过，并引用同次记录确认两条请求与各自资源的对应关系。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.557,
+            "draft": 0,
+            "review": 29.269,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 606
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 133
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 134
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 755
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 754
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 94
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 265
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-12",
+          "status": "completed",
+          "answer": "**处置** 证据不足，拒签 Switch 违规合并\n\n**判定条件**\n- PCIe 禁止合并 Memory Read Requests，也禁止合并不同 Request 的 Completion。Switch 必须对所有转发流量执行这些事务排序规则（PCIe PDF pp.179–180）。\n- Completion 按包头中的 Transaction ID（Requester ID 与 Tag）关联原请求。现场 UI 按地址将两个 Transaction ID 的事件聚成一行，该摘要无法确定线上 Completion TLP 的数量或边界（PCIe PDF pp.82、107、154）。\n- 不同 Transaction ID 的 Completion 可彼此超越，因此两个独立 TLP 即使改变相对顺序也可以合规转发。同一 Memory Read 可由一个或在允许时由多个 Completion 完成，分段须遵守 RCB 和 Max_Payload_Size，同 ID 的 Completion 不得彼此超越（PCIe PDF pp.170、179）。\n\n**必要核验** 取得事发时同一 Switch 相关入口和出口的原始 TLP，逐包核对边界、Requester ID、Tag、地址及数据归属。只有证实该 Switch 将两个不同请求的 Completion 合成一个出口 TLP，才签违规合并。若同期记录证实两者以独立 TLP 转发，则就合并指控放行（PCIe PDF pp.107、154、179–180）。",
+          "seconds": 20.32,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓归因，区分了界面聚合与线级合并，并给出原始 TLP 和数据归属的核验及判定条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.515,
+            "draft": 0,
+            "review": 19.802,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 179
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 180
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-10",
+          "status": "incomplete",
+          "answer": null,
+          "seconds": 11.62,
+          "toolCalls": 2,
+          "review": {
+            "usability": "no_answer",
+            "reason": "未在本次运行中交卷。",
+            "otherError": "",
+            "credits": {},
+            "rejectHits": [],
+            "score": 0.0,
+            "passed": false
+          },
+          "phaseSeconds": {
+            "retrieval": 0.241,
+            "draft": 0,
+            "review": 11.374,
+            "other": 0.007
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F11-09",
+          "status": "completed",
+          "answer": "**处置** 拒签本次 IDLP 实测\n\n**判定条件**\n- IDLP 表示 NVM 子系统在对应电源状态下的典型空闲功耗。连续空闲满 10 秒后才开始测量，随后取 30 秒平均。现场静置 5 秒即开始采样且只采了 10 秒，两个时间条件均未满足。（NVMe PDF p.557）\n- 空闲期间须无待处理命令、属性访问、后台进程或设备自检操作。现场记录还需覆盖设备自检，并证明对应电源状态下的空闲贯穿等待及采样。（NVMe PDF p.557）\n- IDLP 非零且已读回 IPS。有效 IPS 为 01b（0.0001 W）或 10b（0.01 W），用于换算报告值。00b 表示该电源状态未报告，11b 为保留值。（NVMe PDF p.352）\n- ACTP 的 10 秒窗口适用于特定工作负载下的最大平均功耗，测量从首条命令提交到最后一条命令完成。这条路径无法用于签发本次 IDLP 实测。（NVMe PDF p.557）\n\n**必要核验** 确认同一 NVM 子系统处于所测 IDLP 对应的电源状态，并记录连续空闲满 10 秒后再采样 30 秒。确认整个区间无待处理命令、属性访问、后台进程或设备自检操作，再将 30 秒平均功耗与工程目标比较，并用有效 IPS 换算 Identify 报告值供对照。（NVMe PDF pp.352、557）",
+          "seconds": 13.8,
+          "toolCalls": 2,
+          "review": {
+            "usability": "misleading",
+            "reason": "当前拒签正确，等待 10 秒、测量 30 秒、使用 IPS 及比较工程门槛也正确。但判定和验收均漏查 sanitize；即使没有待处理命令，已启动的 sanitize 仍可能在运行，照此核验会把非空闲功耗签为 IDLP 实测。",
+            "otherError": "空闲核验遗漏等待及采样全程的 sanitize 状态，可能错误放行。",
+            "credits": {
+              "C1": 1,
+              "C2": 0.5,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 70.0,
+            "passed": false
+          },
+          "phaseSeconds": {
+            "retrieval": 0.229,
+            "draft": 0,
+            "review": 13.562,
+            "other": 0.009
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F11-03",
+          "status": "completed",
+          "answer": "**处置** 暂缓签发，禁止执行生产 MSI-X 地址替换\n\n**判定条件**\n- 实验机在有效掩蔽下改写、读回匹配且解掩后发包匹配，验证了实验机的操作路径。生产发布要求生产审批及生产 Function 的表项和版本复核，当前仅有实验签字。\n- 在生产 Function 上，以 MSI-X Capability 的 Table BIR 对应 BAR 基址加 Table Offset 定位表，按 Table Size + 1 校验表项索引 k，再以表基址 + 16×k 定位目标项（PCIe PDF p.498、783）。\n- 写入全程须保持目标项的 Vector Control.Mask 置位，或保持 Function Mask 置位。后者掩蔽该 Function 的全部表项。规范规定未掩蔽时改写 Address 或 Data 的结果未定义（PCIe PDF p.498、500–501）。\n- 通过清除表项 Mask 或 Function Mask 使表项实际解掩时，Function 必须更新该项已缓存的 Address 或 Data。若对应 Pending 位仍置位，须安排发送并在发出后清除。若底层事件在掩蔽期间已处理，则须清除 Pending，后续事件发生时再置位（PCIe PDF p.500–501）。\n\n**必要核验** 取得生产变更批准，并按发布单复核生产 Function 的版本及目标 MSI-X 表项。两项均完成后，才可在确认目标项有效掩蔽的情况下替换 Message Address 和 Message Upper Address，读回确认后解除本次施加的掩蔽。",
+          "seconds": 20.94,
+          "toolCalls": 4,
+          "review": {
+            "usability": "revise",
+            "reason": "正确暂缓生产改写，并要求生产审批、Function 版本和表项复核及有效掩蔽。写后只核对了表项读回；对缓存和 Pending 位的说明不能替代解掩后核对该生产表项实际发出的消息地址与数据。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.416,
+            "draft": 0,
+            "review": 20.517,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 501
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 498
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-11",
+          "status": "completed",
+          "answer": "**处置** 暂不签署严格遵守 CRD 等待\n\n**判定条件**\n- 同一控制器同期 ACRE=1，目标失败 CQE 的 DNR=0 且 CRD=10b，因此选用以 100 ms 为单位的 CRDT2，现场解析为 200 ms。（NVMe PDF 第 162、328 页）\n- DNR=0 且 ACRE=1 时，CRD=00b 才表示零等待、可立即重试。若 DNR=1 或 ACRE=0，CRD 为保留字段。两种路径均不适用于该 CQE。（NVMe PDF 第 162 页）\n- 规范建议至少等待所选时长，并明确提前重试不构成规范错误。工单的严格签署门槛是从收到该失败 CQE 到重提至少 200 ms。（NVMe PDF 第 162 页）\n- 现有 240 ms 从原命令提交起算，包含提交至收到失败 CQE 的时间。缺失该 CQE 的收件时标，现有记录无法判定重提前是否等满 200 ms。（NVMe PDF 第 162、328 页）\n\n**必要核验** 找回同一控制器上该次原命令的失败 CQE 收件时标，或取得覆盖该次事件且能证明收件最迟时刻的同期记录。与重提时标按同一时间基准核对，确认间隔至少 200 ms 后方可签署。",
+          "seconds": 12.32,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确暂缓签署，区分规范建议与工单门槛，并给出同次事件的有效时标核验或可证明的收件最迟时刻。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.275,
+            "draft": 0,
+            "review": 12.032,
+            "other": 0.008
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F11-01",
+          "status": "completed",
+          "answer": "**处置** 拒签当前 SSD 端口的 r8 上线\n\n**判定条件**\n- PCIe 5.0 §6.17.2 将 Steering Tag 定义为“system-specific values”，用于将平台处理资源与请求关联。现场记录能将两路请求的 TLP 短 tag 与同轮实测结果对应，确认两路请求在当前端口的 r8 映射下均命中预定资源。（PCIe PDF p.607）\n- 发布单另要求应用负责人批准实际部署的映射版本。现有确认仅覆盖 r7，r8 已改变平台资源映射，复用相同短 tag 无法将 r7 的批准延伸至 r8。\n\n**必要核验** 取得应用负责人明确批准当前 SSD 端口实际部署的 r8 映射的记录后，方可签发上线。",
+          "seconds": 14.28,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确暂缓上线，引用同轮 r8 两路落点实测，并要求取得应用负责人对 r8 的批准。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.345,
+            "draft": 0,
+            "review": 13.931,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 606
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-06",
+          "status": "completed",
+          "answer": "**处置** 暂缓签署状态组合合规\n\n**判定条件**\n- 控制器须为两条命令各发布一条 CQE。PCIe 共享 CQ 时以 SQID 和 CID 联合匹配。现场两条 CQE 的归属和有效性已由 SQID/CID、Phase Tag 及本轮提交编号确认，SCT/SC 均已保存（NVMe PDF p.121、160）。\n- 两条命令须在同一 SQ 相邻提交，首条占末槽时次条须占首槽，且 PCIe 的一次 SQ Tail Doorbell 更新须同时提交两条。控制器处理违反相邻要求的命令时，须以 Command Aborted due to Missing Fused Command 中止 FUSE 非零的命令。两条 CQE 的匹配记录无法证明提交满足这些要求（NVMe PDF p.120–121）。\n- 两条命令须按顺序作为原子单元执行，遇错即结束。若首条失败，次条必须中止。现场确认次条自身报错，故应按适用 I/O Command Set 规范的 Fused Operation 章节中该序列的规定核对首条完成状态（NVMe PDF p.120–121）。\n\n**必要核验** 确认本轮提交所用的 I/O Command Set、规范版本和具体 fused 序列，取得该序列在次条自身失败时对首条完成状态及状态组合的规定。将两条已保存的 SCT/SC 逐项对照条款，确认组合符合后签署。",
+          "seconds": 12.4,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确暂缓签署，并要求按适用命令集版本和具体序列核对两条已保存状态的组合。附加的提交规则说明不改变本题处置。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.188,
+            "draft": 0,
+            "review": 12.207,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-04",
+          "status": "completed",
+          "answer": "**处置** 暂缓写入 CC.MPS\n\n**判定条件**\n- 工单要求仅在获准窗口内写控制器。原窗口已于 15 分钟前结束，且尚无续批，当前写入授权门槛未满足（现场审批记录）。\n- CC.MPS 仅可在 CC.EN=0 时修改，且目标编码必须在 CAP.MPSMIN 至 CAP.MPSMAX 的范围内。该非 Discovery 控制器已读回 CC.EN=0，目标 MPS=1 在 0 至 1 的范围内，对应 8 KiB，配套 PRP 已准备。Discovery 控制器的 MPS 必须为 0，此例外不适用（NVMe PDF p.75、p.80）。\n- 若本次写入属于 PCIe 控制器复位后的初始化，先等 CSTS.RDY=0 确认复位完成，再配置 CC.MPS，之后才置 CC.EN=1。现场只提供了 CC.EN 的读回值（NVMe PDF p.124）。\n- PCIe SR-IOV System Page Size 用于 VF 地址映射，并须选自 Supported Page Sizes。该字段不提供 CC.MPS 写入的替代路径（PCIe PDF p.1112、p.1134）。\n\n**必要核验** 取得续批并确认新窗口已生效，在窗口内写入前复核该控制器 CC.EN=0。若处于 PCIe 复位后初始化，另须确认 CSTS.RDY=0 后再写。",
+          "seconds": 23.33,
+          "toolCalls": 5,
+          "review": {
+            "usability": "revise",
+            "reason": "正确区分了已满足的硬件条件和已过期的授权。续批后要求在同一控制器复读 CC.EN，但未要求在新窗口复核支持范围与 8 KiB PRP，也未以写后读回 CC.MPS=1 作为通过条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 0.5
+            },
+            "rejectHits": [],
+            "score": 85.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.496,
+            "draft": 0,
+            "review": 22.822,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 80
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 81
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 124
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 125
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 76
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 132
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-08",
+          "status": "completed",
+          "answer": "**处置** 两条均通过普通 TPH 验收\n\n**判定条件**\n- 所有提供 TPH 的请求都必须使用 Baseline TPH 格式。TPH TLP Prefix 是可选扩展，用于携带 ST[15:8]，两条请求均可省略此前缀以发送普通 8 位 tag（PCIe 5.0 PDF p.131）。\n- Memory Write 的 ST[7:0] 位于 TLP 头部 Byte 6 的 Bits[7:0]。Requester 已使能普通 TPH，接收方支持，同期抓包中同一 Function 的两条对应写请求均为 TH=1，ST[7:0] 分别与应用确认的 0x2C、0x3D 一致，满足发出端验收范围（PCIe 5.0 PDF pp.131–133）。",
+          "seconds": 21.24,
+          "toolCalls": 8,
+          "review": {
+            "usability": "ready",
+            "reason": "结论符合普通 TPH 发包验收范围，已逐条对应同一 Function 的请求、TH 和普通 tag；无需扩展前缀。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.406,
+            "draft": 0,
+            "review": 20.829,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 133
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 134
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 131
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 132
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-05",
+          "status": "completed",
+          "answer": "**处置** 拒绝签署 CQ5 漏写门铃\n\n**判定条件**\n- 同次 Doorbell Buffer Config 已成功完成。Figure 486 为每个 CQ 分配各自的 Head/EventIdx 条目。CQ5 的 EventIdx 位于 PRP2 + 11 × (4 << CAP.DSTRD)，现场读到的 CQ6 EventIdx=5 属于 CQ6。（NVMe PDF p.445–446、702）\n- 主机先更新对应的 Shadow Head。仅当该值从小于或等于对应 EventIdx 变为大于它时，主机才须将实际 CQ Head Doorbell 更新为新值，比较须计入队列回绕。CQ5 无回绕由 3 到 7，因此同期 CQ5 EventIdx 满足 3 ≤ EventIdx < 7 时必须写 7，等于 7 时未跨越阈值。若同期 CQ5 EventIdx 不在该区间，本次更新无需补写实际门铃。（NVMe PDF p.702）\n- 控制器可随时更新 EventIdx，包括在主机写实际门铃之前。现场缺少 CQ5 本次更新时的对应读数，事后读数只证明其采样时点的值。日志未见 CQ5 门铃写入，仍不足以认定漏写。（NVMe PDF p.702）\n\n**必要核验** 核对同次配置下 CQ5 本次 3→7 更新所用的 PRP2 对应 EventIdx 读值，或取得覆盖该时点并能确定该条目值的连续记录。若确认 3 ≤ EventIdx < 7，再核实日志覆盖本次应发生的实际 CQ5 Head Doorbell 写入，确认缺失值为 7 的写入后方可签署漏写。（NVMe PDF p.445–446、702）",
+          "seconds": 13.47,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓归因；正确区分 CQ6 与 CQ5 的条目，并给出同期 CQ5 EventIdx 和门铃记录的核验门槛。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.173,
+            "draft": 0,
+            "review": 13.287,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "candidate",
+      "label": "第十一轮 · 核对现场证据与批准",
+      "config": "同模型、语料与预算 · 验收对象、记录和通过条件 · 核对题面要求的批准与实测结果",
+      "results": [
+        {
+          "caseId": "SSD-F11-07",
+          "status": "completed",
+          "answer": "**处置** 待验，暂不签发“改址后第一次 MSI-X 消息使用 (A2,D2)”的结论。现场确认了表项读回和实际解掩，但未保留发送事务，无法确定原次是否发送、PBA 为何清零，或首条消息使用了什么值。\n\n**判定条件**\n- 有效掩蔽由 Function Mask 和表项 Mask 共同决定。表项从有效掩蔽转为解掩时，Function 必须更新该表项已缓存的地址和数据。在未掩蔽时改写地址或数据，结果未定义。PCIe 5.0 v1.0 PDF 第 500–501 页，§6.1.4.5。\n- 掩蔽期间禁止发送该消息，本应发送时须置 Pending。若实际解掩时 Pending 仍为 1，Function 须安排发送，并在发出后立即清零。PCIe 5.0 v1.0 PDF 第 500 页，§6.1.4.5。\n- 若 Pending=1 的底层事件在仍掩蔽时已获处理，Function 须清零以免解掩后误发。若仍掩蔽时又发生中断事件，须重新置位。现场日志只表明可能已处理，较早的 Pending=1 和解掩后的 PBA=0 不能确定原次清零原因。PCIe 5.0 v1.0 PDF 第 500 页，§6.1.4.5。\n- MSI-X 启用且目标表项解掩后，发送使用所选表项的消息地址和 32 位消息数据，形成 DWORD Memory Write。PCIe 5.0 v1.0 PDF 第 500 页，§6.1.4.4。\n\n**现场验收**\n- **同一 PCIe Function 的目标 MSI-X 表项从改写到实际解掩的时序**。记录为Function 标识、表项索引、MSI-X Enable、Function Mask、表项 Vector Control.Mask、Message Address 上下 DWORD 和 Message Data 的写入与读回记录。通过条件为改写期间该表项持续有效掩蔽，解掩前完整读回 (A2,D2)，随后在 MSI-X 启用且两个 Mask 均为 0 时确认该表项实际解掩。\n- **原次实际解掩后该表项的首条消息**。记录为同一 Function 和表项的解掩时间、事件与表项的关联记录，以及从实际解掩连续覆盖至首条消息的 PCIe 事务捕获。通过条件为可将首条 DWORD Memory Write 唯一归属到该 Function 和表项，且事务地址等于 A2、32 位载荷等于 D2。原次缺少这段记录则保持待验。\n- **复测本次实际解掩后的首条消息**。记录为复测的掩蔽、改写、读回与解掩记录，目标表项的受控事件触发与服务时序、Pending 变化及连续 PCIe 事务捕获。通过条件为复测满足同一 Function 和表项的改址时序核验。若用掩蔽期间的待处理事件验证解掩触发发送，须确认实际解掩时 Pending 仍为 1 且对应事件尚未获处理。也可在解掩后触发归属于该表项的受控事件。两种方式均须自实际解掩起连续捕获，确认该表项首条 DWORD Memory Write 的地址和载荷分别为 A2 和 D2。签发范围限于复测。",
+          "seconds": 27.13,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确保持待验，说明 Pending 清零的两条路径，并要求关联实际消息核对 A2、D2；复测签发范围也限定清楚。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.371,
+            "draft": 0,
+            "review": 26.728,
+            "other": 0.035
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 501
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-02",
+          "status": "completed",
+          "answer": "**处置** 按实验合同签发通过。放行范围为 m5 下同次台架记录覆盖的两条短 Steering Tag 路径。\n\n**判定条件**\n- 合同依据：平台资源负责人是本次映射批准人，已签署 m5。合同无附加应用签字条件。\n- 实测依据：同次 m5 配置与捕获将两条已批准请求分别关联到 m5 指定的短 tag 和处理资源，Requester 与链路支持已核对。\n- 短 tag 使用 TPH，TH=1，ST[7:0] 位于请求头，TPH Prefix 承载 ST[15:8]。Requester Enable 为 01b 或 11b 时允许普通 TPH。全零短 tag 表示无 Steering Tag 偏好。PCIe PDF 文件页 131、133、948–949。\n- 中断向量模式按有效向量选表项。ST 表小于启用向量范围时，规范允许部分事务不用 TPH、使用零 tag 或按实现定义选取表项。设备专用模式可使用架构 ST 表以外的值。上述例外仍须满足 m5 的逐请求验收标准。PCIe PDF 文件页 607–608。\n- ST 表与 MSI-X 表合并且 ST Table Location=10b 时，Vector Control 的 ST Lower 为 [23:16]。Extended TPH Requester Supported 置位时，[31:24] 才定义为 ST Upper。PCIe PDF 文件页 607、789。\n\n**现场验收**\n- **两条请求的 m5 映射批准**。记录为工单指定的批准人、m5 签署记录及两条请求的短 tag 和处理资源映射。通过条件为平台资源负责人的签署覆盖两条受验映射，且签署版本与台架配置和捕获均为 m5。\n- **两条请求的短 TPH 编码及适用的选表规则**。记录为同次 Requester 与链路能力核对记录、TPH Requester Control、两条请求的 TLP 捕获，以及使用 ST 表时的表位置、向量和表项读回。通过条件为两条请求均获准发送普通 TPH，TH=1，且无 TPH Prefix，头部 ST[7:0] 各自等于 m5 批准值。使用向量选表时满足有效向量及表项范围规则，合并表按 ST Lower 核对短 tag。\n- **两条请求在 m5 下的实际处理资源**。记录为同次台架的逐请求关联记录、短 tag 捕获及处理资源落点。通过条件为每条已批准请求均可独立关联到其 m5 短 tag 和指定处理资源，且实测落点逐条匹配。",
+          "seconds": 35.74,
+          "toolCalls": 8,
+          "review": {
+            "usability": "ready",
+            "reason": "限定两条 m5 路径签通过，批准主体、版本和逐请求资源映射一致，验收证据及通过条件明确。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.481,
+            "draft": 0,
+            "review": 35.25,
+            "other": 0.012
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 133
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 134
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 82
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 81
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 131
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 132
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 949
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-12",
+          "status": "completed",
+          "answer": "**处置** 待验。当前只能确认分析器 UI 将两个 Transaction ID 的事件按地址聚合为一行。实际 Completion TLP 数量及 Switch 是否执行了合并均未证实，暂不签发 Switch 违规归因。\n\n**判定条件**\n- PCIe 5.0 v1.0 PDF 文件第 82、107 页规定，Completion 按 Transaction ID 关联对应的 Request，Transaction ID 由 Requester ID 和 Tag 组成。地址相同不足以建立事务关联。\n- PCIe 5.0 v1.0 PDF 文件第 169、179、180 页禁止合并不同 Request 的 Completion，Switch 必须对转发流量执行该规则。同一 Memory Read 可以由多个 Completion 返回，合计须恰好覆盖所请求的数据量。I/O Read 和 Configuration Read 各须恰好使用一个 Completion。\n- 对本次事件的归因须有同一台 Switch 相关入、出端口对同一批事务的同期或连续覆盖记录。只有证据表明跨请求合并发生在该 Switch 内，才可签发该项违规。\n\n**现场验收**\n- **本次两个 Read 与相关 Switch 端口上的实际 Completion TLP**。记录为同一事件的端口原始 TLP、端口及方向、时间戳、封包边界、TLP Type、Requester ID、Tag，以及用于核对数据范围的请求地址、Length、Byte Enables 和 Completion 的 Length、Byte Count、Lower Address、有效载荷。通过条件为按 Requester ID 和 Tag 将实际 Completion 逐包关联到两个 Read，并确定线上包数和数据范围。若原始包分别归属各自请求且仅 UI 合行，本事件不签违规合并。\n- **跨请求合并是否发生在涉事 Switch 内**。记录为同一台 Switch 相关入、出端口对本次事务的原始 TLP 连续记录，含端口方向、时间关联、包头和有效载荷。通过条件为只有记录显示两个不同 Request 的独立 Completion 进入该 Switch，且其数据被合入该 Switch 发出的同一个 Completion TLP，才签发 Switch 违规合并。若合并在入端已存在，不能归因于该 Switch。任一侧缺失或无法关联时维持待验。",
+          "seconds": 26.38,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓归因，区分 UI 聚合与线级合并，并要求以原始 TLP 和事务数据关联确定合并及其发生位置。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.523,
+            "draft": 0,
+            "review": 25.845,
+            "other": 0.01
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 179
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 180
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 169
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 168
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 93
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 92
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 154
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-10",
+          "status": "completed",
+          "answer": "**处置** 当前脚本不予验收。A 应归档为 Malformed TLP，B 应归档为 Unsupported Request（UR）。脚本修正后待复验。\n\n**判定条件**\n- FetchAdd 的架构 Length 仅有 1 DW（32 位）和 2 DW（64 位）。3 DW 是非架构值。PCIe 5.0 PDF 文件第 128 页，表 2-12。\n- 支持识别 AtomicOp 的完成端必须将非架构 Length 作为 Malformed TLP 处理，因此 A 应归入该类。PCIe 5.0 PDF 文件第 602 页，§6.15.2。\n- 格式正确但操作类型或操作数宽度不受支持的 AtomicOp 必须按 UR 处理。B 的 2 DW 合法且自然对齐，但该完成端只支持 32 位 FetchAdd。若请求另有错误，须按适用错误规则判定。PCIe 5.0 PDF 文件第 128、602 页。\n\n**现场验收**\n- **隔离试验 A 的接收端错误分类和脚本归档**。记录为A 的原始请求 TLP、同次注入对应的接收端错误记录及脚本归档。通过条件为请求为 FetchAdd 且 Length=3 DW，接收端错误记录与脚本归档均为 Malformed TLP。\n- **隔离试验 B 的完成状态和脚本归档**。记录为B 的原始请求与对应 Completion、当次接收端 FetchAdd 宽度配置或能力记录及脚本归档。通过条件为请求为 FetchAdd 且 Length=2 DW，地址按 8 字节自然对齐，其余字段合法，接收端当次仅支持 32 位 FetchAdd，Completion Status 和脚本归档均为 UR。",
+          "seconds": 14.71,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确区分非法架构长度与合法但不支持的宽度，并要求逐例核对请求、接收端能力和对应结果。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.232,
+            "draft": 0,
+            "review": 14.465,
+            "other": 0.017
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F11-09",
+          "status": "completed",
+          "answer": "**处置** 当前待验。静置 5 秒后采样 10 秒不符合 Identify IDLP 的测量定义，本次均值不能用于签发。须按定义重测，再与工单的工程目标比较。\n\n**判定条件**\n- IDLP 表示 NVM 子系统在对应电源状态下的典型空闲功耗。子系统连续空闲满 10 秒后开始测量，测量窗口为 30 秒（NVMe 2.1 PDF 第 557 页）。\n- 预静置期和采样期均须保持空闲，包括无待处理命令、属性访问、后台进程或设备自检。规范中的 10 秒有功功耗窗口适用于 ACTP（NVMe 2.1 PDF 第 557 页）。\n- 题面已读回非零 IDLP 和 IPS。换算时，IPS 01b 为 0.0001 W，10b 为 0.01 W，00b 表示该电源状态未报告，11b 为保留值（NVMe 2.1 PDF 第 352 页）。\n- 工单另要求实测值满足工程目标。题面未给出目标值或比较判据，须以工单记录为准。\n\n**现场验收**\n- **本次重测的 NVM 子系统、对应电源状态和空闲时序**。记录为同一轮测试的电源状态记录、命令及属性访问记录、后台进程和设备自检记录，以及空闲起点和采样起止时间戳。通过条件为确认子系统在对应电源状态下连续空闲满 10 秒时开始采样，随后连续采样 30 秒，预静置和采样期间均保持空闲。\n- **对应电源状态的 Identify IDLP 报告值**。记录为本次受测控制器的 Identify Controller 电源状态描述符原始 IDLP 和 IPS 字段。通过条件为对应描述符的 IDLP 非零，IPS 为 01b 或 10b，并按该比例换算为瓦特。\n- **合规窗口内的实测平均功耗和工程目标**。记录为同一 30 秒窗口的原始功率采样、平均值计算记录及工单规定的目标和比较判据。通过条件为原始采样可复算出 30 秒平均功耗，且该平均值按工单判据满足工程目标。",
+          "seconds": 19.22,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "拒绝现有窗口，给出先空闲 10 秒再测 30 秒、正确使用 scale 及按工单目标验收的条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.217,
+            "draft": 0,
+            "review": 18.99,
+            "other": 0.008
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F11-03",
+          "status": "completed",
+          "answer": "**处置** 暂缓执行生产机 MSI-X 地址替换。当前缺少生产变更批准，生产 Function 对应表项及版本待复核。实验签字和发包记录仅覆盖实验机本次操作。\n\n**判定条件**\n- 生产放行须同时取得生产发布流程指定审批方的批准，并复核目标生产 Function、MSI-X 表项和版本。两项均为发布单要求。\n- 修改 Message Address 或 Message Data 时，目标表项须保持有效掩蔽。可设置该表项的 Mask 位或所属 Function 的 Function Mask 位。在未掩蔽时修改，结果未定义。若要求阻断发往旧 Address/Data 对的消息，使用该对的所有表项均须掩蔽。PCIe 5.0 PDF 第 500–501 页。\n- 表项实际解掩时，Function 须更新该表项已缓存的 Address/Data。MSI-X 启用且目标表项解掩后，发送使用对应地址和完整 32 位 Message Data 的 DWORD Memory Write。PCIe 5.0 PDF 第 500–501 页。\n\n**现场验收**\n- **生产变更授权**。记录为生产发布单及其关联的生产变更审批记录。通过条件为生产发布流程指定审批方已批准本次地址替换，且批准范围覆盖目标生产 Function 和本次变更。\n- **生产 Function、MSI-X 表项和版本**。记录为执行前生产 Function 标识、MSI-X Table BIR 与 Table Offset、目标表项索引、生产版本记录及发布单。通过条件为现场记录定位到发布单指定的同一生产 Function 和目标表项，生产版本与发布单要求一致。\n- **获批后生产目标表项的改写过程**。记录为同一生产 Function 和表项的 Function Mask、Vector Control.Mask、Message Address Lower/Upper 及 Message Data 的带时序写入和读回记录。通过条件为目标表项在改写前已有效掩蔽，掩蔽持续到改写和读回完成，地址及数据读回与批准的新值一致。若发布单要求阻断旧地址和数据组合，使用该组合的所有表项均已掩蔽。\n- **获批后生产目标表项的实际发送路径**。记录为同一次生产变更的 MSI-X Enable、有效解掩时序、目标表项中断触发记录和关联的 PCIe 写事务捕获。通过条件为MSI-X 已启用，且在目标表项实际解掩后，捕获到可归属于该生产 Function 和表项的 DWORD Memory Write，其地址和完整 32 位有效载荷均命中批准的新值。",
+          "seconds": 26.64,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓生产操作，明确生产审批和目标复核门槛，并给出有效掩蔽、读回及发包验收条件。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.325,
+            "draft": 0,
+            "review": 26.3,
+            "other": 0.01
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 500
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 501
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-11",
+          "status": "completed",
+          "answer": "**处置** 待验。现有日志不足以签发该次 NVMe 重试严格遵守 200 ms CRD 等待的结论。\n\n**判定条件**\n- 同一控制器同期 ACRE=1，目标失败 CQE 的 DNR=0、CRD=10b，因此选用 CRDT2，按 100 ms 为单位解析为 200 ms。CRD=00b 时可立即重试。DNR=1 或 ACRE=0 时，CRD 字段保留。（NVMe 2.1 PDF 第 162、328 页）\n- 规范建议主机等足所选时长再重试，并明确提前重试不构成协议错误。本工单另以收到失败 CQE 后至少等待 200 ms 为签发条件。（NVMe 2.1 PDF 第 162 页）\n- 现有 240 ms 是原提交至重提的总间隔。目标失败 CQE 的收到时标缺失，无法确认其中有多少时间是收到 CQE 后的等待。\n\n**现场验收**\n- **同一控制器上该次原命令从收到失败 CQE 到重提的间隔**。记录为可关联到同一次原命令及其重提的同期原始追踪记录，包含主机收到目标失败 CQE 的时标和重提交时标，两者须使用同一或可校准的时间基准。通过条件为确认两条记录对应本次失败及其重试，且重提交时标减去失败 CQE 收到时标至少为 200 ms。低于 200 ms 则本工单不通过，缺少可关联记录则继续待验。",
+          "seconds": 13.33,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "正确暂缓签发，区分规范建议与工单门槛，并要求核对同次 CQE 收到至重提的间隔。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.262,
+            "draft": 0,
+            "review": 13.06,
+            "other": 0.008
+          },
+          "readPages": []
+        },
+        {
+          "caseId": "SSD-F11-01",
+          "status": "completed",
+          "answer": "**处置** r8 暂缓签发，待应用负责人批准当前 SSD 端口实际部署的 r8 映射。现有同轮实测已证明两路请求命中 r8 的预定资源。\n\n**判定条件**\n- 发布单要求应用负责人批准实际部署的版本。现有确认仅覆盖 r7。r8 沿用相同短 Steering Tag，但资源映射已变更，仍需明确批准 r8。\n- PCIe 5.0 v1.0 PDF 文件第 131、133 页规定，基线 TPH 在请求头携带 ST[7:0]，可选 TPH TLP Prefix 承载 ST[15:8]，全零短标签表示无 Steering Tag 偏好。\n- PCIe 5.0 v1.0 PDF 文件第 607、608、789 页规定，ST Table 的位置由能力字段指示。合并到 MSI-X Table 时，ST Lower 位于 Vector Control[23:16]，ST Upper[31:24] 还要求 Extended TPH Requester Supported 置位。中断向量模式按有效向量选表项，ST Table 小于已启用向量范围时允许省略 TPH、使用 ST 0 或按实现定义方式选表项。\n\n**现场验收**\n- **当前 SSD 端口实际启用的 r8 及应用负责人批准**。记录为平台端口映射激活记录、r8 映射定义和发布单中的应用负责人批准记录。通过条件为当前端口启用 r8，应用负责人明确批准该端口实际部署的同一份 r8 资源映射。\n- **同一端口和同一轮 r8 测试中两路请求的短 Steering Tag 与实际资源落点**。记录为测试轮次与 r8 激活记录、逐流 TLP 的 ST[7:0]、逐流实际资源命中记录及 r8 预期资源表。通过条件为两路请求均可从同轮 TLP 关联到各自的实际资源，且逐流命中获批 r8 所定义的预定资源。",
+          "seconds": 25.57,
+          "toolCalls": 4,
+          "review": {
+            "usability": "ready",
+            "reason": "正确暂缓签发，要求负责人批准实际部署的 r8，并核对同一端口、同一轮两路请求的资源落点。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.413,
+            "draft": 0,
+            "review": 25.147,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 133
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 134
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 82
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 81
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 131
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-06",
+          "status": "completed",
+          "answer": "**处置** 待验。两条有效 CQE 已关联到同一次 fused 提交，但缺少适用 I/O Command Set 的版本及该序列的状态规则，当前不能签发状态组合符合。\n\n**判定条件**\n- NVMe Base 2.1 PDF 文件页 121、160：控制器为两条命令各发布一条 CQE，PCIe 队列模型下用 SQID 和 CID 关联完成项。现场记录已确认两条完成项属于本轮提交。\n- NVMe Base 2.1 PDF 文件页 120：次命令自身失败时，首命令的完成状态由适用 I/O Command Set 规范的 Fused Operation 小节针对该序列定义。若首命令先失败，则次命令必须被中止。现场记录确认本轮适用次命令自身失败的分支。\n\n**现场验收**\n- **本轮 fused 命令序列适用的 I/O Command Set 及版本**。记录为本轮命令的原始 SQE、同期命令集配置和版本记录，以及该版本 Fused Operation 小节的原文及 PDF 文件页。通过条件为确认命令集、版本和首尾操作码对应同一规范序列，并取得适用于次命令自身失败的状态条款。\n- **本轮首、次命令的 SCT/SC 组合**。记录为按本轮提交编号及各自 SQID/CID 关联的两条原始 CQE 中的 SCT/SC，以及适用序列条款和其引用的状态定义。通过条件为次命令的 SCT/SC 符合该序列及本次失败条件下适用的状态定义，首命令的 SCT/SC 符合该序列对次命令失败规定的完成状态。",
+          "seconds": 14.08,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "暂不签合规，保留并关联两条原始状态；要求按同次命令集版本、操作码及序列规则核对状态组合。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.184,
+            "draft": 0,
+            "review": 13.89,
+            "other": 0.009
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 120
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 121
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 160
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-04",
+          "status": "completed",
+          "answer": "**处置** 暂缓签发，当前不得写 CC.MPS。原批准窗口已结束 15 分钟，续批待验。\n\n**判定条件**\n- 工单仅允许在获准窗口内写入该控制器，实际写入时刻须由有效续批覆盖。\n- CC.MPS 仅可在 CC.EN=0 时修改，且设定值须在 CAP.MPSMIN 至 CAP.MPSMAX 范围内。该控制器报告范围为 0 至 1，拟写入的 1 在范围内。NVM Express Base 2.1，PDF 第 75、80 页。\n- CC.MPS=1 对应 8 KiB，并决定 PRP 条目采用的页大小。Discovery 控制器的 CC.MPS 必须为 0，本次对象为非 Discovery 控制器。NVM Express Base 2.1，PDF 第 80 页。\n\n**现场验收**\n- **本次控制器写入授权**。记录为续批记录中的控制器标识、批准操作、窗口起止时间及写入日志时间戳。通过条件为续批明确覆盖该控制器的 CC.MPS 变更，且实际写入时刻落在批准窗口内。\n- **同一控制器在本次写入时的技术条件**。记录为控制器类型记录、写入前的 CC.EN 与 CAP.MPSMIN/MPSMAX 读回、拟写入值及本次 PRP 配置记录。通过条件为确认是非 Discovery 控制器，写入时 CC.EN=0，CAP 范围包含 1，且待用 PRP 按 8 KiB 页大小准备。",
+          "seconds": 18.55,
+          "toolCalls": 3,
+          "review": {
+            "usability": "ready",
+            "reason": "正确暂缓当前写入，说明技术条件与授权窗口，并要求续批覆盖同一控制器的实际写入，同时核对现场读数和 PRP 配置。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.433,
+            "draft": 0,
+            "review": 18.109,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 80
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 81
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 75
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-08",
+          "status": "completed",
+          "answer": "**处置** 通过，签发本工单。两条 Memory Write 均发出了合同要求的普通 8 位 Steering Tag，未携带 TPH TLP Prefix 符合规范。\n\n**判定条件**\n- 面向 Memory Space 的请求提供 TPH 时必须置 TH=1，并使用 Baseline TPH 格式。TPH TLP Prefix 是可选扩展，用于承载 ST[15:8]。见 PCIe 5.0 PDF 文件第 131 页。\n- Memory Write 的 ST[7:0] 由 TLP 头部 Byte 6 的 bits [7:0] 承载。见 PCIe 5.0 PDF 文件第 133 页。\n- 合同范围仅为这两条请求发出的普通 tag。题面确认 Requester 已使能普通 TPH、链路接收方支持，且同一 Function 的同期抓包与应用确认值逐条吻合。\n\n**现场验收**\n- **同一 Function 的两条测试请求及其对应的出站 Memory Write**。记录为应用逐请求确认的 tag 与同期原始 TLP 抓包中的 Function、请求对应关系、TH、头部 Byte 6 的 bits [7:0] 和 TPH TLP Prefix 有无。通过条件为两条 Memory Write 均与应用请求逐条对应，TH 均为 1，ST[7:0] 分别为 0x2C 和 0x3D。两条均未携带 TPH TLP Prefix，符合本次普通 TPH 验收。",
+          "seconds": 21.81,
+          "toolCalls": 5,
+          "review": {
+            "usability": "ready",
+            "reason": "按普通 TPH 发包范围通过，正确区分普通 tag 与扩展前缀，并逐条对应应用值和抓包。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.375,
+            "draft": 0,
+            "review": 21.431,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 607
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 608
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 789
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 133
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 134
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 131
+            },
+            {
+              "source": "PCI Express Base Specification Revision 5.0 Version 1.0",
+              "page": 132
+            }
+          ]
+        },
+        {
+          "caseId": "SSD-F11-05",
+          "status": "completed",
+          "answer": "**处置** 待验。CQ6 的 EventIdx=5 不能用于判定 CQ5 漏写 Head Doorbell。当前缺少 CQ5 本次更新所用的 EventIdx，且现有日志只表明未观察到写入。\n\n**判定条件**\n- NVMe Base 2.1 PDF 文件第 445–446 页，图 486 规定 Shadow Doorbell 和 EventIdx 按队列及门铃类型一一对应，CQ5 Head 应使用 CQ5 自己的 EventIdx 条目。\n- NVMe Base 2.1 PDF 文件第 702 页，计入队列回绕后，若 Shadow 值从小于或等于对应 EventIdx 变为大于它，主机必须将对应实际门铃更新为新值。本次无回绕，只有 3 ≤ CQ5 EventIdx < 7 才触发写入义务，门铃应写 7。\n- NVMe Base 2.1 PDF 文件第 702 页允许控制器随时更新 EventIdx，因此历史判定须有 CQ5 在本次比较时的读值，或能连续覆盖该比较时点并确定有效值的记录。\n\n**现场验收**\n- **同次成功配置下 CQ5 Shadow Head 从 3 更新到 7 时用于比较的 EventIdx**。记录为PRP2 对应 EventIdx 缓冲区中偏移 11 × (4 << CAP.DSTRD) 的 CQ5 Head 条目，读取本次主机比较的原始读值及时间，或读取覆盖比较时点的连续记录。通过条件为确认条目和时点后，值为 3 至 6 则必须核验实际门铃写入，其他值可签本次更新未触发该条款的写入义务。无法确定有效值则待验。\n- **触发写入义务时的实际 CQ5 Head Doorbell 写入**。记录为同一控制器上覆盖本次更新及其对应门铃操作的 MMIO 记录，核对采集覆盖范围、写入地址及数据。通过条件为记录显示对 CQ5 Head Doorbell 写入 7 则通过。完整记录证实应写而未写才签漏写，观察到写入错误值则签写入不符，覆盖不足则待验。",
+          "seconds": 16.41,
+          "toolCalls": 2,
+          "review": {
+            "usability": "ready",
+            "reason": "暂缓漏写判定，使用 CQ5 同期 EventIdx 的正确跨越门槛，并要求核对对应门铃写入及记录覆盖范围。",
+            "otherError": "",
+            "credits": {
+              "C1": 1,
+              "C2": 1,
+              "C3": 1
+            },
+            "rejectHits": [],
+            "score": 100.0,
+            "passed": true
+          },
+          "phaseSeconds": {
+            "retrieval": 0.17,
+            "draft": 0,
+            "review": 16.235,
+            "other": 0.008
+          },
+          "readPages": [
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 445
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 446
+            },
+            {
+              "source": "NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+              "page": 702
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "conditionMetric": {
+    "criterionId": "C2",
+    "label": "处置条件完整 / 计划"
+  },
+  "acceptanceMetric": {
+    "criterionId": "C3",
+    "label": "验收可执行 / 计划"
+  },
+  "latencyMetric": {
+    "label": "交卷耗时中位数",
+    "stages": {
+      "retrieval": "检索",
+      "draft": "独立起草",
+      "review": "签发",
+      "other": "其他"
+    }
+  },
+  "blindContext": {
+    "spec": "PCI Express Base Specification Revision 5.0 Version 1.0 / NVM Express Base Specification, Revision 2.1 (2024-08-05)",
+    "protocol": "both",
+    "observationHeading": "现场观测"
+  }
+}

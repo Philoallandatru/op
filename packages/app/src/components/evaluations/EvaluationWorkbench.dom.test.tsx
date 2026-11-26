@@ -1,8 +1,11 @@
+import { i18n } from '@lingui/core';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import type { EvaluationReport, EvaluationResult } from '@/lib/agent-evaluation-report';
 import { EvaluationWorkbench } from './EvaluationWorkbench';
+
+i18n.loadAndActivate({ locale: 'en', messages: {} });
 
 const state = vi.hoisted(() => ({ scope: 'project-a' as string | null }));
 vi.mock('@/lib/use-workspace', () => ({
@@ -103,11 +106,28 @@ describe('agent evaluation workbench', () => {
     state.scope = 'ssd-example';
     mount();
     fireEvent.click(screen.getByRole('button', { name: 'Open SSD example' }));
-    await screen.findByText('核对结果与处置分支 · 12 道新现场工单');
+    await screen.findByText('现场验收记录与同题耗时 · 第十六轮 16 道独立新题');
     const table = within(screen.getByRole('table', { name: 'Run metrics' }));
-    expect(table.getByRole('row', { name: /上一版现场 skill/ }).textContent).toContain('1 / 12');
-    expect(table.getByRole('row', { name: /逐项处置核查/ }).textContent).toContain('2 / 12');
-    expect(screen.getByText(/SSD-F3-05 · wear-field-range/)).toBeTruthy();
+    const baseline = within(
+      table.getByRole('row', { name: /第九轮 · 核对边界与验收记录/ }),
+    ).getAllByRole('cell');
+    const candidate = within(
+      table.getByRole('row', { name: /第十六轮 · 同次验收证据/ }),
+    ).getAllByRole('cell');
+    expect(table.getByRole('columnheader', { name: '验收可执行 / 计划' })).toBeTruthy();
+    expect(baseline[0]?.textContent).toContain('14 / 16');
+    expect(baseline[1]?.textContent).toContain('0 / 15');
+    expect(baseline[4]?.textContent).toContain('15 / 16');
+    expect(baseline[5]?.textContent).toContain('14 / 16');
+    expect(baseline[6]?.querySelector('strong')?.textContent).toBe('14.12 sec');
+    expect(candidate[0]?.textContent).toContain('16 / 16');
+    expect(candidate[1]?.textContent).toContain('0 / 16');
+    expect(candidate[4]?.textContent).toContain('16 / 16');
+    expect(candidate[5]?.textContent).toContain('16 / 16');
+    expect(candidate[6]?.querySelector('strong')?.textContent).toBe('12.805 sec');
+    expect(
+      screen.getByText(/SSD-F16-09 · pcie-st-device-specific-proof-same-tag-not-msix-source/),
+    ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Export blind questions' })).toBeTruthy();
   });
 
@@ -153,6 +173,110 @@ describe('agent evaluation workbench', () => {
     fireEvent.click(await screen.findByRole('option', { name: /Has the job finished/ }));
     expect(screen.getByText('Not planned')).toBeTruthy();
     expect(screen.getByText('Pending run')).toBeTruthy();
+  });
+
+  it('reports full condition credit against the plan and waits for unfinished grades', async () => {
+    state.scope = 'condition-metric';
+    mount();
+    upload(
+      JSON.stringify({
+        ...report,
+        conditionMetric: { criterionId: 'c1', label: 'Conditions complete / planned' },
+      }),
+    );
+    await screen.findByText('Test observations');
+    const table = within(screen.getByRole('table', { name: 'Run metrics' }));
+    expect(table.getByRole('columnheader', { name: 'Conditions complete / planned' })).toBeTruthy();
+    const summary = (name: string) =>
+      within(table.getByRole('row', { name: new RegExp(name) })).getAllByRole('cell')[4]
+        ?.textContent;
+    expect(summary('Standard')).toBe('0%0 / 1');
+    expect(summary('Trace')).toBe('—1 / 2');
+    expect(summary('Checklist')).toBe('100%1 / 1');
+  });
+
+  it('compares the latency of delivered answers and keeps timeouts out of the median', async () => {
+    state.scope = 'latency-metric';
+    mount();
+    upload(
+      JSON.stringify({
+        ...report,
+        latencyMetric: {
+          label: 'Median delivery time',
+          stages: { retrieval: 'Retrieval', draft: 'Drafting', review: 'Sign-off', other: 'Other' },
+        },
+        rounds: [
+          {
+            ...report.rounds[0],
+            results: [
+              {
+                ...result(true),
+                phaseSeconds: { retrieval: 0.25, draft: 0, review: 1.7, other: 0.05 },
+              },
+              { ...pending, status: 'incomplete', seconds: 120 },
+            ],
+          },
+        ],
+      }),
+    );
+    await screen.findByText('Test observations');
+    const table = within(screen.getByRole('table', { name: 'Run metrics' }));
+    expect(table.getByRole('columnheader', { name: 'Median delivery time' })).toBeTruthy();
+    const measured = within(table.getByRole('row', { name: /Standard/ })).getAllByRole('cell')[4];
+    expect(measured?.querySelector('strong')?.textContent).toBe('2 sec');
+    expect(measured?.textContent).toContain('Drafting 0 sec');
+    expect(measured?.textContent).toContain('Sign-off 1.7 sec');
+  });
+
+  it('charts same-question changes, opens case evidence from a row, and shows the iteration record', async () => {
+    state.scope = 'latency-history';
+    const timed = (caseId: string, seconds: number) => ({
+      ...result(true),
+      caseId,
+      seconds,
+      phaseSeconds: { retrieval: 0.25, draft: 0, review: seconds - 0.25, other: 0 },
+    });
+    const counts = { planned: 2, completed: 2, ready: 2, misleading: 0 };
+    mount();
+    upload(
+      JSON.stringify({
+        ...report,
+        latencyMetric: {
+          label: 'Median delivery time',
+          stages: { retrieval: 'Retrieval', draft: 'Drafting', review: 'Sign-off', other: 'Other' },
+        },
+        pairedLatencyLimit: 2.5,
+        iterationHistory: [
+          {
+            id: 'concise',
+            title: 'First concise run',
+            method: 'Deduplicate rules',
+            progress: 'Replayed the paired runs',
+            next: 'Check approvals',
+            baseline: counts,
+            candidate: counts,
+            timedPairs: 2,
+            medianDelta: 1,
+          },
+        ],
+        rounds: [
+          { ...report.rounds[0], results: [timed('q1', 2), timed('q2', 2)] },
+          { ...report.rounds[2], results: [timed('q1', 5), timed('q2', 1)] },
+        ],
+      }),
+    );
+    const chart = within(await screen.findByRole('figure', { name: 'Paired latency' }));
+    expect(chart.getByText('+1 sec')).toBeTruthy();
+    expect(chart.getByText('Limit +2.5 sec')).toBeTruthy();
+    expect(screen.getByRole('figure', { name: 'Time by stage' })).toBeTruthy();
+    fireEvent.click(chart.getByRole('button', { name: /^q2/ }));
+    expect(chart.getByRole('button', { name: /^q2/ }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('combobox', { name: 'Question' }).textContent).toContain(
+      'Has the job finished?',
+    );
+    fireEvent.click(screen.getByText('Iteration history'));
+    expect(screen.getByText('Deduplicate rules')).toBeTruthy();
+    expect(screen.getByText('Check approvals')).toBeTruthy();
   });
 
   it('copies the original follow-up text with the initial observation and the new measurement', async () => {

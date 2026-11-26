@@ -1,0 +1,10 @@
+{
+  "title": "现场验收证据 · 第十轮 16 道留出题",
+  "conditionMetric": {"criterionId": "C2", "label": "处置条件完整 / 计划"},
+  "acceptanceMetric": {"criterionId": "C3", "label": "验收可执行 / 计划"},
+  "latencyMetric": {"label": "交卷耗时中位数", "stages": {"retrieval": "检索", "draft": "独立起草", "review": "签发", "other": "其他"}},
+  "rounds": [
+    {"id": "baseline", "label": "第九轮 · 核对边界与验收记录", "config": "Codex Sol · 单次核验签发 · 双规范同一语料 · 120 秒 · 8 次取证含预取", "plan": "questions.jsonl", "reviews": "baseline-reviewed.jsonl"},
+    {"id": "candidate", "label": "第十轮 · 现场记录和通过标准", "config": "同一模型、语料和预算 · 同次预取改址与发送规则 · 按对象、记录、通过条件输出验收行", "plan": "questions.jsonl", "reviews": "candidate-reviewed.jsonl"}
+  ]
+}

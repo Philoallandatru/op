@@ -1,0 +1,66 @@
+{
+  "questions_sha256": "c3800de859bb75254164070e68d21499af9397a9c5e4462736da30947fa0a38b",
+  "bank_sha256": "921de4d6434fd512391b7d7adbf49b988ee34534142b3ebb150748e8197e6de1",
+  "code": {
+    "pi_trial.py": "5907cfa723e13d90f2f47abc075799b1b95e2808a6b173e5f0e65ccf39e5959a",
+    "retrieval_trial.py": "ac3b32a7449ecc630e620a935811be1699553c8674e609f026c439786c32c555",
+    "evidence_mcp.py": "5092e2beb7ed8cbdd70877a47ee97ff4dc9a44b55e1166daa92425524a81297b",
+    "skills/outcomes/ssd-field-decisions/SKILL.md": "6ea653bf70991fdf8bf5e0ec35ea40738ebed1c17e2e338fbe71606ebae06178",
+    "skills/decision/ssd-field-decisions/SKILL.md": "324a235864d7bff2ea62761bc45eb0f99084c432f166e7ca461bf675ef6697f3"
+  },
+  "source_pdfs": {
+    "nvme": "4e31f826dd7ceaee311f93b74eef5c05ac32afe4ef45436534dfcfd6a40dc746",
+    "pcie": "b863834e2ecd4240d033299f4d782478b870076ff84e9e6826e37ec495c5d004"
+  },
+  "validation": {
+    "scenarios": 12,
+    "criteria": 36,
+    "anchors": {
+      "nvme": 13,
+      "pcie": 12
+    },
+    "verified_pdfs": [
+      "nvme",
+      "pcie"
+    ]
+  },
+  "old_case_count": 74,
+  "old_family_count": 60,
+  "order_seed": "ssd-field-usable-v4-paired",
+  "baseline_first_ids": [
+    "SSD-F4-12",
+    "SSD-F4-05",
+    "SSD-F4-09",
+    "SSD-F4-07",
+    "SSD-F4-10",
+    "SSD-F4-04"
+  ],
+  "configuration": {
+    "provider": "magpie",
+    "model": "auto/deepseek-v4.1-flash",
+    "mode": "domain",
+    "calls": 8,
+    "timeout": 120,
+    "answer-style": "decision-audit"
+  },
+  "prefetch": true,
+  "thinking": "off",
+  "arms": {
+    "baseline": "outcomes",
+    "candidate": "decision"
+  },
+  "grading": {
+    "raters": [
+      "codex/gpt-6.2-sol",
+      "google/models/gemini-3.8-flash"
+    ],
+    "adjudicator": "codex/gpt-6.2-astra",
+    "mask": "random edit-free sheets, no arm, one answer per case per batch"
+  },
+  "metrics": [
+    "ready/planned",
+    "misleading/completed",
+    "misleading/planned",
+    "misleading on both-completed pairs"
+  ]
+}
